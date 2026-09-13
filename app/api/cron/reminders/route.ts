@@ -2,6 +2,27 @@ import { NextResponse } from 'next/server';
 import { createServiceClient } from '../../../../lib/supabase/serviceClient';
 import { emailTransporter, verifyEmailTransporter } from '../../../../lib/utils/email';
 
+// Helper to retry transient Supabase errors
+async function withRetry<T extends { error: unknown }>(queryBuilderFn: () => PromiseLike<T>): Promise<T> {
+  let result = await queryBuilderFn();
+  const err = result.error as { message?: unknown } | null;
+  if (err && typeof err.message === 'string') {
+    const msg = err.message.toLowerCase();
+    if (msg.includes('timeout') || msg.includes('gateway') || msg.includes('fetch failed') || msg.includes('network')) {
+      console.warn(`Transient error detected ("${err.message}"), retrying in 500ms...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      result = await queryBuilderFn();
+      const retryErr = result.error as { message?: unknown } | null;
+      if (retryErr) {
+        console.error(`Retry failed with error: ${retryErr.message}`);
+      } else {
+        console.log(`Retry succeeded.`);
+      }
+    }
+  }
+  return result;
+}
+
 export async function GET(req: Request) {
   try {
     const getBaseUrl = () => {
@@ -34,7 +55,7 @@ export async function GET(req: Request) {
 
     // Fetch applications where reminders are enabled and not yet sent.
     // Note: We don't filter by next_action_date = today here because 'today' depends on the user's timezone.
-    const { data: applications, error } = await supabase
+    const { data: applications, error } = await withRetry(() => supabase
       .from('applications')
       .select(`
         id,
@@ -47,7 +68,7 @@ export async function GET(req: Request) {
       `)
       .eq('reminder_enabled', true)
       .eq('next_action_reminder_sent', false)
-      .not('next_action_date', 'is', null);
+      .not('next_action_date', 'is', null));
 
     if (error) {
       console.error('Error fetching applications for reminders:', error);
@@ -60,10 +81,10 @@ export async function GET(req: Request) {
 
     // Fetch user profiles to personalize the greeting and get timezone preferences
     const userIds = [...new Set(applications.map((app) => app.user_id))];
-    const { data: profiles } = await supabase
+    const { data: profiles } = await withRetry(() => supabase
       .from('profiles')
       .select('id, full_name, reminder_timezone, reminder_send_time')
-      .in('id', userIds);
+      .in('id', userIds));
       
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
@@ -106,12 +127,12 @@ export async function GET(req: Request) {
       if (localDate === app.next_action_date && localTime >= sendTime) {
         
         // Atomic check-and-set: prevent race conditions from duplicate scheduler invocations
-        const { data: updateData, error: updateError } = await supabase
+        const { data: updateData, error: updateError } = await withRetry(() => supabase
           .from('applications')
           .update({ next_action_reminder_sent: true })
           .eq('id', app.id)
           .eq('next_action_reminder_sent', false)
-          .select('id');
+          .select('id'));
           
         if (updateError || !updateData || updateData.length === 0) {
           console.log(`Skipping app ${app.id} - already sent or error acquiring lock`);
@@ -167,7 +188,7 @@ export async function GET(req: Request) {
             console.error(`Failed to send email to ${email} for app ${app.id}: rejected by server`);
             failedSends.push({ id: app.id, error: 'Rejected by server' });
             // Rollback the lock so it can be retried
-            await supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id);
+            await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id));
           } else {
             console.log(`Successfully sent email to ${email} for app ${app.id} (MessageId: ${info.messageId})`);
             successfulSends.push(app.id);
@@ -176,7 +197,7 @@ export async function GET(req: Request) {
           console.error(`Exception sending email for app ${app.id}:`, e);
           failedSends.push({ id: app.id, error: (e as Error).message });
           // Rollback the lock so it can be retried
-          await supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id);
+          await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id));
         }
       }
     }
