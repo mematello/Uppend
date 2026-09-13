@@ -1,6 +1,6 @@
 # Uppend
 
-**Try it live:** [https://mkro-applyflow.vercel.app](https://mkro-applyflow.vercel.app)
+**Try it live:** [https://mkro-uppend.vercel.app](https://mkro-uppend.vercel.app)
 
 AI-powered job application tracker that turns a pasted job posting into a structured, trackable application — complete with an AI-generated fit assessment against your resume.
 
