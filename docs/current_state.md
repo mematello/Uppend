@@ -7,7 +7,7 @@ decisions.md instead. Replaces the handoff_context_sessionN.md chain.
 See architecture.md / decisions.md / schema.md / changelog.md for
 anything not called out below as recently changed.*
 
-*Last updated: 2026-09-10 (Session 15)*
+*Last updated: 2026-09-13 (Session 16)*
 
 ## 1. Confirmed working / shipped
 
@@ -17,8 +17,10 @@ anything not called out below as recently changed.*
 
 ## 2. Open / blocking
 
-- **Post-Account-Deletion UX Bug:** Browser back-navigation can restore a stale bfcache'd settings page that shows a false "Saved!" toast on an unauthorized request (server-side protection holds, but client feedback is misleading). Needs investigation and a dedicated fix branch (e.g., `fix/post-delete-session-and-local-merge`).
-- **Silent Local-Data Merge on Auth:** `/migrate` runs unconditionally after any successful magic-link auth (login or signup), silently merging local IndexedDB data into the authenticated account without a confirmation prompt. Needs investigation and fix alongside the bug above.
+- **Branch `fix/post-delete-session-and-local-merge`**: implementation complete for both issues (bfcache pageshow re-validation in SettingsClient.tsx; intent-threaded /migrate confirmation prompt with 3-way decline handling in migrate/page.tsx, login/page.tsx, signup/page.tsx, auth/callback/route.ts). Verified via real git diff and real npm run build (clean compile, no new warnings, /api/extract and /api/match confirmed untouched via diff).
+- **IMPORTANT**: Real-device verification (bfcache repro, all three prompt buttons on both signup/login, IndexedDB state after each, iOS Safari specifically) has NOT been confirmed as completed. Do not mark this branch as merged or fully verified — it remains blocking pending that pass.
+- **Two minor non-blocking observations carried over**: (1) bfcache redirect's `?message=Session+expired` param may not be read/displayed by login/page.tsx — cosmetic; (2) checkLocalData catch block in migrate/page.tsx now redirects silently on local-data-read failure with no error message shown — narrow failure case, low stakes.
+- **Cron reminders failing in production**: `/api/cron/reminders` has failed consistently with 500 Internal Server Error per cron-job.org notifications, recurring across at least 09/11 and 09/13/2026. Not yet investigated. Needs root-cause investigation before anything else touches that route.
 - **Shared DB Environment Gap:** Testing branches currently risks polluting production data. We need to formalize separated environments (e.g., local mock or staging database).
 - **Legal Pages:** `/terms` and `/privacy` are still draft-pending lawyer review. Discretionary, user's call on launch timing.
 - **AGENTS.md Outdated Context:** The "Project Context" section of `AGENTS.md` still reads "ApplyFlow is an AI-powered job application tracker...". This was intentionally skipped during the rebrand but needs a manual update.
@@ -31,3 +33,6 @@ anything not called out below as recently changed.*
 ## 4. Future plans (not yet scoped)
 
 - **Gamification:** application goals and related mechanics (e.g. streaks, targets, progress tracking) to motivate consistent job-search activity. Early-stage idea, not yet scoped or planned — flagged here for future discussion, not an active backlog item.
+- Quick access to an application's job link without opening the full detail page (e.g. right-click/context-menu shortcut on the dashboard table, or other UX alternatives) — idea stage, not yet scoped.
+- Dashboard table state persistence: retain sort column/direction and current page across navigation (e.g. viewing an application, visiting settings) for the duration of the browser session, resetting to default (sorted by latest application) on browser close. Not yet scoped.
+- Source field auto-detection from pasted job link URL, with user override remaining available. Not yet scoped.

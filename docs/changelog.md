@@ -1,5 +1,8 @@
 # Uppend — Changelog
 
+## [2026-09-13] (Session 16)
+- Implemented: Investigation and implementation of both bfcache and /migrate fixes on `fix/post-delete-session-and-local-merge`, evidence-verified via diff/build but explicitly not yet merged pending real-device testing.
+
 ## [2026-09-10] (Session 15)
 - Implemented: Rebranded "ApplyFlow" to "Uppend" across UI copy, metadata, legal pages, email display names, docs, and local storage keys, merged to main via a standard `--no-ff` merge commit from `rebrand/uppend` (branch left intact, not deleted).
 - Implemented: A one-time idempotent IndexedDB migration (`migrateLegacyDb()` in `lib/local/db.ts`) moving data from the legacy `applyflow_local` database to `uppend_local`, using `onupgradeneeded` presence-detection and a write-then-confirm-then-delete safety ordering with `put` for idempotency.

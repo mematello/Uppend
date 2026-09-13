@@ -1,5 +1,24 @@
 # Uppend — Decisions Log
 
+## [2026-09-13] Intent-Based Auth Threading
+- Context: Differentiating a login from a signup post-auth to determine the default UX for local data migration.
+- Decision: Explicit `intent=signup`/`intent=login` query param threaded through `emailRedirectTo` chosen over a `created_at`-freshness heuristic.
+- Reasoning: Freshness heuristic was rejected due to magic-link click delay making any time window unreliable.
+
+## [2026-09-13] Universal Local-Data Merge Prompt
+- Context: Deciding when to show the local-data merge confirmation prompt.
+- Decision: Always show the local-data merge confirmation prompt on both intents (not just login).
+- Reasoning: An earlier direction of skipping the prompt on signup was reconsidered and rejected, since a new signup on a shared device could otherwise silently inherit a previous guest's local data, the same class of risk the prompt exists to prevent.
+
+## [2026-09-13] Three-Way Decline Handling for Local Data
+- Context: Handling the user's choice to decline merging local data.
+- Decision: Implemented three-way decline handling ("Yes, add them" / "Skip for now" / "Not mine — delete it") over a single binary decline.
+- Reasoning: A single "No, delete" was rejected because it would destroy a returning user's own legitimate local data in the common login case; the two-option split separates "not now" from "not mine."
+
+## [2026-09-13] Intent-Based Visual Weighting for Prompts
+- Context: Styling the local-data merge prompt based on intent.
+- Decision: Primary-styled "Yes" on signup (expected common case per the product's Local-Mode-then-signup flow), equal weight across all three options on login (forces an unforced choice given higher stakes of an existing account absorbing stray data).
+
 ## [2026-09-10] Uppend Name Selection
 - Context: Rebranding the application.
 - Decision: Chose "Uppend" after investigating that "ApplyFlow" was already taken. Confirmed npm package name availability, no conflicting SaaS/consumer product found, informal search found no trademark conflict (formal USPTO clearance search not performed).
