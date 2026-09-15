@@ -38,6 +38,17 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
     }
   }, []);
 
+  useEffect(() => {
+    const savedSortField = sessionStorage.getItem('dashboard_sort_field');
+    if (savedSortField) setSortField(savedSortField);
+    
+    const savedSortAsc = sessionStorage.getItem('dashboard_sort_asc');
+    if (savedSortAsc) setSortAsc(savedSortAsc === 'true');
+    
+    const savedCurrentPage = sessionStorage.getItem('dashboard_current_page');
+    if (savedCurrentPage) setCurrentPage(Number(savedCurrentPage));
+  }, []);
+
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const size = Number(e.target.value);
     setPageSize(size);
@@ -99,10 +110,14 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
 
   const handleSort = (field: string) => {
     if (sortField === field) {
-      setSortAsc(!sortAsc); // toggle
+      const newSortAsc = !sortAsc;
+      setSortAsc(newSortAsc); // toggle
+      sessionStorage.setItem('dashboard_sort_asc', String(newSortAsc));
     } else {
       setSortField(field);
       setSortAsc(false); // default desc for new fields
+      sessionStorage.setItem('dashboard_sort_field', field);
+      sessionStorage.setItem('dashboard_sort_asc', 'false');
     }
   };
 
@@ -413,14 +428,22 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
               <span>Page {safeCurrentPage} of {totalPages}</span>
               <div className="flex gap-1">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  onClick={() => setCurrentPage(p => {
+                    const newPage = Math.max(1, p - 1);
+                    sessionStorage.setItem('dashboard_current_page', String(newPage));
+                    return newPage;
+                  })}
                   disabled={safeCurrentPage === 1}
                   className="px-3 py-1 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setCurrentPage(p => {
+                    const newPage = Math.min(totalPages, p + 1);
+                    sessionStorage.setItem('dashboard_current_page', String(newPage));
+                    return newPage;
+                  })}
                   disabled={safeCurrentPage === totalPages}
                   className="px-3 py-1 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
