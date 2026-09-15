@@ -18,3 +18,15 @@ export function matchSourceOption(rawSource: string | null): { option: string; f
   
   return { option: "Other", freeText: rawSource };
 }
+
+export function matchSourceFromUrl(url: string): string | null {
+  if (!url || !url.trim()) return null;
+  const lower = url.toLowerCase();
+  const domainMatch = SOURCE_OPTIONS.find(o =>
+    (o.value === "LinkedIn" || o.value === "Indeed" ||
+     o.value === "JobStreet" || o.value === "Facebook") &&
+    o.keywords.some(k => lower.includes(k))
+  );
+  if (domainMatch) return domainMatch.value;
+  return "Company Website";
+}

@@ -9,7 +9,7 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
 import { normalizeTitleCase, normalizeSalaryInput } from "../../../lib/utils/format";
-import { SOURCE_OPTIONS, matchSourceOption } from "../../../lib/constants";
+import { SOURCE_OPTIONS, matchSourceOption, matchSourceFromUrl } from "../../../lib/constants";
 import { useRef } from "react";
 import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarning";
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
@@ -436,6 +436,16 @@ export default function NewApplicationPage() {
     }
   };
 
+  const handleJobLinkPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (formData.source) return; // never overwrite an already-set source
+    const pasted = e.clipboardData.getData('text');
+    const matched = matchSourceFromUrl(pasted);
+    if (matched) {
+      setFormData(prev => ({ ...prev, source: matched }));
+      setAiSuggestedFields(prev => new Set(prev).add('source'));
+    }
+  };
+
   // Handlers for dynamic state
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setIsDirty(true);
@@ -680,11 +690,14 @@ export default function NewApplicationPage() {
                   </a>
                 )}
               </div>
-              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
+              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} onPaste={handleJobLinkPaste} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
+              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                Source
+                {aiSuggestedFields.has('source') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-blue-500 inline ml-1" /></span>}
+              </label>
               <select 
                 value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")} 
                 onChange={(e) => {
@@ -698,7 +711,7 @@ export default function NewApplicationPage() {
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100"
+                className={`w-full p-2 rounded-md bg-white dark:bg-zinc-900 border ${aiSuggestedFields.has('source') ? 'border-blue-400 dark:border-blue-500' : 'border-gray-300 dark:border-zinc-700'} focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100 transition-colors`}
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
