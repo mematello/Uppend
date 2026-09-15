@@ -2,28 +2,40 @@ import { NextResponse } from 'next/server';
 import { createServiceClient } from '../../../../lib/supabase/serviceClient';
 import { emailTransporter, verifyEmailTransporter } from '../../../../lib/utils/email';
 
+const RETRY_ELAPSED_BUDGET_MS = 5000; // Heuristic default pending real latency data, easily tunable
+
 // Helper to retry transient Supabase errors
-async function withRetry<T extends { error: unknown }>(queryBuilderFn: () => PromiseLike<T>): Promise<T> {
+async function withRetry<T extends { error: unknown }>(queryBuilderFn: () => PromiseLike<T>, startTime: number, budgetMs: number = RETRY_ELAPSED_BUDGET_MS): Promise<{ result: T; retried: boolean }> {
   let result = await queryBuilderFn();
+  let retried = false;
   const err = result.error as { message?: unknown } | null;
   if (err && typeof err.message === 'string') {
     const msg = err.message.toLowerCase();
     if (msg.includes('timeout') || msg.includes('gateway') || msg.includes('fetch failed') || msg.includes('network')) {
-      console.warn(`Transient error detected ("${err.message}"), retrying in 500ms...`);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      result = await queryBuilderFn();
-      const retryErr = result.error as { message?: unknown } | null;
-      if (retryErr) {
-        console.error(`Retry failed with error: ${retryErr.message}`);
+      const elapsed = Date.now() - startTime;
+      if (elapsed < budgetMs) {
+        console.warn(`Transient error detected ("${err.message}"), retrying in 500ms...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        result = await queryBuilderFn();
+        retried = true;
+        const retryErr = result.error as { message?: unknown } | null;
+        if (retryErr) {
+          console.error(`Retry failed with error: ${retryErr.message}`);
+        } else {
+          console.log(`Retry succeeded.`);
+        }
       } else {
-        console.log(`Retry succeeded.`);
+        console.warn(`Transient error detected ("${err.message}"), but skipping retry due to insufficient time budget (${elapsed}ms elapsed >= ${budgetMs}ms budget).`);
       }
     }
   }
-  return result;
+  return { result, retried };
 }
 
 export async function GET(req: Request) {
+  const handlerStart = Date.now();
+  let totalRetries = 0;
+
   try {
     const getBaseUrl = () => {
       if (process.env.APP_URL) {
@@ -50,12 +62,12 @@ export async function GET(req: Request) {
     // Verify SMTP connection before processing the batch
     const isSmtpReady = await verifyEmailTransporter();
     if (!isSmtpReady) {
-      return NextResponse.json({ error: 'SMTP connection failed' }, { status: 500 });
+      return NextResponse.json({ error: 'SMTP connection failed', elapsedMs: Date.now() - handlerStart }, { status: 500 });
     }
 
     // Fetch applications where reminders are enabled and not yet sent.
     // Note: We don't filter by next_action_date = today here because 'today' depends on the user's timezone.
-    const { data: applications, error } = await withRetry(() => supabase
+    const { result: appResult, retried: appRetried } = await withRetry(() => supabase
       .from('applications')
       .select(`
         id,
@@ -68,11 +80,14 @@ export async function GET(req: Request) {
       `)
       .eq('reminder_enabled', true)
       .eq('next_action_reminder_sent', false)
-      .not('next_action_date', 'is', null));
+      .not('next_action_date', 'is', null), handlerStart);
+
+    if (appRetried) totalRetries++;
+    const { data: applications, error } = appResult;
 
     if (error) {
       console.error('Error fetching applications for reminders:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error.message, elapsedMs: Date.now() - handlerStart }, { status: 500 });
     }
 
     if (!applications || applications.length === 0) {
@@ -81,11 +96,14 @@ export async function GET(req: Request) {
 
     // Fetch user profiles to personalize the greeting and get timezone preferences
     const userIds = [...new Set(applications.map((app) => app.user_id))];
-    const { data: profiles } = await withRetry(() => supabase
+    const { result: profResult, retried: profRetried } = await withRetry(() => supabase
       .from('profiles')
       .select('id, full_name, reminder_timezone, reminder_send_time')
-      .in('id', userIds));
+      .in('id', userIds), handlerStart);
       
+    if (profRetried) totalRetries++;
+    const { data: profiles } = profResult;
+
     const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
 
     const successfulSends: string[] = [];
@@ -127,13 +145,16 @@ export async function GET(req: Request) {
       if (localDate === app.next_action_date && localTime >= sendTime) {
         
         // Atomic check-and-set: prevent race conditions from duplicate scheduler invocations
-        const { data: updateData, error: updateError } = await withRetry(() => supabase
+        const { result: updateResult, retried: updateRetried } = await withRetry(() => supabase
           .from('applications')
           .update({ next_action_reminder_sent: true })
           .eq('id', app.id)
           .eq('next_action_reminder_sent', false)
-          .select('id'));
+          .select('id'), handlerStart);
           
+        if (updateRetried) totalRetries++;
+        const { data: updateData, error: updateError } = updateResult;
+
         if (updateError || !updateData || updateData.length === 0) {
           console.log(`Skipping app ${app.id} - already sent or error acquiring lock`);
           continue;
@@ -188,7 +209,8 @@ export async function GET(req: Request) {
             console.error(`Failed to send email to ${email} for app ${app.id}: rejected by server`);
             failedSends.push({ id: app.id, error: 'Rejected by server' });
             // Rollback the lock so it can be retried
-            await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id));
+            const { retried: r1Retried } = await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id), handlerStart);
+            if (r1Retried) totalRetries++;
           } else {
             console.log(`Successfully sent email to ${email} for app ${app.id} (MessageId: ${info.messageId})`);
             successfulSends.push(app.id);
@@ -197,7 +219,8 @@ export async function GET(req: Request) {
           console.error(`Exception sending email for app ${app.id}:`, e);
           failedSends.push({ id: app.id, error: (e as Error).message });
           // Rollback the lock so it can be retried
-          await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id));
+          const { retried: r2Retried } = await withRetry(() => supabase.from('applications').update({ next_action_reminder_sent: false }).eq('id', app.id), handlerStart);
+          if (r2Retried) totalRetries++;
         }
       }
     }
@@ -207,11 +230,13 @@ export async function GET(req: Request) {
       fetched: applications.length,
       successful: successfulSends.length,
       failed: failedSends.length,
-      details: { successfulSends, failedSends }
+      details: { successfulSends, failedSends },
+      elapsedMs: Date.now() - handlerStart,
+      retriedCount: totalRetries
     });
 
   } catch (err: unknown) {
     console.error('Cron reminder error:', err);
-    return NextResponse.json({ error: 'Internal Server Error', details: (err as Error).message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error', details: (err as Error).message, elapsedMs: Date.now() - handlerStart }, { status: 500 });
   }
 }
