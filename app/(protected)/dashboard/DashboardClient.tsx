@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronUp, ChevronDown, Search } from 'lucide-react';
+import { ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 import { Application } from '../../../lib/types';
@@ -313,7 +313,23 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
                 className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all duration-150 cursor-pointer group animate-in fade-in flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-gray-100 dark:border-zinc-800 last:border-0"
               >
                 <td className="md:p-4 font-medium text-gray-900 dark:text-zinc-100 text-lg md:text-base block md:table-cell mb-1 md:mb-0">
-                  {app.company_name}
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="min-w-0 md:max-w-[12rem] md:truncate" title={app.company_name}>
+                      {app.company_name}
+                    </span>
+                    {app.job_link && (
+                      <a 
+                        href={app.job_link.startsWith('http') ? app.job_link : `https://${app.job_link}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-gray-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex-shrink-0"
+                        title="View job posting"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
                 </td>
                 <td className="md:p-4 text-gray-600 dark:text-zinc-300 block md:table-cell mb-3 md:mb-0">
                   {app.role}
