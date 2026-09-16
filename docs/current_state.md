@@ -1,7 +1,7 @@
-# Uppend — Current State
+# Uppend ï¿½ Current State
 
 *This file is the single source of truth for "what's true right now." It
-is rewritten in place at the close of every session — not appended to.
+is rewritten in place at the close of every session ï¿½ not appended to.
 Resolved items are removed here and folded into changelog.md /
 decisions.md instead. See architecture.md / decisions.md / schema.md /
 changelog.md for anything not called out below as recently changed.*
@@ -14,7 +14,7 @@ changelog.md for anything not called out below as recently changed.*
   merged 2026-09-10 (commit `0a3cbb2`). Real-device verification (bfcache
   repro, all three prompt buttons on signup/login, iOS Safari) was
   completed before merge. Note: this was missed in the Session 16
-  documentation close despite being done — this file now correctly
+  documentation close despite being done ï¿½ this file now correctly
   reflects it as resolved.
 - **Cron reminders reliability (two-part fix)**: Root cause was Supabase's
   service-role client having zero retry/timeout handling, compounding
@@ -24,15 +24,15 @@ changelog.md for anything not called out below as recently changed.*
   call sites in the route. Part 2 (`5ea0ccb`, 09-15), after a new
   "Timeout" failure mode appeared post-merge: made the retry time-budget
   aware (skips the retry if elapsed time already exceeds
-  `RETRY_ELAPSED_BUDGET_MS`, currently 5000ms — see open items) so a
+  `RETRY_ELAPSED_BUDGET_MS`, currently 5000ms ï¿½ see open items) so a
   slow first attempt fails fast with a clean 500 instead of risking a
   platform-level kill. Added `elapsedMs`/`retriedCount` to every response
   body, since Vercel Hobby log retention is too short to debug after the
-  fact — cron-job.org's retained response body is now the durable
+  fact ï¿½ cron-job.org's retained response body is now the durable
   evidence source.
 - **Supabase local-dev auth redirect fixed**: magic-link auth was
   landing on `/` with a stray `?code=` param instead of `/auth/callback`
-  on localhost — Supabase's Redirect URLs allowlist only had the
+  on localhost ï¿½ Supabase's Redirect URLs allowlist only had the
   production wildcard, not a local one. Fixed by adding
   `http://localhost:3000/**` in the Supabase dashboard (Authentication ?
   URL Configuration). Config-only, no code change. Same class of issue
@@ -54,12 +54,12 @@ changelog.md for anything not called out below as recently changed.*
   which stays on `localStorage` (permanent) and was left untouched.
   `filter`/`searchQuery` are explicitly out of scope, also untouched.
 - **Source field URL auto-detection** (`1d2881e`, `476b552`, 09-15/16):
-  new `matchSourceFromUrl()` in `lib/constants.ts` — deliberately
+  new `matchSourceFromUrl()` in `lib/constants.ts` ï¿½ deliberately
   separate from `matchSourceOption()` (used for AI-extraction text
   matching), since that function's "Other + freeText" fallback would
   dump a raw URL into the free-text source field if reused for URL
   input. Triggers on paste into the `job_link` field on `/new` only
-  (not the edit page — deliberate, to avoid silently overriding a
+  (not the edit page ï¿½ deliberate, to avoid silently overriding a
   source the user already set on an existing application). Matches
   LinkedIn/Indeed/JobStreet/Facebook by domain keyword; defaults to
   "Company Website" for anything else. Two bugs found in manual testing
@@ -72,12 +72,12 @@ changelog.md for anything not called out below as recently changed.*
   by correctly distinguishing "still just a guess" from "user
   confirmed" via `aiSuggestedFields`. The visual "AI suggested" Sparkles
   icon/blue-border cue was built, then deliberately removed per
-  product preference — not shown for source, and not extended to the
+  product preference ï¿½ not shown for source, and not extended to the
   AI-extraction flow either, closing the inconsistency by removal
   rather than addition.
 - **Native `<select>` dropdown arrow spacing** (`f8246e3`, 09-16): all 8
   native `<select>` elements across `/new` and the application detail
-  page (currency, source, status, priority × 2 files) had the browser's
+  page (currency, source, status, priority ï¿½ 2 files) had the browser's
   default arrow sitting flush against the edge. Fixed with
   `appearance-none` + rebalanced padding + a positioned Lucide
   `ChevronDown` icon, matching the icon language already used elsewhere
@@ -100,9 +100,9 @@ changelog.md for anything not called out below as recently changed.*
 - **Two minor non-blocking observations carried over** from the
   post-delete-session fix (still unaddressed, low priority): (1)
   bfcache redirect's `?message=Session+expired` param may not be
-  read/displayed by `login/page.tsx` — cosmetic; (2) `checkLocalData`
+  read/displayed by `login/page.tsx` ï¿½ cosmetic; (2) `checkLocalData`
   catch block in `migrate/page.tsx` redirects silently on local-data-read
-  failure with no error message shown — narrow failure case, low stakes.
+  failure with no error message shown ï¿½ narrow failure case, low stakes.
 - **Shared DB Environment Gap**: Testing branches still risks polluting
   production data. Formalizing separated environments (local mock or
   staging database) remains unaddressed.
@@ -115,7 +115,7 @@ changelog.md for anything not called out below as recently changed.*
 ## 3. Next steps, priority order
 
 **Backlog:**
-1. JD URL-fetching feature — large, touches a Protected AI Route, needs
+1. JD URL-fetching feature ï¿½ large, touches a Protected AI Route, needs
    its own full plan cycle, don't bundle with smaller tasks.
 
 ## 4. Future plans (not yet scoped)
