@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 import ResumePreviewModal from "../../../components/ResumePreviewModal";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
@@ -660,7 +660,8 @@ export default function NewApplicationPage() {
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Salary Range</label>
               <div className="flex gap-2">
-                <select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
+                <div className="relative">
+<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
                   <option value="PHP">PHP</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -672,6 +673,8 @@ export default function NewApplicationPage() {
                   <option value="INR">INR</option>
                   <option value="AED">AED</option>
                 </select>
+<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+</div>
                 <input type="text" name="salary_range" value={formData.salary_range} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
               </div>
             </div>
@@ -695,7 +698,8 @@ export default function NewApplicationPage() {
 
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
-              <select 
+              <div className="relative">
+<select 
                 value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")} 
                 onChange={(e) => {
                   setIsDirty(true);
@@ -717,13 +721,15 @@ export default function NewApplicationPage() {
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100"
+                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100"
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
+<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+</div>
               {(explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source)) ? (
                 <input 
                   type="text" 
@@ -741,7 +747,8 @@ export default function NewApplicationPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
-              <select name="status" value={formData.status} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
+              <div className="relative">
+<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
                 <option value="draft">Draft</option>
                 <option value="applied">Applied</option>
                 <option value="screening">Screening</option>
@@ -751,6 +758,8 @@ export default function NewApplicationPage() {
                 <option value="withdrawn">Withdrawn</option>
                 <option value="ghosted">Ghosted</option>
               </select>
+<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+</div>
             </div>
 
             <div>
@@ -763,12 +772,15 @@ export default function NewApplicationPage() {
                 Priority
                 {aiSuggestedFields.has('priority') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-blue-500 inline ml-1" /></span>}
               </label>
-              <select name="priority" value={formData.priority} onChange={handleInputChange} className={`w-full p-2 rounded-md bg-white dark:bg-zinc-900 border ${aiSuggestedFields.has('priority') ? 'border-blue-400 dark:border-blue-500' : 'border-gray-300 dark:border-zinc-700'} focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100 transition-colors`}>
+              <div className="relative">
+<select name="priority" value={formData.priority} onChange={handleInputChange} className={`w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border ${aiSuggestedFields.has('priority') ? 'border-blue-400 dark:border-blue-500' : 'border-gray-300 dark:border-zinc-700'} focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100 transition-colors`}>
                 <option value="">None</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
+<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+</div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
