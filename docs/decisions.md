@@ -234,3 +234,143 @@
 ## [2026-08-13] Parallel AI Execution
 - Context: Processing both the job description extraction and resume matching sequentially was too slow.
 - Decision: Fired both requests concurrently since they don't depend on each other.
+
+## [2026-09-16] Native Select Dropdown Arrow Styling
+- Context: browser-default `<select>` arrows sat flush against the edge
+  across all 8 native selects in `/new` and the application detail page.
+- Decision: kept every select as a plain native `<select>` element
+  (no new shared component/abstraction) and applied `appearance-none` +
+  rebalanced padding + an absolutely-positioned Lucide `ChevronDown`
+  icon identically to all 8, rather than introducing a custom
+  select component.
+- Reasoning: this is a pure styling fix with no behavior change; a new
+  shared component would have been a larger architectural change than
+  the problem warranted, and risked introducing prop/behavior mismatches
+  across 8 existing call sites with slightly different conditional
+  className logic (e.g. priority's AI-suggested border).
+
+## [2026-09-16] Source Field AI-Suggested Visual Cue Removed
+- Context: the source field's URL-auto-detect feature initially reused
+  the app's existing `aiSuggestedFields` pattern (Sparkles icon + blue
+  border) to visually flag an auto-guessed value, matching how
+  priority/role_fit/culture_fit/notes already work when AI-extraction
+  fills them.
+- Decision: removed the visual cue for source entirely, and did not
+  extend it to the AI-extraction flow (which also sets `source` but
+  never flagged it as AI-suggested).
+- Reasoning: product preference � did not want this specific visual
+  signal to appear. Chosen to resolve the resulting inconsistency (URL
+  detection flagged, extraction detection not) by removing the feature
+  rather than extending it. The underlying `aiSuggestedFields` state
+  tracking for `'source'` was kept regardless, since it's still needed
+  internally to distinguish "unconfirmed auto-guess" from "user
+  confirmed" for the paste-overwrite-protection logic.
+
+## [2026-09-15/16] Source URL Auto-Detect: Separate Matching Function
+- Context: `lib/constants.ts` already had `matchSourceOption()` for
+  matching AI-extracted natural-language text to a source option, with
+  an "Other" + raw-text fallback for anything unmatched.
+- Decision: added a new, separate `matchSourceFromUrl()` function
+  rather than reusing or extending `matchSourceOption()`.
+- Reasoning: `matchSourceOption()`'s fallback behavior (unmatched input
+  ? `{option: "Other", freeText: <the whole input>}`) is correct for
+  natural-language text but wrong for a URL � applying it directly to a
+  pasted job link would dump the raw URL string into the free-text
+  "Other" source field. Keeping the functions separate also meant zero
+  risk to the already-shipped, tested AI-extraction matching path.
+
+## [2026-09-15] Source URL Auto-Detect Scope: /new Only
+- Context: deciding whether pasting a new `job_link` should trigger
+  source auto-detection on both the create (`/new`) and edit
+  (`/applications/[id]`) pages.
+- Decision: scoped to `/new` only.
+- Reasoning: on the edit page, `source` has almost always already been
+  deliberately set for an existing application (possibly to something
+  the URL itself wouldn't correctly guess, e.g. "Referral" for a link a
+  friend sent). Re-triggering detection there risked silently
+  overriding a considered choice. `/new` is the "quick add while
+  creating" moment the feature is actually meant for.
+
+## [2026-09-15] Source URL Auto-Detect: Unmatched URL Fallback
+- Context: deciding what should happen when a pasted `job_link` doesn't
+  match any known job board (LinkedIn/Indeed/JobStreet/Facebook) � e.g.
+  a company's own careers page.
+- Decision: default-suggest "Company Website" rather than leaving
+  source untouched.
+- Reasoning: a job-posting URL that isn't a known job board is usually
+  either the company's own site or a branded ATS page (Greenhouse,
+  Lever, Workday), making "Company Website" a reasonable default guess.
+  Low downside risk since it only ever fires when source was previously
+  empty or still just an unconfirmed guess (see the paste-overwrite-
+  protection decision below), never overwriting a value the user
+  deliberately chose.
+
+## [2026-09-15] Dashboard Job-Link Icon: Persistent vs. Hover-Reveal
+- Context: choosing between an always-visible external-link icon next
+  to company name (higher visual density, zero interaction cost) versus
+  a hover-reveal icon on desktop (quieter table at rest, small "move
+  mouse, wait" cost per use).
+- Decision: initially shipped always-visible (chosen because the whole
+  point of the feature was cutting interaction friction, and a reveal
+  delay reintroduces a smaller version of the friction being removed).
+  Revised to hover-reveal on desktop only after informal UI review
+  flagged visual repetition across rows; kept always-visible on mobile,
+  where no hover state exists.
+- Reasoning for the revision: once rendered with real (long) company
+  names, the row-density cost was more concrete than in the abstract
+  design discussion, and the row already had a `group` class available
+  from the existing row-hover background, making `group-hover` a small,
+  low-risk addition rather than new plumbing.
+
+## [2026-09-15] Dashboard State Persistence: sessionStorage, Not localStorage
+- Context: the dashboard's existing `pageSize` preference already
+  persists via `localStorage` (permanent, survives browser restarts).
+  Sort field/direction and current page needed similar persistence
+  across in-app navigation, but explicitly scoped to reset on browser
+  close.
+- Decision: used `sessionStorage` for sort/page state, deliberately not
+  extending the existing `pageSize` `localStorage` pattern to cover it.
+- Reasoning: the two have genuinely different lifetime requirements �
+  page size is a durable preference, sort/page position is a
+  session-scoped convenience. Using the wrong storage mechanism for
+  either would violate the explicit requirement (reset-on-close for
+  sort/page; permanence for pageSize).
+
+## [2026-09-15] Cron Reminders: Time-Budget-Aware Retry
+- Context: the initial transient-error retry fix (2026-09-13) introduced
+  a new "Timeout" failure mode on cron-job.org shortly after merging,
+  distinct from the "500 Internal Server Error" the fix was meant to
+  address. Root cause reasoning (Vercel Hobby log retention made this
+  unconfirmable by direct log evidence): the route has no `maxDuration`
+  set, so it runs under Vercel Hobby's implicit ~10s execution cap; a
+  slow first attempt (previously observed reaching 12-13s) combined
+  with a second full retry attempt could exceed that cap, causing
+  Vercel to kill the function outright rather than letting the route
+  return its own clean JSON 500.
+- Decision: made the retry conditional on remaining time budget
+  (`RETRY_ELAPSED_BUDGET_MS`, default 5000ms) � skip the retry and fail
+  fast with a normal 500 if the first attempt already consumed too much
+  of the available time, rather than gambling on a second slow attempt.
+  Also added `elapsedMs`/`retriedCount` to every response body.
+- Reasoning: turns an opaque platform-level kill back into a
+  diagnosable, clean failure in the case where the underlying slowness
+  persists across both attempts. The 5000ms budget is an explicit
+  heuristic pending real latency data � flagged as an open item, not a
+  finalized tuning.
+- Note: since Vercel Hobby's log retention is too short to catch
+  failures after the fact, the added response-body instrumentation is
+  meant to make cron-job.org's own retained execution history the
+  durable evidence source for any future tuning of this budget.
+
+## [2026-09-14] Supabase Local-Dev Redirect URL Wildcard
+- Context: magic-link auth worked in production but landed on `/` with
+  a stray `?code=` param instead of `/auth/callback` when tested on
+  localhost � no session was established.
+- Decision: added `http://localhost:3000/**` to the Supabase project's
+  Redirect URLs allowlist (dashboard config, no code change).
+- Reasoning: `emailRedirectTo` is only honored if it exactly matches an
+  allowlist entry; without a match, Supabase silently falls back to the
+  default Site URL rather than erroring, producing the observed
+  symptom. This is the same class of issue as the 2026-08-24 production
+  redirect fix (`https://` + `/**` wildcard), which was never extended
+  to cover local development at the time.

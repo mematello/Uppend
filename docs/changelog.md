@@ -1,5 +1,73 @@
 # Uppend — Changelog
 
+## [2026-09-16] (Session 17)
+- Fixed: two bugs in source-field URL auto-detection found during manual
+  testing � the source `<select>`'s custom onChange wasn't clearing
+  `aiSuggestedFields` on manual change (unlike every other field), and
+  the paste handler blocked re-detection on any existing source value
+  instead of only on a user-confirmed one. Both fixed by correctly
+  distinguishing "still just a guess" from "confirmed" via
+  `aiSuggestedFields`.
+- Removed: the "AI suggested" Sparkles icon / blue-border visual cue
+  that had been added for the source field � decided not to show it,
+  and not to extend it to the AI-extraction flow either.
+- Fixed: dropdown arrow spacing on all 8 native `<select>` elements
+  across `/new` and the application detail page � browser default arrow
+  was sitting flush against the edge; replaced with `appearance-none` +
+  padding + a positioned Lucide `ChevronDown` icon.
+
+## [2026-09-15] (Session 17)
+- Fixed: cron reminders � added time-budget-aware retry logic
+  (skips retry if elapsed time already exceeds a 5000ms budget) after a
+  new "Timeout" failure mode appeared post-merge of the initial retry
+  fix, likely caused by the retry itself exceeding Vercel Hobby's
+  implicit ~10s function execution cap. Added `elapsedMs` and
+  `retriedCount` to every response body for future debugging, since
+  Vercel Hobby's log retention is too short to catch failures after
+  the fact.
+- Implemented: job-link quick-access icon on the dashboard (company-name
+  cell), opens `job_link` in a new tab, hidden when unset. Revised after
+  informal UI review to fix a long-company-name wrapping bug (desktop
+  truncation with ellipsis) and switched from always-visible to
+  hover-reveal on desktop only, staying always-visible on mobile.
+- Implemented: dashboard sort field/direction and current page now
+  persist across in-app navigation via `sessionStorage`, resetting on
+  browser close. Kept deliberately separate from the existing `pageSize`
+  preference (`localStorage`, permanent, untouched).
+- Implemented: source field auto-detection from a pasted `job_link` URL
+  on `/new` (not the edit page). New `matchSourceFromUrl()` added to
+  `lib/constants.ts`, kept separate from the existing
+  `matchSourceOption()` used for AI-extraction text matching. Matches
+  known job boards by domain keyword, defaults to "Company Website"
+  otherwise.
+
+## [2026-09-14] (Session 17)
+- Fixed: Supabase local-dev magic-link auth redirect � added
+  `http://localhost:3000/**` to the Supabase Redirect URLs allowlist
+  (dashboard config only, no code change). Without it, `emailRedirectTo`
+  silently fell back to the default Site URL, landing on `/` with a
+  stray `?code=` param instead of reaching `/auth/callback`. Same class
+  of issue as the 2026-08-24 production fix, never previously extended
+  to the local dev URL.
+- Updated: live demo link in README.
+
+## [2026-09-13] (Session 17)
+- Fixed: cron reminders `/api/cron/reminders` returning intermittent 500
+  errors in production (recurring 09/11, 09/13). Root cause traced via
+  Vercel logs and cron-job.org execution history to the service-role
+  Supabase client having zero retry/timeout handling � a transient
+  upstream "Gateway Timeout" from Supabase's own infra was being treated
+  as an unrecoverable failure. Added a bounded retry (1 retry, 500ms
+  delay) for transient-looking errors across all four Supabase call
+  sites in the route, including both lock-rollback updates (the more
+  important half, since a failed rollback would otherwise permanently
+  strand a reminder's lock as sent).
+- Note: confirmed via commit history that `fix/post-delete-session-and-
+  local-merge` (bfcache + /migrate confirmation prompt) was merged
+  2026-09-10 with real-device verification completed beforehand � this
+  had been missed in the Session 16 documentation close and is now
+  correctly reflected as resolved.
+
 ## [2026-09-13] (Session 16)
 - Implemented: Investigation and implementation of both bfcache and /migrate fixes on `fix/post-delete-session-and-local-merge`, evidence-verified via diff/build but explicitly not yet merged pending real-device testing.
 
