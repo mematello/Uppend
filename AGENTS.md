@@ -1,5 +1,5 @@
 ## Project Context
-ApplyFlow is an AI-powered job application tracker built as a solo-developer personal tool. It uses the Next.js App Router, Supabase (PostgreSQL, Auth, Storage) for the backend and database, and the Gemini API for intelligent data extraction and resume matching.
+Uppend is an AI-powered job application tracker built as a solo-developer personal tool. It uses the Next.js App Router, Supabase (PostgreSQL, Auth, Storage) for the backend and database, and the Gemini API for intelligent data extraction and resume matching.
 
 ## Before Starting Any Task
 - **Read `docs/schema.md` and `docs/prompts.md`** to understand the current state of the database and AI prompts. Do not assume prior session context is still accurate.

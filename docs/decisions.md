@@ -158,7 +158,7 @@
 
 ## [2026-08-20] Resend to Nodemailer/Gmail SMTP Migration
 - Context: We were using Resend for cron reminders and operator alerts, and Supabase's custom SMTP (via Gmail) for auth.
-- Decision: Completely removed Resend and migrated all system emails (auth, cron reminders, operator alerts) to a shared Nodemailer transporter using Gmail SMTP (`applyflow.noreply@gmail.com`).
+- Decision: Completely removed Resend and migrated all system emails (auth, cron reminders, operator alerts) to a shared Nodemailer transporter using Gmail SMTP (`uppend.noreply@gmail.com`).
 - Trade-offs & Risks Accepted: This creates a consolidated single point of failure. All communications now depend on one personal Gmail account with no custom domain, a ~500/day volume ceiling, and a risk of suspension (Gmail is not designed for automated app sending) with no fallback.
 - Mitigation: A deliverability spot-check via Mail-Tester scored 9.5/10 (SPF/DKIM passing), but this was a single-point-in-time test and does not constitute ongoing monitoring. This risk is acknowledged and accepted for the current scale.
 
@@ -188,7 +188,7 @@
 
 ## [2026-08-19] Auth SMTP State — Gmail SMTP Permanent
 - Context: Supabase default mailer (~2 emails/hr) was blocking testing. Previously considered temporary until a domain purchase for Resend.
-- Decision: Decided to stay on Gmail SMTP (applyflow.noreply@gmail.com, App Password auth, smtp.gmail.com:465 SSL) permanently for auth emails in exchange for zero cost. No custom domain purchase is planned.
+- Decision: Decided to stay on Gmail SMTP (uppend.noreply@gmail.com, App Password auth, smtp.gmail.com:465 SSL) permanently for auth emails in exchange for zero cost. No custom domain purchase is planned.
 - Scope: Supabase Auth magic-link delivery only. /api/cron/reminders is unaffected — separate Resend API code path, untouched.
 - Trade-offs & Risks Accepted: Non-custom sender header, ~500/day volume cap, and account-suspension risk (Gmail isn't designed for automated app sending).
 - Mitigation: If the Gmail account sending is ever flagged or suspended, auth emails will fail app-wide with no automatic fallback. A monitoring and alerting plan will be necessary if launch volume grows.

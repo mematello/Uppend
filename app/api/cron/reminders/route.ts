@@ -170,7 +170,7 @@ export async function GET(req: Request) {
         
         try {
           const info = await emailTransporter.sendMail({
-            from: `"Uppend Reminders" <${process.env.SMTP_EMAIL || 'applyflow.noreply@gmail.com'}>`,
+            from: `"Uppend Reminders" <${process.env.SMTP_EMAIL || 'uppend.noreply@gmail.com'}>`,
             to: email,
             subject: `Reminder: ${action} with ${app.company_name}`,
             html: `

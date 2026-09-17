@@ -46,7 +46,7 @@ Built to solve a real problem from my own job search: manually re-typing job pos
 *   `pdf-parse` and `mammoth` for extracting text from uploaded resumes (PDF/DOCX)
 
 **Notifications & Auth**
-*   Auth magic links, scheduled cron reminders (`/api/cron/reminders`), and operator alerts are all delivered permanently via Gmail SMTP (`applyflow.noreply@gmail.com`). 
+*   Auth magic links, scheduled cron reminders (`/api/cron/reminders`), and operator alerts are all delivered permanently via Gmail SMTP (`uppend.noreply@gmail.com`). 
 *   This accepts a ~500/day volume cap and automated sending risks in exchange for zero cost and no custom domain requirements. Resend is no longer used.
 
 ## Architecture
