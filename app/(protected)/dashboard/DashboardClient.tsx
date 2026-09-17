@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
+import { getStreakStatus } from '../../../lib/utils/streaks';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
@@ -19,7 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
   ghosted: "bg-gray-200 text-gray-600 border-gray-300 dark:bg-zinc-700 dark:text-zinc-400 dark:border-zinc-600",
 };
 
-export default function DashboardClient({ initialApplications, isLocal }: { initialApplications: Application[], isLocal?: boolean }) {
+export default function DashboardClient({ initialApplications, isLocal, timezone }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null }) {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [filter, setFilter] = useState<string>("Active");
@@ -188,6 +189,8 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
     return 0;
   });
 
+  const streakInfo = getStreakStatus(applications, timezone || null);
+
   // Pagination
   const totalPages = Math.ceil(sortedApps.length / pageSize) || 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -212,19 +215,33 @@ export default function DashboardClient({ initialApplications, isLocal }: { init
         </div>
       )}
 
-      {/* Search & Filter */}
+      {/* Search, Filter & Streak */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
-        <div className="relative w-full md:w-72">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+        <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 items-start sm:items-center">
+          <div className="relative w-full sm:w-72">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search company or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-4 py-2 w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors shadow-sm"
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Search company or role..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-4 py-2 w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors shadow-sm"
-          />
+          
+          {streakInfo.status !== 'none' && (
+            <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center ${
+              streakInfo.status === 'active'
+                ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
+                : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+            }`}>
+              {streakInfo.status === 'active' 
+                ? `🔥 ${streakInfo.count} Day Streak` 
+                : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
+            </div>
+          )}
         </div>
         
         <div className="flex gap-2 flex-wrap pb-2 md:pb-0 w-full md:w-auto items-center">
