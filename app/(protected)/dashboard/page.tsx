@@ -6,19 +6,20 @@ import Link from 'next/link';
 import LogoutButton from '../../../components/LogoutButton';
 import { ThemeToggle } from '../../../components/ThemeToggle';
 import { Settings } from 'lucide-react';
+import { Application } from '../../../lib/types';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   let firstName = 'Guest';
-  let applications = [];
+  let applications: Application[] = [];
+  let profile = null;
 
   if (user) {
-    let profile;
     try {
       const [profileResult, applicationsResult] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+        supabase.from('profiles').select('full_name, reminder_timezone').eq('id', user.id).single(),
         getCachedApplications(user.id),
       ]);
       profile = profileResult.data;
@@ -60,7 +61,7 @@ export default async function DashboardPage() {
       </div>
       
       {/* Pass the loaded data down to the interactive client component */}
-      <DashboardClient initialApplications={applications} isLocal={!user} />
+      <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} />
     </div>
   );
 }
