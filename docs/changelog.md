@@ -1,5 +1,10 @@
 # Uppend — Changelog
 
+## [2026-09-17] (Session 18)
+- Updated: Docs cleanup (ApplyFlow -> Uppend), fixing legacy email and URL references across README, architecture, decisions, AGENTS.md, and cron route fallback string.
+- Implemented: Current Streak feature (branch `feature/current-streak`, merged). Tracks consecutive days with applications via `applications.created_at`, surfacing `active`, `at_risk`, or `none` states on a dashboard badge.
+- Implemented: Activity Heatmap feature. Displays application volume on a calendar grid via a dropdown attached to the streak badge. Includes the mid-implementation redesign from a full-screen modal to an anchored dropdown reusing the existing filter pattern, month-navigation clamped to account creation, and post-merge fixes for dark-mode empty-tile contrast and future-date blanking.
+
 ## [2026-09-16] (Session 17)
 - Fixed: two bugs in source-field URL auto-detection found during manual
   testing � the source `<select>`'s custom onChange wasn't clearing

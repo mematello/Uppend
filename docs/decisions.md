@@ -1,5 +1,30 @@
 # Uppend — Decisions Log
 
+## [2026-09-17] Streak Feature Core Mechanics
+- Context: Defining the bounds and architecture for the new application streak feature.
+- Decision: A streak counts consecutive calendar days (in the user's local timezone) where at least one application was created. Drafts count equally to submitted apps; edits do not count. The streak must include today to be considered "active". The streak is computed live from `applications.created_at` on every read, rather than being stored in the database.
+- Reasoning: Live computation avoids drift if a state-update is ever missed, directly mirroring the self-healing time-match philosophy already successfully used in the cron reminders route.
+
+## [2026-09-17] Streak 3-State Model
+- Context: Determining how to represent streaks and lapses to the user.
+- Decision: Implemented a 3-state model (`active`, `at_risk`, `none`). "Active" means today is covered. "At risk" means yesterday is covered but today is not. "None" means a gap of >1 day, or a brand new user with 0 apps.
+- Reasoning: Deliberately chose to hide the badge entirely on any gap >1 day, treating a lapsed streak identically to a brand new user. No separate "lapsed" state UI is needed; the absence of the badge is the signal.
+
+## [2026-09-17] Activity Heatmap Layout and Scope
+- Context: Displaying the historical volume of applications via a GitHub-style activity grid.
+- Decision: Chose a single-month view with standard 7-column calendar layout and month-by-month navigation (clamped to account creation month) rather than the original proposal of an indefinite horizontal scroll with weeks as columns.
+- Reasoning: A single-month calendar view with standard orientation is significantly more readable on mobile and provides better temporal anchoring than an ever-growing horizontal scroll.
+
+## [2026-09-17] Activity Heatmap Anchored Dropdown
+- Context: Determining the trigger and container for the Activity Heatmap.
+- Decision: Replaced the initial full-screen modal implementation with an anchored dropdown panel attached to the streak badge, reusing the existing custom button+dropdown pattern used for the dashboard status filter and `/new` model selector.
+- Reasoning: The full-screen modal felt overly heavy for an activity check. Reusing the existing anchored dropdown pattern maintains UI consistency across the app and avoids introducing a net-new presentation pattern just for this feature.
+
+## [2026-09-17] Reminder Email App-Wide Timing Policy
+- Context: Deciding when the unified daily streak+goal reminder email should be sent.
+- Decision: Deliberately chose a fixed app-wide time policy (~8PM local via `reminder_timezone`) rather than reusing the existing user-configurable `reminder_send_time` (which is used for next-action reminders).
+- Reasoning: Next-action reminders are tactical and user-directed (when do I want to do this work), whereas gamification/streak reminders are behavioral nudges that are most effective at the end of the day when reflecting on activity. Keeping them distinct prevents overloading a single user preference.
+
 ## [2026-09-13] Intent-Based Auth Threading
 - Context: Differentiating a login from a signup post-auth to determine the default UX for local data migration.
 - Decision: Explicit `intent=signup`/`intent=login` query param threaded through `emailRedirectTo` chosen over a `created_at`-freshness heuristic.
