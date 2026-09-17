@@ -16,10 +16,10 @@ export default function ActivityHeatmapDropdown({
 }: Props) {
   // Current local month/year
   const todayLocal = getLocalYearMonth(new Date(), timezone);
-  
+
   // Earliest boundary
-  const startBound = accountCreatedAt 
-    ? getLocalYearMonth(new Date(accountCreatedAt), timezone) 
+  const startBound = accountCreatedAt
+    ? getLocalYearMonth(new Date(accountCreatedAt), timezone)
     : todayLocal;
 
   // We need to safely ensure startBound is not after todayLocal
@@ -34,7 +34,7 @@ export default function ActivityHeatmapDropdown({
   const { weeks } = generateMonthGrid(applications, viewYear, viewMonth, timezone);
 
   const getHeatmapColor = (count: number) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-zinc-700';
+    if (count === 0) return 'bg-gray-100 dark:bg-white/2';
     if (count === 1) return 'bg-green-200 dark:bg-green-900/40';
     if (count === 2) return 'bg-green-400 dark:bg-green-700/60';
     if (count === 3) return 'bg-green-600 dark:bg-green-600';
@@ -67,12 +67,12 @@ export default function ActivityHeatmapDropdown({
   };
 
   const monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date(viewYear, viewMonth, 1));
-  
+
   const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
-    <div 
-      className="p-4 w-72" 
+    <div
+      className="p-4 w-72"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-4">
@@ -83,11 +83,11 @@ export default function ActivityHeatmapDropdown({
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        
+
         <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
           {monthName} {viewYear}
         </span>
-        
+
         <button
           onClick={handleNext}
           disabled={isAtLatestBound}
