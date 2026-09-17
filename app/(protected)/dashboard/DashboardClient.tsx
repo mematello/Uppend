@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
 import { getStreakStatus } from '../../../lib/utils/streaks';
+import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
@@ -20,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
   ghosted: "bg-gray-200 text-gray-600 border-gray-300 dark:bg-zinc-700 dark:text-zinc-400 dark:border-zinc-600",
 };
 
-export default function DashboardClient({ initialApplications, isLocal, timezone }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null }) {
+export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null }) {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [filter, setFilter] = useState<string>("Active");
@@ -31,6 +32,8 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
   const [isLoading, setIsLoading] = useState<boolean>(isLocal === true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [error, setError] = useState<string | null>(null);
+  const [isHeatmapOpen, setIsHeatmapOpen] = useState(false);
 
   useEffect(() => {
     const savedPageSize = localStorage.getItem('dashboard_page_size');
@@ -232,14 +235,32 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           </div>
           
           {streakInfo.status !== 'none' && (
-            <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center ${
-              streakInfo.status === 'active'
-                ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
-                : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
-            }`}>
-              {streakInfo.status === 'active' 
-                ? `🔥 ${streakInfo.count} Day Streak` 
-                : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
+            <div className="relative w-full sm:w-auto flex justify-center sm:block">
+              <button 
+                onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
+                className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
+                  streakInfo.status === 'active'
+                    ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
+                    : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+                }`}
+              >
+                {streakInfo.status === 'active' 
+                  ? `🔥 ${streakInfo.count} Day Streak` 
+                  : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
+              </button>
+              
+              {isHeatmapOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsHeatmapOpen(false)}></div>
+                  <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-700 z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
+                    <ActivityHeatmapDropdown
+                      applications={applications}
+                      accountCreatedAt={accountCreatedAt || null}
+                      timezone={timezone || null}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -471,6 +492,8 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           </div>
         )}
       </div>
+
+
     </div>
   );
 }

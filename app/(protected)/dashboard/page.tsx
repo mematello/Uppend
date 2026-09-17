@@ -19,7 +19,7 @@ export default async function DashboardPage() {
   if (user) {
     try {
       const [profileResult, applicationsResult] = await Promise.all([
-        supabase.from('profiles').select('full_name, reminder_timezone').eq('id', user.id).single(),
+        supabase.from('profiles').select('full_name, reminder_timezone, created_at').eq('id', user.id).single(),
         getCachedApplications(user.id),
       ]);
       profile = profileResult.data;
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
       </div>
       
       {/* Pass the loaded data down to the interactive client component */}
-      <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} />
+      <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} accountCreatedAt={user ? profile?.created_at : null} />
     </div>
   );
 }
