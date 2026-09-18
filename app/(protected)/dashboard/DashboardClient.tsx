@@ -195,11 +195,33 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
   const streakInfo = getStreakStatus(applications, timezone || null);
 
   const todayDateStr = formatToLocalDate(new Date(), timezone || null);
-  const todayCount = applications.filter(app => {
-    if (!app.created_at) return false;
+  
+  // Calculate week boundaries based on the user's local today date
+  const [ty, tm, td] = todayDateStr.split('-').map(Number);
+  const localTodayDate = new Date(ty, tm - 1, td, 12, 0, 0);
+  const dayOfWeek = localTodayDate.getDay();
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  
+  const mondayDate = new Date(localTodayDate);
+  mondayDate.setDate(localTodayDate.getDate() - daysToMonday);
+  const mondayStr = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`;
+  
+  const sundayDate = new Date(mondayDate);
+  sundayDate.setDate(mondayDate.getDate() + 6);
+  const sundayStr = `${sundayDate.getFullYear()}-${String(sundayDate.getMonth() + 1).padStart(2, '0')}-${String(sundayDate.getDate()).padStart(2, '0')}`;
+
+  let todayCount = 0;
+  let thisWeekCount = 0;
+  applications.forEach(app => {
+    if (!app.created_at) return;
     const d = new Date(app.created_at);
-    return !isNaN(d.getTime()) && formatToLocalDate(d, timezone || null) === todayDateStr;
-  }).length;
+    if (isNaN(d.getTime())) return;
+    const appDateStr = formatToLocalDate(d, timezone || null);
+    if (appDateStr === todayDateStr) todayCount++;
+    if (appDateStr >= mondayStr && appDateStr <= sundayStr) thisWeekCount++;
+  });
+
+  const progressPct = Math.min(100, (todayCount / Math.max(1, dailyGoal)) * 100);
 
   // Pagination
   const totalPages = Math.ceil(sortedApps.length / pageSize) || 1;
@@ -225,7 +247,68 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
         </div>
       )}
 
-      {/* Search, Filter & Streak */}
+      {/* Overview Stats */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center sm:justify-end">
+        <div 
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700"
+          title="Applications created this week (Mon–Sun)"
+        >
+          📅 {thisWeekCount} this week
+        </div>
+
+        <div 
+          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border ${
+            todayCount >= dailyGoal
+              ? 'bg-transparent text-green-600 border-green-300 dark:text-green-500 dark:border-green-800/60'
+              : 'bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700'
+          }`}
+          title={`${todayCount} of ${dailyGoal} applications today`}
+        >
+          <div 
+            className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out ${
+              todayCount >= dailyGoal 
+                ? 'bg-green-100/60 dark:bg-green-900/25' 
+                : 'bg-gray-200/50 dark:bg-zinc-700/40'
+            }`} 
+            style={{ width: `${progressPct}%` }} 
+          />
+          <span className="relative z-10 flex items-center gap-1.5">
+            📋 {todayCount}/{dailyGoal} today
+          </span>
+        </div>
+
+        {streakInfo.status !== 'none' && (
+          <div className="relative w-full sm:w-auto flex justify-center sm:block">
+            <button 
+              onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
+              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
+                streakInfo.status === 'active'
+                  ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
+                  : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+              }`}
+            >
+              {streakInfo.status === 'active' 
+                ? `🔥 ${streakInfo.count} Day Streak` 
+                : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
+            </button>
+            
+            {isHeatmapOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsHeatmapOpen(false)}></div>
+                <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-700 z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
+                  <ActivityHeatmapDropdown
+                    applications={applications}
+                    accountCreatedAt={accountCreatedAt || null}
+                    timezone={timezone || null}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 items-start sm:items-center">
           <div className="relative w-full sm:w-72">
@@ -240,44 +323,6 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               className="pl-9 pr-4 py-2 w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors shadow-sm"
             />
           </div>
-          
-          <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border ${
-            todayCount >= dailyGoal
-              ? 'bg-transparent text-green-600 border-green-300 dark:text-green-500 dark:border-green-800/60'
-              : 'bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700'
-          }`}>
-            📋 {todayCount}/{dailyGoal} today
-          </div>
-
-          {streakInfo.status !== 'none' && (
-            <div className="relative w-full sm:w-auto flex justify-center sm:block">
-              <button 
-                onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-                className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
-                  streakInfo.status === 'active'
-                    ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
-                    : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
-                }`}
-              >
-                {streakInfo.status === 'active' 
-                  ? `🔥 ${streakInfo.count} Day Streak` 
-                  : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
-              </button>
-              
-              {isHeatmapOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsHeatmapOpen(false)}></div>
-                  <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-700 z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
-                    <ActivityHeatmapDropdown
-                      applications={applications}
-                      accountCreatedAt={accountCreatedAt || null}
-                      timezone={timezone || null}
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </div>
         
         <div className="flex gap-2 flex-wrap pb-2 md:pb-0 w-full md:w-auto items-center">
