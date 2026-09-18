@@ -1,5 +1,9 @@
 # Uppend — Decisions Log
 
+## [2026-09-18] Streak Weekend Exemption
+- Context: Weekends shouldn't break an application streak.
+- Decision: Amends the 2026-09-17 "Streak Feature Core Mechanics" and "Streak 3-State Model". `at_risk`/`active` now key off a "covered" day (application OR weekend) rather than application alone. The streak count still only increments on days with a real application, so idle weekends don't inflate it. Weekends are hardcoded as Sat/Sun with no regional configurability, accepted as reasonable for a single-user personal tool. Kept live-computed with zero schema change, consistent with the original architecture rationale.
+
 ## [2026-09-17] Streak Feature Core Mechanics
 - Context: Defining the bounds and architecture for the new application streak feature.
 - Decision: A streak counts consecutive calendar days (in the user's local timezone) where at least one application was created. Drafts count equally to submitted apps; edits do not count. The streak must include today to be considered "active". The streak is computed live from `applications.created_at` on every read, rather than being stored in the database.

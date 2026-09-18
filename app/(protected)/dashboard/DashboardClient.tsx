@@ -21,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
   ghosted: "bg-gray-200 text-gray-600 border-gray-300 dark:bg-zinc-700 dark:text-zinc-400 dark:border-zinc-600",
 };
 
-export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt, dailyGoal = 5 }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null, dailyGoal?: number }) {
+export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt, dailyGoal = 5, quote }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null, dailyGoal?: number, quote?: { text: string; author: string } | null }) {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [filter, setFilter] = useState<string>("Active");
@@ -248,8 +248,19 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       )}
 
       {/* Overview Stats */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center sm:justify-end">
-        <div 
+      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center sm:justify-between">
+        {quote ? (
+          <div 
+            className="text-sm italic text-gray-500 dark:text-zinc-400 line-clamp-2 w-full sm:w-auto sm:max-w-md"
+            title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
+          >
+            &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
+          </div>
+        ) : (
+          <div></div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto shrink-0">
+          <div 
           className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700"
           title="Applications created this week (Mon–Sun)"
         >
@@ -306,6 +317,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Search & Filter */}

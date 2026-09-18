@@ -1,5 +1,6 @@
 import { createClient } from '../../../lib/supabase/server';
 import { getCachedApplications } from '../../../lib/cache/applications';
+import { getCachedQuoteOfTheDay } from '../../../lib/cache/quotes';
 import { redirect } from 'next/navigation';
 import DashboardClient from './DashboardClient';
 import Link from 'next/link';
@@ -15,6 +16,8 @@ export default async function DashboardPage() {
   let firstName = 'Guest';
   let applications: Application[] = [];
   let profile = null;
+
+  const quote = getCachedQuoteOfTheDay();
 
   if (user) {
     try {
@@ -61,7 +64,7 @@ export default async function DashboardPage() {
       </div>
       
       {/* Pass the loaded data down to the interactive client component */}
-      <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} accountCreatedAt={user ? profile?.created_at : null} dailyGoal={user ? profile?.daily_goal : 5} />
+      <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} accountCreatedAt={user ? profile?.created_at : null} dailyGoal={user ? profile?.daily_goal : 5} quote={quote} />
     </div>
   );
 }
