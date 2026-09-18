@@ -5,6 +5,7 @@ export interface Profile {
   preferred_provider: string | null;
   reminder_timezone: string | null;
   reminder_send_time: string | null;
+  daily_goal: number;
 }
 
 export interface Application {

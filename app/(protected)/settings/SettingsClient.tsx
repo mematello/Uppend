@@ -181,6 +181,43 @@ export default function SettingsClient({
     }
   };
 
+  // Goals Preferences
+  const [dailyGoal, setDailyGoal] = useState<number>(initialProfile.daily_goal ?? 5);
+  const [isSavingGoal, setIsSavingGoal] = useState(false);
+  const [goalMessage, setGoalMessage] = useState("");
+  const isSavingGoalRef = useRef(false);
+
+  const handleSaveGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSavingGoalRef.current) return;
+    
+    let targetGoal = dailyGoal;
+    if (targetGoal < 1) targetGoal = 1;
+    if (targetGoal > 50) targetGoal = 50;
+    setDailyGoal(targetGoal);
+
+    isSavingGoalRef.current = true;
+    setIsSavingGoal(true);
+    setGoalMessage("");
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ daily_goal: targetGoal })
+        .eq('id', initialProfile.id);
+
+      if (error) {
+        setGoalMessage(`Error: ${error.message}`);
+      } else {
+        setGoalMessage("Daily goal saved!");
+        router.refresh();
+      }
+    } finally {
+      isSavingGoalRef.current = false;
+      setIsSavingGoal(false);
+    }
+  };
+
   // Resumes state
   const [resumes, setResumes] = useState(initialResumes);
   const [previewResumeId, setPreviewResumeId] = useState<string | null>(null);
@@ -485,6 +522,33 @@ export default function SettingsClient({
         </form>
       </section>
 
+      {/* Goals Section */}
+      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm mt-6">
+        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Goals</h2>
+        <form onSubmit={handleSaveGoal} className="w-full space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Daily Application Goal</label>
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={dailyGoal}
+                onChange={(e) => setDailyGoal(parseInt(e.target.value) || 1)}
+                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={isSavingGoal || dailyGoal === (initialProfile.daily_goal ?? 5)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
+          >
+            {isSavingGoal ? "Saving..." : "Save Goal"}
+          </button>
+          {goalMessage && <p className="mt-2 text-sm text-green-600 dark:text-green-400">{goalMessage}</p>}
+        </form>
+      </section>
 
       {/* AI Provider Settings */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">

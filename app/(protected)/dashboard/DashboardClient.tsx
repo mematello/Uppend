@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
 import { getStreakStatus } from '../../../lib/utils/streaks';
+import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 
 const STATUS_COLORS: Record<string, string> = {
@@ -21,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
   ghosted: "bg-gray-200 text-gray-600 border-gray-300 dark:bg-zinc-700 dark:text-zinc-400 dark:border-zinc-600",
 };
 
-export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null }) {
+export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt, dailyGoal = 5 }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null, dailyGoal?: number }) {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>(initialApplications);
   const [filter, setFilter] = useState<string>("Active");
@@ -194,6 +194,13 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
   const streakInfo = getStreakStatus(applications, timezone || null);
 
+  const todayDateStr = formatToLocalDate(new Date(), timezone || null);
+  const todayCount = applications.filter(app => {
+    if (!app.created_at) return false;
+    const d = new Date(app.created_at);
+    return !isNaN(d.getTime()) && formatToLocalDate(d, timezone || null) === todayDateStr;
+  }).length;
+
   // Pagination
   const totalPages = Math.ceil(sortedApps.length / pageSize) || 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -234,6 +241,14 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             />
           </div>
           
+          <div className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border ${
+            todayCount >= dailyGoal
+              ? 'bg-transparent text-green-600 border-green-300 dark:text-green-500 dark:border-green-800/60'
+              : 'bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700'
+          }`}>
+            📋 {todayCount}/{dailyGoal} today
+          </div>
+
           {streakInfo.status !== 'none' && (
             <div className="relative w-full sm:w-auto flex justify-center sm:block">
               <button 
