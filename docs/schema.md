@@ -20,6 +20,7 @@ User profile data, linked to authentication.
 - `free_ai_uses_remaining` (INT, NOT NULL, Default `5`, protected by trigger)
 - `reminder_timezone` (TEXT, nullable)
 - `reminder_send_time` (TIME, nullable, Default `'09:00:00'`)
+- `daily_goal` (INT, NOT NULL, Default `5`, CHECK `daily_goal > 0`)
 
 ### `applications`
 Core entity for tracking job applications.

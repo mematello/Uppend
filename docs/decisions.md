@@ -1,5 +1,10 @@
 # Uppend — Decisions Log
 
+## [2026-09-19] Quote of the Day: Local Pool Over External API
+- Context: ZenQuotes `/today` endpoint was initially chosen for the dashboard's daily quote, but testing revealed it has no topic filtering and returned unrelated, off-theme quotes.
+- Decision: Replaced the ZenQuotes API fetch with a curated local quote list and a deterministic day-of-year rotation algorithm, completely removing the external dependency.
+- Reasoning: A local pool guarantees topical relevance for a job search app. It also avoids adding a second unreliable third-party quotes API (after Quotable was already ruled out due to API outages), maintaining consistency with the app's existing skepticism toward fragile external dependencies.
+
 ## [2026-09-18] Streak Weekend Exemption
 - Context: Weekends shouldn't break an application streak.
 - Decision: Amends the 2026-09-17 "Streak Feature Core Mechanics" and "Streak 3-State Model". `at_risk`/`active` now key off a "covered" day (application OR weekend) rather than application alone. The streak count still only increments on days with a real application, so idle weekends don't inflate it. Weekends are hardcoded as Sat/Sun with no regional configurability, accepted as reasonable for a single-user personal tool. Kept live-computed with zero schema change, consistent with the original architecture rationale.

@@ -1,5 +1,11 @@
 # Uppend — Changelog
 
+## [2026-09-19] (Session 19)
+- Implemented: Gamification Phase 2 (Goals). Migrated user profiles to include a `daily_goal` column. Added a new Goals section in Settings. Redesigned the dashboard Overview Stats row: relocated the streak badge out of the search/filter row and right-aligned it, added a weekly application count badge, and updated the daily goal badge with a proportional graduated progress fill. Fixed false-affordance issues on static badges by maintaining their low-opacity appearance. Added hover tooltips to the Overview Stats badges for clarity.
+- Implemented: Quote of the Day. Added a deterministic, locally-cached quote rotation based on the day of the year (`lib/cache/quotes.ts`). Replaced an initial integration with the ZenQuotes API after finding its `/today` endpoint lacked topic filtering and returned irrelevant quotes, avoiding another unreliable third-party dependency.
+- Implemented: Streak Weekend Exemption. Modified the streak calculation logic (`lib/utils/streaks.ts`) so that gaps on Saturday and Sunday no longer break an active application streak. The streak count continues to only increment on days with actual applications to prevent inflation from idle weekends. This preserves the purely live-computed, zero-schema architecture.
+
+
 ## [2026-09-17] (Session 18)
 - Updated: Docs cleanup (ApplyFlow -> Uppend), fixing legacy email and URL references across README, architecture, decisions, AGENTS.md, and cron route fallback string.
 - Implemented: Current Streak feature (branch `feature/current-streak`, merged). Tracks consecutive days with applications via `applications.created_at`, surfacing `active`, `at_risk`, or `none` states on a dashboard badge.
