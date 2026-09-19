@@ -183,6 +183,7 @@ export default function SettingsClient({
 
   // Goals Preferences
   const [dailyGoal, setDailyGoal] = useState<number>(initialProfile.daily_goal ?? 5);
+  const [dailySummaryEnabled, setDailySummaryEnabled] = useState<boolean>(initialProfile.daily_summary_enabled ?? false);
   const [isSavingGoal, setIsSavingGoal] = useState(false);
   const [goalMessage, setGoalMessage] = useState("");
   const isSavingGoalRef = useRef(false);
@@ -203,7 +204,10 @@ export default function SettingsClient({
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ daily_goal: targetGoal })
+        .update({ 
+          daily_goal: targetGoal,
+          daily_summary_enabled: dailySummaryEnabled
+        })
         .eq('id', initialProfile.id);
 
       if (error) {
@@ -538,10 +542,22 @@ export default function SettingsClient({
                 className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
+            <div className="flex items-center mt-6">
+              <input
+                id="daily-summary-toggle"
+                type="checkbox"
+                checked={dailySummaryEnabled}
+                onChange={(e) => setDailySummaryEnabled(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-zinc-700 dark:bg-zinc-800"
+              />
+              <label htmlFor="daily-summary-toggle" className="ml-2 block text-sm text-gray-700 dark:text-zinc-300">
+                Receive daily streak & goal summary email (around 8:00 PM)
+              </label>
+            </div>
           </div>
           <button
             type="submit"
-            disabled={isSavingGoal || dailyGoal === (initialProfile.daily_goal ?? 5)}
+            disabled={isSavingGoal || (dailyGoal === (initialProfile.daily_goal ?? 5) && dailySummaryEnabled === (initialProfile.daily_summary_enabled ?? false))}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
           >
             {isSavingGoal ? "Saving..." : "Save Goal"}

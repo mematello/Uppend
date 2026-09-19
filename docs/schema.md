@@ -21,6 +21,8 @@ User profile data, linked to authentication.
 - `reminder_timezone` (TEXT, nullable)
 - `reminder_send_time` (TIME, nullable, Default `'09:00:00'`)
 - `daily_goal` (INT, NOT NULL, Default `5`, CHECK `daily_goal > 0`)
+- `daily_summary_enabled` (BOOLEAN, NOT NULL, Default `FALSE`)
+- `daily_summary_last_sent_date` (DATE, nullable)
 
 ### `applications`
 Core entity for tracking job applications.

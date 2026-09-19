@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '../../../../lib/supabase/serviceClient';
 import { emailTransporter, verifyEmailTransporter } from '../../../../lib/utils/email';
-import { getStreakStatus, getGoalProgress } from '../../../../lib/utils/streaks';
+import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../../lib/utils/streaks';
 import { Application } from '../../../../lib/types';
 
 const RETRY_ELAPSED_BUDGET_MS = 5000; // Heuristic default pending real latency data, easily tunable
@@ -97,7 +97,7 @@ export async function GET(req: Request) {
     const nextActionFetched = applications?.length || 0;
     const nextActionSuccessful: string[] = [];
     const nextActionFailed: Record<string, unknown>[] = [];
-    let nextActionQueryError: string | null = appError ? appError.message : null;
+    const nextActionQueryError: string | null = appError ? appError.message : null;
     const now = new Date();
 
     if (applications && applications.length > 0) {
@@ -313,6 +313,7 @@ export async function GET(req: Request) {
           
           const streakInfo = getStreakStatus(userApps, tz);
           const goalInfo = getGoalProgress(userApps, tz, profile.daily_goal || 5);
+          const weeklyCount = getWeeklyCount(userApps, tz);
           
           // Atomic lock on profile
           let lockQuery = supabase.from('profiles').update({ daily_summary_last_sent_date: localDate }).eq('id', profile.id);
@@ -339,11 +340,19 @@ export async function GET(req: Request) {
           const streakEmoji = streakInfo.status === 'active' ? '🔥' : '⏳';
           const goalEmoji = goalInfo.met ? '✅' : '📋';
 
+          const streakText = streakInfo.status === 'active' ? `${streakInfo.count} days` : 'No active streak yet.';
+          const toGo = goalInfo.goal - goalInfo.count;
+          const goalText = goalInfo.met ? `Goal hit — ${goalInfo.count} of ${goalInfo.goal} applications` : `${toGo} to go — ${goalInfo.count} of ${goalInfo.goal} applications`;
+          const subjectLine = streakInfo.status === 'active' ? `🔥 ${streakInfo.count} day streak — your daily Uppend summary` : 'Your daily Uppend summary';
+          
+          const dateObj = new Date(localDate + 'T00:00:00Z');
+          const displayDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+
           try {
             const info = await emailTransporter.sendMail({
               from: `"Uppend Reminders" <${process.env.SMTP_EMAIL || 'uppend.noreply@gmail.com'}>`,
               to: email,
-              subject: `Your Daily Uppend Summary`,
+              subject: subjectLine,
               html: `
                 <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
                   <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
@@ -351,18 +360,24 @@ export async function GET(req: Request) {
                       <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Uppend</h1>
                     </div>
                     <div style="padding: 32px;">
+                      <p style="margin: 0 0 16px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">${displayDate}</p>
                       <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; line-height: 24px; color: #374151;">
                         Hi ${firstName},<br><br>Here is your daily job application summary:
                       </p>
                       
                       <div style="background-color: #f3f4f6; border-left: 4px solid #111827; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
                         <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Daily Goal</p>
-                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; color: #111827;">${goalEmoji} ${goalInfo.count} of ${goalInfo.goal} applications</p>
+                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; color: #111827;">${goalEmoji} ${goalText}</p>
+                      </div>
+
+                      <div style="background-color: #f3f4f6; border-left: 4px solid #111827; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 20px;">
+                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Current Streak</p>
+                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; color: #111827;">${streakEmoji} ${streakText}</p>
                       </div>
 
                       <div style="background-color: #f3f4f6; border-left: 4px solid #111827; padding: 20px; border-radius: 0 8px 8px 0; margin-bottom: 32px;">
-                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Current Streak</p>
-                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; color: #111827;">${streakEmoji} ${streakInfo.count} days</p>
+                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Weekly Total</p>
+                        <p style="margin: 0 0 4px 0; font-size: 18px; font-weight: 600; color: #111827;">${weeklyCount} applications</p>
                       </div>
 
                       <div style="text-align: center;">

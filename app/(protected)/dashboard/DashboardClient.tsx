@@ -6,7 +6,7 @@ import { ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
-import { getStreakStatus } from '../../../lib/utils/streaks';
+import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../lib/utils/streaks';
 import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 
@@ -194,34 +194,10 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
   const streakInfo = getStreakStatus(applications, timezone || null);
 
-  const todayDateStr = formatToLocalDate(new Date(), timezone || null);
-  
-  // Calculate week boundaries based on the user's local today date
-  const [ty, tm, td] = todayDateStr.split('-').map(Number);
-  const localTodayDate = new Date(ty, tm - 1, td, 12, 0, 0);
-  const dayOfWeek = localTodayDate.getDay();
-  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  
-  const mondayDate = new Date(localTodayDate);
-  mondayDate.setDate(localTodayDate.getDate() - daysToMonday);
-  const mondayStr = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`;
-  
-  const sundayDate = new Date(mondayDate);
-  sundayDate.setDate(mondayDate.getDate() + 6);
-  const sundayStr = `${sundayDate.getFullYear()}-${String(sundayDate.getMonth() + 1).padStart(2, '0')}-${String(sundayDate.getDate()).padStart(2, '0')}`;
+  const goalInfo = getGoalProgress(applications, timezone || null, dailyGoal);
+  const weeklyCount = getWeeklyCount(applications, timezone || null);
 
-  let todayCount = 0;
-  let thisWeekCount = 0;
-  applications.forEach(app => {
-    if (!app.created_at) return;
-    const d = new Date(app.created_at);
-    if (isNaN(d.getTime())) return;
-    const appDateStr = formatToLocalDate(d, timezone || null);
-    if (appDateStr === todayDateStr) todayCount++;
-    if (appDateStr >= mondayStr && appDateStr <= sundayStr) thisWeekCount++;
-  });
-
-  const progressPct = Math.min(100, (todayCount / Math.max(1, dailyGoal)) * 100);
+  const progressPct = Math.min(100, (goalInfo.count / Math.max(1, dailyGoal)) * 100);
 
   // Pagination
   const totalPages = Math.ceil(sortedApps.length / pageSize) || 1;
@@ -264,27 +240,27 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700"
           title="Applications created this week (Mon–Sun)"
         >
-          📅 {thisWeekCount} this week
+          📅 {weeklyCount} this week
         </div>
 
         <div 
           className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border ${
-            todayCount >= dailyGoal
+            goalInfo.met
               ? 'bg-transparent text-green-600 border-green-300 dark:text-green-500 dark:border-green-800/60'
               : 'bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700'
           }`}
-          title={`${todayCount} of ${dailyGoal} applications today`}
+          title={`${goalInfo.count} of ${goalInfo.goal} applications today`}
         >
           <div 
             className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out ${
-              todayCount >= dailyGoal 
+              goalInfo.met 
                 ? 'bg-green-100/60 dark:bg-green-900/25' 
                 : 'bg-gray-200/50 dark:bg-zinc-700/40'
             }`} 
             style={{ width: `${progressPct}%` }} 
           />
           <span className="relative z-10 flex items-center gap-1.5">
-            📋 {todayCount}/{dailyGoal} today
+            📋 {goalInfo.count}/{goalInfo.goal} today
           </span>
         </div>
 

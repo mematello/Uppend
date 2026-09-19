@@ -6,10 +6,11 @@ Resolved items are removed here and folded into changelog.md /
 decisions.md instead. See architecture.md / decisions.md / schema.md /
 changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-09-19 (Session 19)*
+*Last updated: 2026-09-19 (Session 20)*
 
 ## 1. Confirmed working / shipped
 
+- **Gamification Phase 3 (Unified Reminder Email)**: Implemented a daily summary email sent at ~8 PM local time (via `reminder_timezone`) containing the user's current streak and goal progress. Uses `daily_summary_enabled` and `daily_summary_last_sent_date` for atomic locking in the cron route. Testing must strictly use synthetic users.
 - **Gamification Phase 2 (Goals)**: Implemented a user-configurable daily target (default 5/day), backed by a new `profiles.daily_goal` column and a Settings UI. The dashboard Overview Stats row was redesigned to include a weekly count badge, a goal progress badge with a graduated fill, a relocated and right-aligned streak badge, and a deterministic local "Quote of the Day".
 - **Streak Weekend Exemption**: Amended the original streak logic so that weekends (Sat/Sun) no longer break an active application streak (see `decisions.md`).
 - **Doc Cleanup**: Updated ApplyFlow → Uppend references in README.md, architecture.md, decisions.md, and AGENTS.md, fixing legacy mkro-applyflow.vercel.app URLs and the applyflowapp@gmail.com address to their uppend equivalents. Includes updating the fallback string in the cron reminders route.
@@ -43,8 +44,7 @@ changelog.md for anything not called out below as recently changed.*
 ## 3. Next steps, priority order
 
 **Backlog:**
-1. **Gamification Phase 3 (Unified Reminder Email)**: Unified daily streak+goal reminder email sent at a fixed app-wide ~8PM-local time via `reminder_timezone` (distinct from the user-configurable `reminder_send_time` used for next-action reminders), with a settings toggle to disable. Scoped but not yet implemented.
-2. **JD URL-fetching**: Large feature, touches a Protected AI Route, needs its own full plan cycle. Investigation was paused mid-way, real-URL fetch testing not yet done.
+1. **JD URL-fetching**: Large feature, touches a Protected AI Route, needs its own full plan cycle. Investigation was paused mid-way, real-URL fetch testing not yet done.
 
 ## 4. Future plans (not yet scoped)
 

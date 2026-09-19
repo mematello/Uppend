@@ -1,5 +1,8 @@
 # Uppend — Changelog
 
+## [2026-09-19] (Session 20)
+- Implemented: Gamification Phase 3 (Unified Reminder Email). Added a daily summary email sent at ~8 PM local time (determined via `reminder_timezone`), reporting the user's current streak and goal progress. Extracted the goal progress calculation into `lib/utils/streaks.ts` to share logic between the dashboard and cron job. Added a user toggle in Settings (`daily_summary_enabled`), backed by new columns in the `profiles` table. Updated the `/api/cron/reminders/route.ts` with a secondary query path featuring atomic locking via `daily_summary_last_sent_date` to prevent race conditions during duplicate executions. Tested completely using synthetic data to prevent accidental production emails.
+
 ## [2026-09-19] (Session 19)
 - Implemented: Gamification Phase 2 (Goals). Migrated user profiles to include a `daily_goal` column. Added a new Goals section in Settings. Redesigned the dashboard Overview Stats row: relocated the streak badge out of the search/filter row and right-aligned it, added a weekly application count badge, and updated the daily goal badge with a proportional graduated progress fill. Fixed false-affordance issues on static badges by maintaining their low-opacity appearance. Added hover tooltips to the Overview Stats badges for clarity.
 - Implemented: Quote of the Day. Added a deterministic, locally-cached quote rotation based on the day of the year (`lib/cache/quotes.ts`). Replaced an initial integration with the ZenQuotes API after finding its `/today` endpoint lacked topic filtering and returned irrelevant quotes, avoiding another unreliable third-party dependency.

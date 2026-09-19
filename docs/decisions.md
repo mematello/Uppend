@@ -1,5 +1,15 @@
 # Uppend — Decisions Log
 
+## [2026-09-19] Profiles-Users Join Limitation (Cron Job)
+- Context: During the Gamification Phase 3 cron implementation, we needed to query `profiles` and join the `auth.users` email.
+- Decision: Reverted a direct `users!inner(email)` PostgREST join and implemented a two-step query sequence (fetching `profiles`, then fetching emails from `users` based on the IDs).
+- Reasoning: The `public.users` table does not have a foreign key to `profiles`. Both tables independently reference `auth.users(id)`. Since PostgREST requires a direct explicit foreign key between the two queried public tables, the `!inner` join failed with a `PGRST200` error. The two-step query is lightweight, cache-friendly, and operates reliably on the Service Role client.
+
+## [2026-09-19] Daily Summary Testing Constraints
+- Context: The daily summary email cron job sends live emails to users when it processes.
+- Decision: Enforced a strict procedural rule that testing of the cron route must only be done using a synthetically created user (via `auth.admin.createUser`) with a controlled email address.
+- Reasoning: Using the Service Role client against live users runs the risk of sending accidental real emails during development or testing, which caused a past incident. Testing against synthetic data strictly isolates the test environment while fully verifying the end-to-end execution, including the atomic lock mechanics.
+
 ## [2026-09-19] Quote of the Day: Local Pool Over External API
 - Context: ZenQuotes `/today` endpoint was initially chosen for the dashboard's daily quote, but testing revealed it has no topic filtering and returned unrelated, off-theme quotes.
 - Decision: Replaced the ZenQuotes API fetch with a curated local quote list and a deterministic day-of-year rotation algorithm, completely removing the external dependency.

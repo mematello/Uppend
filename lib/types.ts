@@ -6,6 +6,8 @@ export interface Profile {
   reminder_timezone: string | null;
   reminder_send_time: string | null;
   daily_goal: number;
+  daily_summary_enabled?: boolean;
+  daily_summary_last_sent_date?: string | null;
 }
 
 export interface Application {

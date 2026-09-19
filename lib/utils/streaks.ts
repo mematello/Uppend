@@ -64,3 +64,57 @@ export function getStreakStatus(applications: Application[], timezone: string | 
   
   return { status, count: streak };
 }
+
+export function getGoalProgress(applications: Application[], timezone: string | null, goalTarget: number): { count: number; goal: number; met: boolean } {
+  if (!applications || applications.length === 0) return { count: 0, goal: goalTarget, met: goalTarget <= 0 };
+  
+  const todayDateStr = formatToLocalDate(new Date(), timezone);
+  let count = 0;
+  
+  for (const app of applications) {
+    if (app.created_at) {
+      const d = new Date(app.created_at);
+      if (!isNaN(d.getTime())) {
+        if (formatToLocalDate(d, timezone) === todayDateStr) {
+          count++;
+        }
+      }
+    }
+  }
+  
+  return { count, goal: goalTarget, met: count >= goalTarget };
+}
+
+export function getWeeklyCount(applications: Application[], timezone: string | null): number {
+  if (!applications || applications.length === 0) return 0;
+  
+  const now = new Date();
+  
+  // Weekly calculations using timezone
+  const localTodayDateObj = new Date(now.toLocaleString('en-US', { timeZone: timezone || 'UTC' }));
+  const dayOfWeek = localTodayDateObj.getDay();
+  const diffToMonday = localTodayDateObj.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  
+  const mondayDate = new Date(localTodayDateObj.setDate(diffToMonday));
+  const mondayStr = `${mondayDate.getFullYear()}-${String(mondayDate.getMonth() + 1).padStart(2, '0')}-${String(mondayDate.getDate()).padStart(2, '0')}`;
+  
+  const sundayDate = new Date(mondayDate);
+  sundayDate.setDate(mondayDate.getDate() + 6);
+  const sundayStr = `${sundayDate.getFullYear()}-${String(sundayDate.getMonth() + 1).padStart(2, '0')}-${String(sundayDate.getDate()).padStart(2, '0')}`;
+  
+  let count = 0;
+  
+  for (const app of applications) {
+    if (app.created_at) {
+      const d = new Date(app.created_at);
+      if (!isNaN(d.getTime())) {
+        const appDateStr = formatToLocalDate(d, timezone);
+        if (appDateStr >= mondayStr && appDateStr <= sundayStr) {
+          count++;
+        }
+      }
+    }
+  }
+  
+  return count;
+}
