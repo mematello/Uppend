@@ -340,9 +340,10 @@ export async function GET(req: Request) {
           const streakEmoji = streakInfo.status === 'active' ? '🔥' : (streakInfo.status === 'at_risk' ? '⚠️' : '⏳');
           const goalEmoji = goalInfo.met ? '✅' : '📋';
 
+          const daysStr = streakInfo.count === 1 ? 'day' : 'days';
           const streakText = streakInfo.status === 'active' 
-            ? `${streakInfo.count} days` 
-            : (streakInfo.status === 'at_risk' ? `${streakInfo.count} days — keep it alive` : 'No active streak yet.');
+            ? `${streakInfo.count} ${daysStr}` 
+            : (streakInfo.status === 'at_risk' ? `${streakInfo.count} ${daysStr} — keep it alive` : 'No active streak yet.');
             
           const toGo = goalInfo.goal - goalInfo.count;
           const goalText = goalInfo.met ? `Goal hit — ${goalInfo.count} of ${goalInfo.goal} applications` : `${toGo} to go — ${goalInfo.count} of ${goalInfo.goal} applications`;
