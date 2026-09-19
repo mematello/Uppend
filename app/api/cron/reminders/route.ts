@@ -337,13 +337,22 @@ export async function GET(req: Request) {
           const fullName = profile.full_name;
           const firstName = fullName ? fullName.split(' ')[0] : 'there';
           
-          const streakEmoji = streakInfo.status === 'active' ? '🔥' : '⏳';
+          const streakEmoji = streakInfo.status === 'active' ? '🔥' : (streakInfo.status === 'at_risk' ? '⚠️' : '⏳');
           const goalEmoji = goalInfo.met ? '✅' : '📋';
 
-          const streakText = streakInfo.status === 'active' ? `${streakInfo.count} days` : 'No active streak yet.';
+          const streakText = streakInfo.status === 'active' 
+            ? `${streakInfo.count} days` 
+            : (streakInfo.status === 'at_risk' ? `${streakInfo.count} days — keep it alive` : 'No active streak yet.');
+            
           const toGo = goalInfo.goal - goalInfo.count;
           const goalText = goalInfo.met ? `Goal hit — ${goalInfo.count} of ${goalInfo.goal} applications` : `${toGo} to go — ${goalInfo.count} of ${goalInfo.goal} applications`;
-          const subjectLine = streakInfo.status === 'active' ? `🔥 ${streakInfo.count} day streak — your daily Uppend summary` : 'Your daily Uppend summary';
+          
+          const subjectLine = streakInfo.status === 'active' 
+            ? `🔥 ${streakInfo.count} day streak — your daily Uppend summary` 
+            : (streakInfo.status === 'at_risk' ? `⚠️ Your ${streakInfo.count} day streak is at risk` : 'Your daily Uppend summary');
+            
+          const ctaUrl = streakInfo.status === 'at_risk' ? `${getBaseUrl()}/new` : `${getBaseUrl()}/dashboard`;
+          const ctaText = streakInfo.status === 'at_risk' ? 'Save Your Streak' : 'Go to Dashboard';
           
           const dateObj = new Date(localDate + 'T00:00:00Z');
           const displayDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
@@ -381,7 +390,7 @@ export async function GET(req: Request) {
                       </div>
 
                       <div style="text-align: center;">
-                        <a href="${getBaseUrl()}/dashboard" style="display: inline-block; background-color: #111827; color: #ffffff; font-weight: 600; font-size: 15px; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; transition: background-color 0.2s;">Go to Dashboard</a>
+                        <a href="${ctaUrl}" style="display: inline-block; background-color: #111827; color: #ffffff; font-weight: 600; font-size: 15px; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; transition: background-color 0.2s;">${ctaText}</a>
                       </div>
                     </div>
                   </div>
