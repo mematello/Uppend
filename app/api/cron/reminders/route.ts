@@ -337,20 +337,31 @@ export async function GET(req: Request) {
           const fullName = profile.full_name;
           const firstName = fullName ? fullName.split(' ')[0] : 'there';
           
-          const streakEmoji = streakInfo.status === 'active' ? '🔥' : (streakInfo.status === 'at_risk' ? '⚠️' : '⏳');
+          const isLapsedStreak = streakInfo.status === 'none' && streakInfo.previousCount && streakInfo.previousCount > 0;
+          
+          const streakEmoji = streakInfo.status === 'active' 
+            ? '🔥' 
+            : (streakInfo.status === 'at_risk' ? '⚠️' : (isLapsedStreak ? '🔄' : '⏳'));
+            
           const goalEmoji = goalInfo.met ? '✅' : '📋';
 
           const daysStr = streakInfo.count === 1 ? 'day' : 'days';
+          const prevDaysStr = streakInfo.previousCount === 1 ? 'day' : 'days';
+          
           const streakText = streakInfo.status === 'active' 
             ? `${streakInfo.count} ${daysStr}` 
-            : (streakInfo.status === 'at_risk' ? `${streakInfo.count} ${daysStr} — keep it alive` : 'No active streak yet.');
+            : (streakInfo.status === 'at_risk' 
+                ? `${streakInfo.count} ${daysStr} — keep it alive` 
+                : (isLapsedStreak ? `Your ${streakInfo.previousCount} ${prevDaysStr} streak ended — start a new one today` : 'No active streak yet.'));
             
           const toGo = goalInfo.goal - goalInfo.count;
           const goalText = goalInfo.met ? `Goal hit — ${goalInfo.count} of ${goalInfo.goal} applications` : `${toGo} to go — ${goalInfo.count} of ${goalInfo.goal} applications`;
           
           const subjectLine = streakInfo.status === 'active' 
             ? `🔥 ${streakInfo.count} day streak — your daily Uppend summary` 
-            : (streakInfo.status === 'at_risk' ? `⚠️ Your ${streakInfo.count} day streak is at risk` : 'Your daily Uppend summary');
+            : (streakInfo.status === 'at_risk' 
+                ? `⚠️ Your ${streakInfo.count} day streak is at risk` 
+                : (isLapsedStreak ? `Your ${streakInfo.previousCount} day streak ended` : 'Your daily Uppend summary'));
             
           const ctaUrl = streakInfo.status === 'at_risk' ? `${getBaseUrl()}/new` : `${getBaseUrl()}/dashboard`;
           const ctaText = streakInfo.status === 'at_risk' ? 'Save Your Streak' : 'Go to Dashboard';

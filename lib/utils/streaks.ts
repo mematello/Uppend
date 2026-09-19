@@ -4,6 +4,7 @@ import { formatToLocalDate } from './dates';
 export interface StreakStatus {
   status: 'active' | 'at_risk' | 'none';
   count: number;
+  previousCount?: number;
 }
 
 function isWeekend(dateStr: string): boolean {
@@ -33,6 +34,34 @@ export function getStreakStatus(applications: Application[], timezone: string | 
   // A day sustains the streak if you applied, OR if it's a weekend
   const isCovered = (dateStr: string) => activeDates.has(dateStr) || isWeekend(dateStr);
   
+  let previousCount = 0;
+  let mostRecentDateMs = 0;
+  
+  for (const dateStr of activeDates) {
+    const ms = new Date(dateStr + 'T00:00:00Z').getTime();
+    // Look for the most recent active date strictly before yesterday
+    if (ms < todayMs - 86400000 && ms > mostRecentDateMs) {
+      mostRecentDateMs = ms;
+    }
+  }
+
+  if (mostRecentDateMs > 0) {
+    let tempCheckStr = new Date(mostRecentDateMs).toISOString().split('T')[0];
+    let tempStreak = 0;
+    
+    while (isCovered(tempCheckStr)) {
+      if (activeDates.has(tempCheckStr)) {
+        tempStreak++;
+      }
+      const ms = new Date(tempCheckStr + 'T00:00:00Z').getTime();
+      tempCheckStr = new Date(ms - 86400000).toISOString().split('T')[0];
+    }
+    
+    if (tempStreak > 0) {
+      previousCount = tempStreak;
+    }
+  }
+
   let status: StreakStatus['status'] = 'none';
   let currentCheckStr = todayDateStr;
 
@@ -42,7 +71,7 @@ export function getStreakStatus(applications: Application[], timezone: string | 
     status = 'at_risk';
     currentCheckStr = yesterdayDateStr;
   } else {
-    return { status: 'none', count: 0 };
+    return { status: 'none', count: 0, previousCount };
   }
   
   let streak = 0;
@@ -59,7 +88,7 @@ export function getStreakStatus(applications: Application[], timezone: string | 
   
   // If the chain consisted ONLY of weekends and no actual applications, it's not a streak
   if (streak === 0) {
-    return { status: 'none', count: 0 };
+    return { status: 'none', count: 0, previousCount };
   }
   
   return { status, count: streak };
