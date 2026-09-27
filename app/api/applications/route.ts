@@ -56,6 +56,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Auto-clear re-engagement 'snoozed' state
+    await supabase
+      .from('profiles')
+      .update({
+        reengagement_status: 'active',
+        reengagement_snoozed_until: null
+      })
+      .eq('id', user.id)
+      .eq('reengagement_status', 'snoozed');
+
     revalidateTag(`applications-${user.id}`);
 
     return NextResponse.json({ data });

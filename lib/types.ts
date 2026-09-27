@@ -8,6 +8,9 @@ export interface Profile {
   daily_goal: number;
   daily_summary_enabled?: boolean;
   daily_summary_last_sent_date?: string | null;
+  reengagement_status?: 'active' | 'paused_found_job' | 'snoozed';
+  reengagement_snoozed_until?: string | null;
+  reengagement_last_sent_date?: string | null;
 }
 
 export interface Application {

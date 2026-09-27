@@ -5,6 +5,8 @@ import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../../li
 import { Application } from '../../../../lib/types';
 
 const RETRY_ELAPSED_BUDGET_MS = 5000; // Heuristic default pending real latency data, easily tunable
+const REENGAGEMENT_INACTIVITY_DAYS = 14; // Document intent for the 14-day re-engagement query
+
 
 // Helper to retry transient Supabase errors
 async function withRetry<T extends { error: unknown }>(queryBuilderFn: () => PromiseLike<T>, startTime: number, budgetMs: number = RETRY_ELAPSED_BUDGET_MS): Promise<{ result: T; retried: boolean }> {
@@ -440,6 +442,151 @@ export async function GET(req: Request) {
     }
 
 
+    // ============================================================================
+    // PHASE 4: RE-ENGAGEMENT REMINDERS
+    // ============================================================================
+    let reengagementFetched = 0;
+    const reengagementSuccessful: string[] = [];
+    const reengagementFailed: Record<string, unknown>[] = [];
+    let reengagementQueryError: string | null = null;
+
+    const { result: reengagementResult, retried: reengagementRetried } = await withRetry(() => supabase
+      .from('v_reengagement_candidates')
+      .select('*'), handlerStart);
+    
+    if (reengagementRetried) totalRetries++;
+
+    if (reengagementResult.error) {
+      console.error('Error fetching re-engagement candidates:', reengagementResult.error);
+      reengagementQueryError = reengagementResult.error.message;
+    } else {
+      const candidates = reengagementResult.data || [];
+      reengagementFetched = candidates.length;
+
+      for (const candidate of candidates) {
+        const tz = candidate.reminder_timezone || 'UTC';
+        let localDate = '';
+        try {
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: tz,
+            year: 'numeric', month: '2-digit', day: '2-digit',
+          });
+          const parts = formatter.formatToParts(now);
+          const p = Object.fromEntries(parts.map(pt => [pt.type, pt.value]));
+          localDate = `${p.year}-${p.month}-${p.day}`;
+        } catch (e) {
+          console.error(`Error formatting date for timezone ${tz}`, e);
+          continue;
+        }
+
+        // Apply atomic lock and reset any snoozed status to active
+        let lockQuery = supabase.from('profiles').update({
+          reengagement_last_sent_date: localDate,
+          reengagement_status: 'active',
+          reengagement_snoozed_until: null
+        }).eq('id', candidate.user_id);
+
+        if (candidate.reengagement_last_sent_date === null) {
+          lockQuery = lockQuery.is('reengagement_last_sent_date', null);
+        } else {
+          // If we had a date, make sure it's not today's localDate to avoid duplicate sends
+          lockQuery = lockQuery.neq('reengagement_last_sent_date', localDate);
+        }
+
+        const { result: lockResult, retried: lockRetried } = await withRetry(() => lockQuery.select('id'), handlerStart);
+        if (lockRetried) totalRetries++;
+
+        if (lockResult.error || !lockResult.data || lockResult.data.length === 0) {
+          console.log(`Skipping re-engagement for user ${candidate.user_id} - already sent today or error acquiring lock`);
+          continue;
+        }
+
+        // Lock acquired. Generate tokens.
+        const tokenFoundJob = crypto.randomUUID();
+        const tokenStillLooking = crypto.randomUUID();
+        const tokenSnooze = crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+        const tokensToInsert = [
+          { token: tokenFoundJob, user_id: candidate.user_id, action_type: 'found_job', expires_at: expiresAt },
+          { token: tokenStillLooking, user_id: candidate.user_id, action_type: 'still_looking', expires_at: expiresAt },
+          { token: tokenSnooze, user_id: candidate.user_id, action_type: 'snooze', expires_at: expiresAt }
+        ];
+
+        const { result: tokenInsertResult, retried: tokenInsertRetried } = await withRetry(() => supabase.from('action_tokens').insert(tokensToInsert), handlerStart);
+        if (tokenInsertRetried) totalRetries++;
+        
+        if (tokenInsertResult.error) {
+          console.error(`Failed to insert tokens for user ${candidate.user_id}:`, tokenInsertResult.error);
+          reengagementFailed.push({ id: candidate.user_id, error: 'Token insert failed' });
+          continue;
+        }
+
+        const email = candidate.email;
+        const fullName = candidate.full_name;
+        const firstName = fullName ? fullName.split(' ')[0] : 'there';
+        
+        const baseUrl = getBaseUrl();
+        const foundJobUrl = `${baseUrl}/api/reengagement?token=${tokenFoundJob}&action=found_job`;
+        const stillLookingUrl = `${baseUrl}/api/reengagement?token=${tokenStillLooking}&action=still_looking`;
+        const snoozeUrl = `${baseUrl}/api/reengagement?token=${tokenSnooze}&action=snooze`;
+
+        try {
+          if (process.env.SIMULATE_SEND_FAILURE === email) throw new Error('Simulated SMTP failure');
+          const info = await emailTransporter.sendMail({
+            from: `"Uppend Reminders" <${process.env.SMTP_EMAIL || 'uppend.noreply@gmail.com'}>`,
+            to: email,
+            subject: "Checking in on your job search",
+            html: `
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f9fafb; padding: 40px 20px; color: #111827;">
+                <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                  <div style="padding: 32px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #111827; letter-spacing: -0.5px;">Uppend</h1>
+                  </div>
+                  <div style="padding: 32px;">
+                    <p style="margin-top: 0; margin-bottom: 24px; font-size: 16px; line-height: 24px; color: #374151;">
+                      Hi ${firstName},<br><br>We noticed you haven't logged any new applications in the last ${REENGAGEMENT_INACTIVITY_DAYS} days. We're checking in to see how your job search is going!
+                    </p>
+                    
+                    <div style="margin-bottom: 32px;">
+                      <a href="${stillLookingUrl}" style="display: block; background-color: #111827; color: #ffffff; font-weight: 600; font-size: 15px; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; transition: background-color 0.2s; margin-bottom: 12px;">I'm still looking</a>
+                      <a href="${snoozeUrl}" style="display: block; background-color: #f3f4f6; color: #374151; font-weight: 600; font-size: 15px; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; transition: background-color 0.2s; margin-bottom: 12px;">Snooze reminders for 30 days</a>
+                      <a href="${foundJobUrl}" style="display: block; background-color: #f3f4f6; color: #374151; font-weight: 600; font-size: 15px; text-decoration: none; padding: 12px 24px; border-radius: 6px; text-align: center; transition: background-color 0.2s;">I found a job! 🎉</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `,
+          });
+
+          if (info.rejected && info.rejected.length > 0) {
+            console.error(`Failed to send re-engagement email to ${email} for user ${candidate.user_id}: rejected by server`);
+            reengagementFailed.push({ id: candidate.user_id, error: 'Rejected by server' });
+            // Rollback lock
+            const rollbackQuery = supabase.from('profiles').update({ 
+              reengagement_last_sent_date: candidate.reengagement_last_sent_date,
+              reengagement_status: candidate.reengagement_status,
+              reengagement_snoozed_until: candidate.reengagement_snoozed_until
+            }).eq('id', candidate.user_id);
+            await withRetry(() => rollbackQuery, handlerStart);
+          } else {
+            console.log(`Successfully sent re-engagement email to ${email} for user ${candidate.user_id} (MessageId: ${info.messageId})`);
+            reengagementSuccessful.push(candidate.user_id);
+          }
+        } catch (e: unknown) {
+          console.error(`Exception sending re-engagement email for user ${candidate.user_id}:`, e);
+          reengagementFailed.push({ id: candidate.user_id, error: (e as Error).message });
+          // Rollback lock
+          const rollbackQuery = supabase.from('profiles').update({ 
+            reengagement_last_sent_date: candidate.reengagement_last_sent_date,
+            reengagement_status: candidate.reengagement_status,
+            reengagement_snoozed_until: candidate.reengagement_snoozed_until
+          }).eq('id', candidate.user_id);
+          await withRetry(() => rollbackQuery, handlerStart);
+        }
+      }
+    }
+
     return NextResponse.json({ 
       success: true, 
       nextActionReminders: {
@@ -455,6 +602,13 @@ export async function GET(req: Request) {
         failed: dailySummariesFailed.length,
         error: dailySummaryQueryError,
         details: { successfulSends: dailySummariesSuccessful, failedSends: dailySummariesFailed }
+      },
+      reengagementReminders: {
+        fetched: reengagementFetched,
+        successful: reengagementSuccessful.length,
+        failed: reengagementFailed.length,
+        error: reengagementQueryError,
+        details: { successfulSends: reengagementSuccessful, failedSends: reengagementFailed }
       },
       elapsedMs: Date.now() - handlerStart,
       retriedCount: totalRetries
