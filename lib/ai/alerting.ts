@@ -32,3 +32,14 @@ export async function recordExhaustionAndCheckAlert(): Promise<boolean> {
     return false;
   }
 }
+
+export async function checkAndRecordExhaustion(): Promise<void> {
+  const shouldAlert = await recordExhaustionAndCheckAlert();
+  if (shouldAlert) {
+    sendOperatorAlert(
+      `Critical: All AI Models Exhausted`,
+      `<p>The fallback chain has been exhausted 3 times in the last hour.</p>
+       <p>This indicates severe quota pressure or a systemic failure across all models.</p>`
+    );
+  }
+}

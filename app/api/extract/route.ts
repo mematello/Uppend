@@ -4,7 +4,7 @@ import { JobExtractionSchema } from '../../../lib/schemas/extraction';
 import { createClient } from '../../../lib/supabase/server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getAvailableModel, AllModelsExhaustedError, parseGeminiError, blockModelInDb, AI_MODELS, ParsedAiError } from '../../../lib/ai/models';
-import { sendOperatorAlert, recordExhaustionAndCheckAlert } from '../../../lib/ai/alerting';
+import { sendOperatorAlert, checkAndRecordExhaustion } from '../../../lib/ai/alerting';
 import { createServiceClient } from '../../../lib/supabase/serviceClient';
 import { getProvider, AiProvider } from '../../../lib/ai/provider';
 import { decrypt } from '../../../lib/utils/encryption';
@@ -216,15 +216,7 @@ Example Output:
       } catch (error: unknown) {
         if (error instanceof AllModelsExhaustedError) {
           console.error('[Extract API] All models exhausted or blocked.');
-          
-          const shouldAlert = await recordExhaustionAndCheckAlert();
-          if (shouldAlert) {
-            sendOperatorAlert(
-              `Critical: All AI Models Exhausted`,
-              `<p>The fallback chain has been exhausted 3 times in the last hour.</p>
-               <p>This indicates severe quota pressure or a systemic failure across all models.</p>`
-            );
-          }
+          await checkAndRecordExhaustion();
 
           return NextResponse.json({
             error: 'all_models_exhausted',
@@ -326,6 +318,11 @@ Example Output:
           }
           excludedModels.push(activeModelName);
           console.warn(`[Extract API] Model ${activeModelName} temporary failure (${parsedErr.isQuotaError ? 'quota' : 'unavailable'}). Trying fallback model...`);
+
+          if (attempts >= maxAttempts) {
+            await checkAndRecordExhaustion();
+          }
+
           continue;
         } else if (parsedErr.errorClass === 'PERMANENT_PROVIDER') {
           const blockSecs = 2592000; // 30 days
