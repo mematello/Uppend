@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Type } from '@google/genai';
 import { MatchAssessmentSchema } from '../../../lib/schemas/matching';
 import { createClient } from '../../../lib/supabase/server';
-import { getAvailableModel, AllModelsExhaustedError, parseGeminiError, blockModelInDb, AI_MODELS, ParsedAiError } from '../../../lib/ai/models';
+import { getAvailableModel, AllModelsExhaustedError, parseProviderError, blockModelInDb, AI_MODELS, ParsedAiError } from '../../../lib/ai/models';
 import { sendOperatorAlert, checkAndRecordExhaustion } from '../../../lib/ai/alerting';
 import { createServiceClient } from '../../../lib/supabase/serviceClient';
 import { getProvider, AiProvider } from '../../../lib/ai/provider';
@@ -171,44 +171,51 @@ ${resumeText}
     while (attempts < maxAttempts) {
       attempts++;
       let activeModelName: string;
+      let apiModelName: string;
 
       try {
         // NOTE: Since /api/extract and /api/match may run concurrently in parallel, 
         // there is no strict guarantee both requests resolve to the identical model under simultaneous fallback.
         // This is an intentional performance tradeoff for parallel execution speed.
-        activeModelName = await getAvailableModel(user.id, excludedModels, requestedModel, hasCustomKey);
-        } catch (error: unknown) {
-          if (error instanceof AllModelsExhaustedError) {
-            console.error('[Match API] All models exhausted or blocked.');
-            await checkAndRecordExhaustion();
+        const modelConfig = await getAvailableModel(user.id, excludedModels, requestedModel, hasCustomKey);
+        activeModelName = modelConfig.trackingName;
+        apiModelName = modelConfig.name;
 
-            return NextResponse.json({
-              error: 'all_models_exhausted',
-              retryAfterSeconds: error.retryAfterSeconds
-            }, { status: 429 });
+        const providerPrefix = apiModelName.includes(':') ? apiModelName.split(':')[0] : 'google';
+        apiModelName = apiModelName.includes(':') ? apiModelName.split(':')[1] : apiModelName;
+
+        if (!hasCustomKey) {
+          if (providerPrefix === 'groq') {
+            aiProvider = getProvider('groq', process.env.GROQ_API_KEY || '');
+          } else {
+            aiProvider = getProvider('google', process.env.GEMINI_API_KEY || '');
           }
-          throw error;
         }
+      } catch (error: unknown) {
+        if (error instanceof AllModelsExhaustedError) {
+          console.error('[Match API] All models exhausted or blocked.');
+          await checkAndRecordExhaustion();
+
+          return NextResponse.json({
+            error: 'all_models_exhausted',
+            retryAfterSeconds: error.retryAfterSeconds
+          }, { status: 429 });
+        }
+        throw error;
+      }
 
       try {
         // aiProvider is guaranteed to be set here either from custom key or fallback
-        const rawJsonText = await aiProvider!.generateObject(systemInstruction, geminiMatchSchema, activeModelName, prompt);
+        const validated = await aiProvider!.generateStructured(systemInstruction, MatchAssessmentSchema, geminiMatchSchema, apiModelName, prompt);
         
         if (!hasCustomKey) {
           await serviceSupabase.rpc('increment_model_usage', { p_model_name: activeModelName });
         }
-        
-        const firstBrace = rawJsonText.indexOf('{');
-        const lastBrace = rawJsonText.lastIndexOf('}');
-        if (firstBrace === -1 || lastBrace === -1) throw new Error("No JSON found");
-        
-        const parsedData = JSON.parse(rawJsonText.slice(firstBrace, lastBrace + 1));
-        const validated = MatchAssessmentSchema.parse(parsedData);
 
         return NextResponse.json({ data: validated, model_used: activeModelName });
 
       } catch (modelErr: unknown) {
-        const parsedErr = parseGeminiError(modelErr);
+        const parsedErr = parseProviderError(modelErr);
         lastError = parsedErr;
 
         if (hasCustomKey && (parsedErr.statusCode === 400 || parsedErr.statusCode === 401 || parsedErr.statusCode === 403)) {

@@ -5,7 +5,9 @@ import { createServiceClient } from '../supabase/serviceClient';
 export const AI_MODELS = [
   { name: 'gemini-3.5-flash', dailyLimit: 20, description: 'Default/Most capable, but only 20/day limit' },
   { name: 'gemini-3-flash-preview', dailyLimit: 1500, description: 'Primary fallback, ~1500/day free tier' },
-  { name: 'gemini-3.1-flash-lite-preview', dailyLimit: 1500, description: 'Last resort/faster fallback' }
+  { name: 'gemini-3.1-flash-lite-preview', dailyLimit: 1500, description: 'Last resort/faster fallback' },
+  { name: 'groq:openai/gpt-oss-120b', dailyLimit: 1000, sharedQuotaKey: 'groq:shared-bucket', description: 'Groq fallback 1', userSelectable: false },
+  { name: 'groq:openai/gpt-oss-20b', dailyLimit: 1000, sharedQuotaKey: 'groq:shared-bucket', description: 'Groq fallback 2 (5xx only)', userSelectable: false }
 ];
 
 export class AllModelsExhaustedError extends Error {
@@ -27,13 +29,16 @@ export interface ParsedAiError {
   retryAfterSeconds: number | null;
 }
 
-export function parseGeminiError(e: unknown): ParsedAiError {
+export const parseGeminiError = parseProviderError;
+
+export function parseProviderError(e: unknown): ParsedAiError {
   const rawMessage = e instanceof Error ? e.message : String(e || '');
   const errObj = (e && typeof e === 'object') ? (e as Record<string, unknown>) : {};
   
   let statusCode: number | null = typeof errObj.status === 'number' ? errObj.status : (typeof errObj.code === 'number' ? errObj.code : null);
   let statusText: string | null = typeof errObj.status === 'string' ? errObj.status : null;
   let message = rawMessage;
+  const headers = (errObj.headers as unknown) as Headers | null;
 
   // Safely attempt to parse stringified JSON embedded in error message
   try {
@@ -73,6 +78,24 @@ export function parseGeminiError(e: unknown): ParsedAiError {
   const match = rawMessage.match(/retryDelay.*?([\d\.]+)s/) || rawMessage.match(/retry in ([\d\.]+)s/);
   if (match) {
     retryAfterSeconds = Math.ceil(parseFloat(match[1]));
+  } else if (headers && headers.get) {
+    const retryAfter = headers.get('retry-after');
+    if (retryAfter) {
+      retryAfterSeconds = parseInt(retryAfter, 10);
+    } else {
+      const resetTokens = headers.get('x-ratelimit-reset-tokens');
+      const resetRequests = headers.get('x-ratelimit-reset-requests');
+      if (resetTokens || resetRequests) {
+        // e.g. "5.5s" or "3h"
+        const maxResetStr = [resetTokens, resetRequests].find(x => x);
+        if (maxResetStr) {
+          const num = parseFloat(maxResetStr);
+          if (maxResetStr.includes('h')) retryAfterSeconds = Math.ceil(num * 3600);
+          else if (maxResetStr.includes('m')) retryAfterSeconds = Math.ceil(num * 60);
+          else retryAfterSeconds = Math.ceil(num);
+        }
+      }
+    }
   }
 
   let errorClass: 'TEMPORARY_PROVIDER' | 'PERMANENT_PROVIDER' | 'TERMINAL_EXECUTION' = 'TERMINAL_EXECUTION';
@@ -150,9 +173,11 @@ export async function getAvailableModel(
   // 3. Custom Key Path: Bypass global ai_model_usage tracking completely.
   if (hasCustomKey) {
     if (requestedModel && !excludeModels.includes(requestedModel)) {
-      return requestedModel;
+      const modelConfig = AI_MODELS.find(m => m.name === requestedModel);
+      return { name: requestedModel, trackingName: modelConfig?.sharedQuotaKey || requestedModel };
     }
-    return orderedModels[0].name;
+    const modelConfig = orderedModels[0];
+    return { name: modelConfig.name, trackingName: modelConfig.sharedQuotaKey || modelConfig.name };
   }
 
   // 4. Server Key Path: Enforce global rate limits via ai_model_usage table.
@@ -170,14 +195,15 @@ export async function getAvailableModel(
   }
 
   if (requestedModel && !excludeModels.includes(requestedModel)) {
-    const usage = usageMap.get(requestedModel);
-    const isBlocked = usage?.blocked_until && new Date(usage.blocked_until) > new Date();
     const modelConfig = AI_MODELS.find(m => m.name === requestedModel);
+    const trackingName = modelConfig?.sharedQuotaKey || requestedModel;
+    const usage = usageMap.get(trackingName);
+    const isBlocked = usage?.blocked_until && new Date(usage.blocked_until) > new Date();
     const limit = modelConfig?.dailyLimit ?? 1500;
     const isExhausted = usage && usage.request_count >= limit;
 
     if (!isBlocked && !isExhausted) {
-      return requestedModel;
+      return { name: requestedModel, trackingName };
     }
   }
 
@@ -185,14 +211,15 @@ export async function getAvailableModel(
   earliestReset.setHours(24, 0, 0, 0);
 
   for (const model of orderedModels) {
-    const usage = usageMap.get(model.name);
-    if (!usage) return model.name;
+    const trackingName = model.sharedQuotaKey || model.name;
+    const usage = usageMap.get(trackingName);
+    if (!usage) return { name: model.name, trackingName };
 
     const isBlocked = usage.blocked_until && new Date(usage.blocked_until) > new Date();
     const isExhausted = usage.request_count >= model.dailyLimit;
 
     if (!isBlocked && !isExhausted) {
-      return model.name;
+      return { name: model.name, trackingName };
     }
 
     if (isBlocked) {

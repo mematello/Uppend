@@ -38,7 +38,9 @@ export async function GET() {
     }
 
     // Prepare response data combining static config with live usage
-    const models = AI_MODELS.map(model => {
+    const models = AI_MODELS
+      .filter((m) => m.userSelectable !== false)
+      .map(model => {
       const usage = usageMap.get(model.name);
       return {
         ...model,
