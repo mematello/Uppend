@@ -1,5 +1,24 @@
 # Uppend — Decisions Log
 
+## [2026-09-30] Groq as Fallback AI Provider
+- Context: The primary Gemini fallback chain occasionally exhausted entirely, breaking the core AI extraction and matching features. We needed a reliable secondary fallback provider.
+- Decision: Selected Groq over alternatives (Mistral, DeepSeek, OpenRouter).
+- Reasoning: Groq offers a generous free tier (1,000 requests per day) with an OpenAI-compatible API, making integration seamless without new SDK dependencies. It explicitly guarantees no training on user data in its free tier (unlike Mistral/DeepSeek), preserving privacy. OpenRouter was rejected because it requires a minimum $10 pre-funded balance for its "free" models to reliably avoid strict low-priority rate limits.
+
+## [2026-09-30] Fallback Models: gpt-oss-120b & gpt-oss-20b
+- Context: Selecting specific models on Groq for the fallback chain.
+- Decision: Chose `groq:openai/gpt-oss-120b` as the primary Groq fallback, followed by `groq:openai/gpt-oss-20b`.
+- Reasoning: Llama models were evaluated but confirmed to be unavailable or severely limited on Groq's current free tier. The `gpt-oss` models are stable and performant. `120b` is prioritized first for higher extraction quality, with `20b` serving as the final safety net.
+
+## [2026-09-30] Groq Shared-Quota Bucket Design
+- Context: Managing rate limit blocking for the two Groq models, which share a single 1,000 RPD / 8,000 TPM account-level free tier limit.
+- Decision: Implemented a shared-quota-bucket design where both `gpt-oss-120b` and `gpt-oss-20b` map to the identical `trackingName` (`groq:shared-bucket`) in `AI_MODELS`.
+- Reasoning: If `120b` fails with a 429 quota exhaustion error, the `blockModelInDb` function writes a blocking row for `groq:shared-bucket`. The fallback loop immediately evaluates `20b` next, but naturally skips it because its tracking key (`groq:shared-bucket`) is already blocked. This emergent behavior elegantly guarantees that a 429 exhaustion on Groq blocks the entire provider, while a 5xx failure on `120b` still allows `20b` to be tried, all without explicit special-case logic in the fallback loop.
+
+## [2026-09-30] BYOK Scope Deferred to Phase 2
+- Context: The new Groq models share the backend provider infrastructure, but BYOK currently only supports Gemini.
+- Decision: Scoped Phase 1 strictly to the shared-pool fallback implementation. Extending BYOK to allow users to supply their own Groq or other provider keys is explicitly deferred to a planned Phase 2.
+- Reasoning: Fixing the core feature outage (shared pool exhaustion) was urgent and required immediate shipping. Expanding the settings UI and routing logic for multi-provider BYOK is a separate concern that can be tackled safely later.
 ## [2026-09-19] Profiles-Users Join Limitation (Cron Job)
 - Context: During the Gamification Phase 3 cron implementation, we needed to query `profiles` and join the `auth.users` email.
 - Decision: Reverted a direct `users!inner(email)` PostgREST join and implemented a two-step query sequence (fetching `profiles`, then fetching emails from `users` based on the IDs).
