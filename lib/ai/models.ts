@@ -105,10 +105,9 @@ export function parseProviderError(e: unknown): ParsedAiError {
   } else if (statusCode === 404) {
     errorClass = 'PERMANENT_PROVIDER';
   } else if (statusCode === 400) {
-    if (/(API_KEY_INVALID|API key not valid)/i.test(message)) {
-      statusCode = 401; // Treat as key rejection
-      errorClass = 'TERMINAL_EXECUTION';
-    } else if (/(model|unsupported|deprecated|not found|retired)/i.test(message)) {
+    // NOTE: This regex is a known fragility point. If Gemini's error message wording changes, 
+    // deprecation errors will silently fall through to TERMINAL_EXECUTION (fail-fast) instead of falling back.
+    if (/(model|unsupported|deprecated|not found|retired)/i.test(message)) {
       errorClass = 'PERMANENT_PROVIDER';
     } else {
       errorClass = 'TERMINAL_EXECUTION';

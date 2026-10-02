@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
 export interface EncryptedKey {
   encrypted_key: string;
@@ -43,14 +44,14 @@ export async function resolveByokState(supabase: SupabaseClient, userId: string)
   
   const orderedProviders: string[] = [];
   if (hasCustomKey) {
-    const availableProviders = Object.keys(keysByProvider);
-    if (preferredProvider && availableProviders.includes(preferredProvider)) {
+    const allowlist = ['google', 'groq'];
+    const activeProviders = allowlist.filter(p => !!keysByProvider[p]);
+    
+    if (preferredProvider && activeProviders.includes(preferredProvider)) {
       orderedProviders.push(preferredProvider);
-    } else if (!preferredProvider && availableProviders.includes('google')) {
-      orderedProviders.push('google');
     }
     
-    for (const provider of availableProviders) {
+    for (const provider of activeProviders) {
       if (!orderedProviders.includes(provider)) {
         orderedProviders.push(provider);
       }
@@ -63,4 +64,53 @@ export async function resolveByokState(supabase: SupabaseClient, userId: string)
     orderedProviders,
     freeAiUses
   };
+}
+
+export function buildExhaustionResponse(
+  hasCustomKey: boolean,
+  byokState: ByokState | null,
+  providerFailures: Record<string, string>,
+  retryAfterSeconds: number | undefined,
+  isUnavailableError: boolean = false
+) {
+  if (hasCustomKey && byokState) {
+    let allRejected = true;
+    const details: string[] = [];
+    
+    for (const p of byokState.orderedProviders) {
+      const status = providerFailures[p] || 'not tried';
+      details.push(`${p} (${status})`);
+      if (status !== 'rejected') {
+        allRejected = false;
+      }
+    }
+
+    if (allRejected && byokState.orderedProviders.length > 0) {
+      return NextResponse.json({ 
+        error: 'Invalid API key.', 
+        message: `All your provided keys were invalid or rejected. ${details.join(', ')}`, 
+        byok: true 
+      }, { status: 401 });
+    }
+
+    return NextResponse.json({
+      error: 'all_models_exhausted',
+      byok: true,
+      message: `Your models are exhausted or blocked: ${details.join(', ')}`,
+      partialData: null
+    }, { status: 429 });
+  }
+
+  if (isUnavailableError) {
+    return NextResponse.json({
+      error: 'service_unavailable',
+      retryAfterSeconds: retryAfterSeconds || 60,
+      message: 'The AI service is temporarily unavailable. Please try again later.'
+    }, { status: 503 });
+  }
+
+  return NextResponse.json({
+    error: 'all_models_exhausted',
+    retryAfterSeconds: 60
+  }, { status: 429 });
 }
