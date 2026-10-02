@@ -4,5 +4,10 @@ export default defineConfig({
   test: {
     css: false,
     environment: 'node'
+  },
+  css: {
+    postcss: {
+      plugins: []
+    }
   }
 });
