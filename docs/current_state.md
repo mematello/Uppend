@@ -19,6 +19,7 @@ changelog.md for anything not called out below as recently changed.*
 
 ## 2. Open / blocking
 
+- **5xx Shared Bucket Blocking**: Should a 5xx error on `120b` block the shared bucket entirely, or still try `20b`? (This requires a protected-route change and its own plan cycle).
 - **BYOK multi-provider extension (phase 2)**: Letting BYOK users add their own Groq/other-provider keys as a personal fallback is the next planned work, not yet started.
 - **Client-side 429 Handling**: The client side `/new` route currently overrides any 429 response body with a generic "Too many requests" message, hiding the new BYOK-specific exhaustion messages.
 - **Documentation Drift**: The Privacy Policy currently does not name Groq as a sub-processor. Furthermore, references to BYOK being Gemini-only in `architecture.md`, `README.md`, and `decisions.md` are stale and need updating.

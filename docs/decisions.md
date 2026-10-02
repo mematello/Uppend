@@ -14,6 +14,7 @@
 - Context: Managing rate limit blocking for the two Groq models, which share a single 1,000 RPD / 8,000 TPM account-level free tier limit.
 - Decision: Implemented a shared-quota-bucket design where both `gpt-oss-120b` and `gpt-oss-20b` map to the identical `trackingName` (`groq:shared-bucket`) in `AI_MODELS`.
 - Reasoning: If `120b` fails with a 429 quota exhaustion error, the `blockModelInDb` function writes a blocking row for `groq:shared-bucket`. The fallback loop immediately evaluates `20b` next, but naturally skips it because its tracking key (`groq:shared-bucket`) is already blocked. This emergent behavior elegantly guarantees that a 429 exhaustion on Groq blocks the entire provider, while a 5xx failure on `120b` still allows `20b` to be tried, all without explicit special-case logic in the fallback loop.
+- **[Update 2026-10-02] Correction:** The reasoning above contained a flawed assumption. In reality, `blockModelInDb` also blocks the tracking name for 300 seconds on a 5xx error. Therefore, a 5xx error on `120b` *does* block the shared bucket, and `20b` is skipped. This is an open design question (whether 5xx should block the whole bucket or not).
 
 ## [2026-09-30] BYOK Scope Deferred to Phase 2
 - Context: The new Groq models share the backend provider infrastructure, but BYOK currently only supports Gemini.

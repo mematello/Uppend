@@ -7,7 +7,7 @@ export const AI_MODELS = [
   { name: 'gemini-3-flash-preview', dailyLimit: 1500, description: 'Primary fallback, ~1500/day free tier' },
   { name: 'gemini-3.1-flash-lite-preview', dailyLimit: 1500, description: 'Last resort/faster fallback' },
   { name: 'groq:openai/gpt-oss-120b', dailyLimit: 1000, sharedQuotaKey: 'groq:shared-bucket', description: 'Groq fallback 1', userSelectable: false },
-  { name: 'groq:openai/gpt-oss-20b', dailyLimit: 1000, sharedQuotaKey: 'groq:shared-bucket', description: 'Groq fallback 2 (5xx only)', userSelectable: false }
+  { name: 'groq:openai/gpt-oss-20b', dailyLimit: 1000, sharedQuotaKey: 'groq:shared-bucket', description: 'Groq fallback 2', userSelectable: false }
 ];
 
 export class AllModelsExhaustedError extends Error {

@@ -79,11 +79,7 @@ vi.mock('../lib/utils/encryption', () => ({
 
 // Mock Models - to block DB interaction in blockModelInDb
 vi.spyOn(models, 'blockModelInDb').mockImplementation(async (trackingName, durationSeconds) => {
-  // If it's a 300s block (5xx error), we skip adding it to mockUsageData
-  // to simulate the intended behavior that 5xx shouldn't block the shared bucket globally.
-  if (durationSeconds !== 300) {
-    mockUsageData.push({ model_name: trackingName, blocked_until: new Date(Date.now() + 60000).toISOString() });
-  }
+  mockUsageData.push({ model_name: trackingName, blocked_until: new Date(Date.now() + durationSeconds * 1000).toISOString() });
   return true; 
 });
 
@@ -306,7 +302,7 @@ describe('BYOK Chain Provider Scope', () => {
     ]);
   });
 
-  it('Case 8: Non-BYOK 5xx on 120b -> fallback to 20b', async () => {
+  it('Case 8: Non-BYOK 5xx on 120b -> shared bucket blocked, 20b skipped, exhaustion recorded', async () => {
     // No BYOK key
     mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
     mockKeyData = null;
@@ -333,14 +329,13 @@ describe('BYOK Chain Provider Scope', () => {
     const res = await ExtractPOST(req);
     const data = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(data.model_used).toBe('groq:shared-bucket'); // The API returns the tracking name for model_used
+    expect(res.status).toBe(429);
+    expect(data.error).toBe('all_models_exhausted');
     
     // Capture the 4th argument (apiModelName) of every generateStructured call
     const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
     expect(calledModels).toEqual([
-      'openai/gpt-oss-120b',
-      'openai/gpt-oss-20b'
+      'openai/gpt-oss-120b'
     ]);
   });
 
