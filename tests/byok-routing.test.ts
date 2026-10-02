@@ -22,7 +22,7 @@ global.fetch = vi.fn().mockImplementation(() => {
 
 // Mock Data State
 let mockProfileData: any = { preferred_provider: 'google', preferred_model: null };
-let mockKeyData: any = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+let mockKeyData: any = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
 let mockUsageData: any = [];
 
 // Mock Supabase Server Client
@@ -41,10 +41,13 @@ vi.mock('../lib/supabase/server', () => {
         chain.eq = vi.fn().mockReturnValue(chain);
         chain.single = vi.fn().mockImplementation(() => {
           if (table === 'profiles') return Promise.resolve({ data: mockProfileData, error: null });
-          if (table === 'user_api_keys') return Promise.resolve({ data: mockKeyData, error: null });
           if (table === 'users') return Promise.resolve({ data: { free_ai_uses_remaining: 10, has_accepted_terms: true }, error: null });
           return Promise.resolve({ data: null, error: null });
         });
+        chain.then = (resolve: any) => {
+          if (table === 'user_api_keys') return resolve({ data: mockKeyData, error: null });
+          return resolve({ data: null, error: null });
+        };
         return chain;
       }),
       rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
@@ -93,7 +96,7 @@ describe('BYOK Chain Provider Scope', () => {
     vi.clearAllMocks();
     
     mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     mockUsageData = [];
   });
 
@@ -140,7 +143,7 @@ describe('BYOK Chain Provider Scope', () => {
 
   it('Case 2: BYOK Groq -> Chain contains only Groq models', async () => {
     mockProfileData = { preferred_provider: 'groq', preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     
     const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
     vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
@@ -170,7 +173,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 3: Preferred Model Mismatch (Google key with Groq model) -> Ignore preference', async () => {
     // BYOK Key is Google
     mockProfileData = { preferred_provider: 'google', preferred_model: 'groq:openai/gpt-oss-120b' };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     
     // Mock getProvider to succeed on Google
     const generateStructuredSpy = vi.fn().mockResolvedValue({ test: 'success' });
@@ -192,7 +195,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 4: NON-BYOK Regression -> full chain used, exhaustion recorded', async () => {
     // No BYOK key
     mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = null;
+    mockKeyData = [];
 
     const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
     vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
@@ -223,7 +226,7 @@ describe('BYOK Chain Provider Scope', () => {
 
   it('Case 5: Match route covered', async () => {
     mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     
     vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
       validateKey: vi.fn().mockResolvedValue(true),
@@ -248,7 +251,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 6: Requested Model Mismatch (Google key with Groq requested model) -> Ignore preference', async () => {
     // BYOK Key is Google
     mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     
     // Mock getProvider to succeed on Google
     const generateStructuredSpy = vi.fn().mockResolvedValue({ test: 'success' });
@@ -273,7 +276,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 7: BYOK with preferred_provider = null correctly defaults to google', async () => {
     // BYOK Key exists, but preferred_provider is null
     mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = { encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
     
     // Mock getProvider to fail for all (exhaustion scenario)
     const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
@@ -305,7 +308,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 8: Non-BYOK 5xx on 120b -> shared bucket blocked, 20b skipped, exhaustion recorded', async () => {
     // No BYOK key
     mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = null;
+    mockKeyData = [];
 
     // Block all Gemini models in DB so 120b is the first available model
     const futureDate = new Date(Date.now() + 60000).toISOString();
@@ -342,7 +345,7 @@ describe('BYOK Chain Provider Scope', () => {
   it('Case 9: Non-BYOK 429 on 120b (shared bucket blocked) -> 20b skipped, exhaustion recorded', async () => {
     // No BYOK key
     mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
-    mockKeyData = null;
+    mockKeyData = [];
 
     // Put a blocked groq:shared-bucket row in mockUsageData
     mockUsageData = [
@@ -375,5 +378,232 @@ describe('BYOK Chain Provider Scope', () => {
       'gemini-3-flash-preview',
       'gemini-3.1-flash-lite-preview'
     ]);
+  });
+
+  it('Case 10: non-key 400 must NOT mark the key rejected', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
+    
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 400, message: 'Invalid payload format' });
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(422);
+    expect(generateStructuredSpy).toHaveBeenCalledTimes(1); 
+  });
+
+  it('Case 11: BYOK users never decrement free uses', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
+    
+    const generateStructuredSpy = vi.fn().mockResolvedValue({ test: 'success' });
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    
+    const res = await ExtractPOST(req);
+    expect(res.status).toBe(200);
+  });
+
+  it('Case 12: both keys with Google 429 -> Groq', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    // Google returns 429, Groq returns success
+    const generateStructuredSpy = vi.fn().mockImplementation(async (instruction, schema, schema2, apiModelName) => {
+      if (apiModelName.includes('gemini')) {
+        return Promise.reject({ status: 429, message: 'Quota exceeded' });
+      }
+      return Promise.resolve({ test: 'success' });
+    });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(200);
+    expect(data.model_used).toBe('groq:shared-bucket');
+    
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite-preview',
+      'openai/gpt-oss-120b'
+    ]);
+  });
+
+  it('Case 13: Google 401 -> Groq', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    // Google returns 401, Groq returns success
+    const generateStructuredSpy = vi.fn().mockImplementation(async (instruction, schema, schema2, apiModelName) => {
+      if (apiModelName.includes('gemini')) {
+        return Promise.reject({ status: 401, message: 'Unauthorized' });
+      }
+      return Promise.resolve({ test: 'success' });
+    });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(200);
+    expect(data.model_used).toBe('groq:shared-bucket');
+    
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'gemini-3.5-flash',
+      'openai/gpt-oss-120b'
+    ]);
+  });
+
+  it('Case 14: all keys fail', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    // Both return 429
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(429);
+    expect(data.error).toBe('all_models_exhausted');
+    expect(data.byok).toBe(true);
+    
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite-preview',
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b'
+    ]);
+  });
+
+  it('Case 15: Gemini-style 400 invalid-key body -> Rejected', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    const generateStructuredSpy = vi.fn().mockImplementation(async (instruction, schema, schema2, apiModelName) => {
+      if (apiModelName.includes('gemini')) {
+        // Mock a Gemini API_KEY_INVALID error
+        const err: any = new Error("API_KEY_INVALID");
+        err.status = 400;
+        err.error = { details: [{ reason: "API_KEY_INVALID" }] };
+        return Promise.reject(err);
+      }
+      return Promise.resolve({ test: 'success' });
+    });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(200);
+    expect(data.model_used).toBe('groq:shared-bucket');
+    
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'gemini-3.5-flash',
+      'openai/gpt-oss-120b'
+    ]);
+  });
+
+  it('Case 16: decrypt failure', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    // Mock decrypt to throw an error for Google, succeed for Groq
+    const { decrypt } = await import('../lib/utils/encryption');
+    (decrypt as any).mockImplementationOnce(() => {
+      throw new Error("Decryption failed");
+    });
+    
+    const generateStructuredSpy = vi.fn().mockResolvedValue({ test: 'success' });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(200);
+    expect(data.model_used).toBe('groq:shared-bucket'); // Fell back to Groq
+  });
+
+  it('Case 17: all keys rejected -> 401', async () => {
+    mockProfileData = { preferred_provider: 'google', preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [
+      { provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' },
+      { provider: 'groq', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }
+    ];
+    
+    // Both return 401
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 401, message: 'Unauthorized' });
+    
+    vi.spyOn(provider, 'getProvider').mockImplementation(() => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy
+    } as any));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+    
+    expect(res.status).toBe(401);
+    expect(data.error).toBe('Your custom API key is invalid or expired. Please update it in your profile.');
+    expect(data.message).toContain('Your models are exhausted or blocked');
   });
 });

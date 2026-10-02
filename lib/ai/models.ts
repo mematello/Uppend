@@ -105,9 +105,10 @@ export function parseProviderError(e: unknown): ParsedAiError {
   } else if (statusCode === 404) {
     errorClass = 'PERMANENT_PROVIDER';
   } else if (statusCode === 400) {
-    // NOTE: This regex is a known fragility point. If Gemini's error message wording changes, 
-    // deprecation errors will silently fall through to TERMINAL_EXECUTION (fail-fast) instead of falling back.
-    if (/(model|unsupported|deprecated|not found|retired)/i.test(message)) {
+    if (/(API_KEY_INVALID|API key not valid)/i.test(message)) {
+      statusCode = 401; // Treat as key rejection
+      errorClass = 'TERMINAL_EXECUTION';
+    } else if (/(model|unsupported|deprecated|not found|retired)/i.test(message)) {
       errorClass = 'PERMANENT_PROVIDER';
     } else {
       errorClass = 'TERMINAL_EXECUTION';
@@ -150,7 +151,7 @@ export async function getAvailableModel(
   userId: string, 
   excludeModels: string[] = [], 
   requestedModel?: string,
-  customKeyProvider?: string
+  byokProviders?: string[]
 ) {
   const supabase = createServiceClient();
 
@@ -166,25 +167,41 @@ export async function getAvailableModel(
   // 2. Reorder candidate models: preferred model first, then remaining
   let candidateModels = AI_MODELS.filter(m => !excludeModels.includes(m.name));
 
-  if (customKeyProvider) {
-    candidateModels = candidateModels.filter(m => getProviderPrefix(m.name) === customKeyProvider);
+  let orderedModels: typeof AI_MODELS = [];
+  if (byokProviders && byokProviders.length > 0) {
+    candidateModels = candidateModels.filter(m => byokProviders.includes(getProviderPrefix(m.name)));
+    for (const provider of byokProviders) {
+      const providerModels = candidateModels.filter(m => getProviderPrefix(m.name) === provider);
+      const prefModel = providerModels.find(m => m.name === preferredModelName);
+      if (prefModel) {
+        orderedModels.push(prefModel);
+      }
+      for (const m of providerModels) {
+        if (m.name !== preferredModelName) {
+          orderedModels.push(m);
+        }
+      }
+    }
+  } else {
+    orderedModels = [
+      ...candidateModels.filter(m => m.name === preferredModelName),
+      ...candidateModels.filter(m => m.name !== preferredModelName)
+    ];
   }
-
-  const orderedModels = [
-    ...candidateModels.filter(m => m.name === preferredModelName),
-    ...candidateModels.filter(m => m.name !== preferredModelName)
-  ];
 
   if (orderedModels.length === 0) {
     throw new AllModelsExhaustedError(60);
   }
 
   // 3. Custom Key Path: Bypass global ai_model_usage tracking completely.
-  if (customKeyProvider) {
+  if (byokProviders && byokProviders.length > 0) {
     if (requestedModel && !excludeModels.includes(requestedModel)) {
-      const modelConfig = candidateModels.find(m => m.name === requestedModel);
-      if (modelConfig) {
-        return { name: requestedModel, trackingName: modelConfig.sharedQuotaKey || requestedModel };
+      const requestedProvider = getProviderPrefix(requestedModel);
+      if (byokProviders.includes(requestedProvider)) {
+        const modelConfig = candidateModels.find(m => m.name === requestedModel);
+        if (modelConfig) {
+          return { name: requestedModel, trackingName: modelConfig.sharedQuotaKey || requestedModel };
+        }
       }
     }
     const modelConfig = orderedModels[0];
