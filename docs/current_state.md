@@ -6,10 +6,10 @@ Resolved items are removed here and folded into changelog.md /
 decisions.md instead. See architecture.md / decisions.md / schema.md /
 changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-09-30 (Session 22)*
+*Last updated: 2026-10-01 (Session 23)*
 
 ## 1. Confirmed working / shipped
-
+- **BYOK Fallback Scope Fixed**: Fixed a bug where BYOK users could fall through into other provider chains if their preferred provider exhausted its models, triggering false Invalid API Key errors and false exhaustion operator alerts. BYOK extraction and matching are now strictly scoped to the user's active provider.
 - **Groq Fallback Chain**: Implemented `OpenAICompatibleProvider` to fall back to Groq models (`gpt-oss-120b` then `gpt-oss-20b`) sharing a single tracking bucket (`groq:shared-bucket`) when Gemini fails, keeping the core feature functional under heavy load. A custom `geminiToStrictJsonSchema` post-processor bypasses Zod 4's AST mismatch to correctly format Groq's strict-mode payload requirements, handling `nullable: true` schema definitions perfectly without hallucinations.
 - **Exhaustion Event Off-by-One Fix**: The `all_models_exhausted` telemetry logging bug that resulted in a row update failing is fixed and merged (`fix/exhaustion-event-off-by-one`).
 - **At-Risk Nudge**: Fixed `streakText` collapsed `at_risk` into `none`'s copy/emoji in the daily summary email; added distinct ⚠️ copy for at-risk state, conditional CTA (`/new`, "Save Your Streak") for at-risk vs. `/dashboard` otherwise.
@@ -20,6 +20,8 @@ changelog.md for anything not called out below as recently changed.*
 ## 2. Open / blocking
 
 - **BYOK multi-provider extension (phase 2)**: Letting BYOK users add their own Groq/other-provider keys as a personal fallback is the next planned work, not yet started.
+- **Client-side 429 Handling**: The client side `/new` route currently overrides any 429 response body with a generic "Too many requests" message, hiding the new BYOK-specific exhaustion messages.
+- **Documentation Drift**: The Privacy Policy currently does not name Groq as a sub-processor. Furthermore, references to BYOK being Gemini-only in `architecture.md`, `README.md`, and `decisions.md` are stale and need updating.
 - **SaaS architecture review findings** (from an informal review, not yet acted on): `select('*')` on the dashboard applications query pulls heavy columns (`raw_jd`, `extraction_confidence`) unnecessarily — proposed fix is to slim the query projection for the list view and fetch full detail only on the detail page. Also flagged: confirm `revalidateTag` is called on every mutating route (audit, not known-broken). Also flagged: current client-side in-memory search/filter approach is fine up to a few hundred applications per user, would need server-side pagination if any user's application count grows into the thousands — not an issue today, noted for awareness only.
 - **Timezone input UX**: onboarding/Settings timezone field requires free-text typing when not using autodetect; requested to become a dropdown/autocomplete picker instead.
 - **Mobile layout, two distinct issues**: (a) progress/stat rows stack vertically on mobile and each span full width, instead of sitting in one row; (b) the dashboard header (welcome label + theme/settings/logout/new-application buttons) is left-aligned on mobile, leaving dead whitespace on the right — wants either right-aligned buttons or a layout that keeps the label and buttons on the same row.
