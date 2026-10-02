@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Type } from '@google/genai';
 import { MatchAssessmentSchema } from '../../../lib/schemas/matching';
 import { createClient } from '../../../lib/supabase/server';
-import { getAvailableModel, AllModelsExhaustedError, parseProviderError, blockModelInDb, AI_MODELS, ParsedAiError } from '../../../lib/ai/models';
+import { getAvailableModel, AllModelsExhaustedError, parseProviderError, blockModelInDb, AI_MODELS, ParsedAiError, getProviderPrefix } from '../../../lib/ai/models';
 import { sendOperatorAlert, checkAndRecordExhaustion } from '../../../lib/ai/alerting';
 import { createServiceClient } from '../../../lib/supabase/serviceClient';
 import { getProvider, AiProvider } from '../../../lib/ai/provider';
@@ -134,6 +134,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const byokProvider = hasCustomKey ? targetProvider : undefined;
+
     // NOTE: /api/match relies on /api/extract to actually decrement the free_ai_uses_remaining
     // to avoid double-billing when they are fired in parallel. 
     // If a standalone call path to /api/match is ever added in the future without /api/extract,
@@ -177,11 +179,11 @@ ${resumeText}
         // NOTE: Since /api/extract and /api/match may run concurrently in parallel, 
         // there is no strict guarantee both requests resolve to the identical model under simultaneous fallback.
         // This is an intentional performance tradeoff for parallel execution speed.
-        const modelConfig = await getAvailableModel(user.id, excludedModels, requestedModel, hasCustomKey);
+        const modelConfig = await getAvailableModel(user.id, excludedModels, requestedModel, byokProvider);
         activeModelName = modelConfig.trackingName;
         apiModelName = modelConfig.name;
 
-        const providerPrefix = apiModelName.includes(':') ? apiModelName.split(':')[0] : 'google';
+        const providerPrefix = getProviderPrefix(apiModelName);
         apiModelName = apiModelName.includes(':') ? apiModelName.split(':')[1] : apiModelName;
 
         if (!hasCustomKey) {
@@ -194,11 +196,17 @@ ${resumeText}
       } catch (error: unknown) {
         if (error instanceof AllModelsExhaustedError) {
           console.error('[Match API] All models exhausted or blocked.');
-          await checkAndRecordExhaustion();
+          if (!hasCustomKey) {
+            await checkAndRecordExhaustion();
+          }
 
           return NextResponse.json({
             error: 'all_models_exhausted',
-            retryAfterSeconds: error.retryAfterSeconds
+            retryAfterSeconds: error.retryAfterSeconds,
+            ...(hasCustomKey && {
+              byok: true,
+              message: `Your ${byokProvider} models are exhausted or blocked.`
+            })
           }, { status: 429 });
         }
         throw error;
@@ -234,7 +242,9 @@ ${resumeText}
           console.warn(`[Match API] Model ${activeModelName} temporary failure (${parsedErr.isQuotaError ? 'quota' : 'unavailable'}). Trying fallback model...`);
 
           if (attempts >= maxAttempts) {
-            await checkAndRecordExhaustion();
+            if (!hasCustomKey) {
+              await checkAndRecordExhaustion();
+            }
           }
 
           continue;
@@ -270,7 +280,11 @@ ${resumeText}
 
     return NextResponse.json({
       error: 'all_models_exhausted',
-      retryAfterSeconds: 60
+      retryAfterSeconds: 60,
+      ...(hasCustomKey && {
+        byok: true,
+        message: `Your ${byokProvider} models are exhausted or blocked.`
+      })
     }, { status: 429 });
 
   } catch (error: unknown) {

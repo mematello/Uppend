@@ -142,11 +142,15 @@ export async function blockModelInDb(modelName: string, durationSeconds: number)
   }
 }
 
+export function getProviderPrefix(modelName: string): string {
+  return modelName.includes(':') ? modelName.split(':')[0] : 'google';
+}
+
 export async function getAvailableModel(
   userId: string, 
   excludeModels: string[] = [], 
   requestedModel?: string,
-  hasCustomKey: boolean = false
+  customKeyProvider?: string
 ) {
   const supabase = createServiceClient();
 
@@ -160,7 +164,12 @@ export async function getAvailableModel(
   const preferredModelName = profile?.preferred_model || AI_MODELS[0].name;
 
   // 2. Reorder candidate models: preferred model first, then remaining
-  const candidateModels = AI_MODELS.filter(m => !excludeModels.includes(m.name));
+  let candidateModels = AI_MODELS.filter(m => !excludeModels.includes(m.name));
+
+  if (customKeyProvider) {
+    candidateModels = candidateModels.filter(m => getProviderPrefix(m.name) === customKeyProvider);
+  }
+
   const orderedModels = [
     ...candidateModels.filter(m => m.name === preferredModelName),
     ...candidateModels.filter(m => m.name !== preferredModelName)
@@ -171,10 +180,12 @@ export async function getAvailableModel(
   }
 
   // 3. Custom Key Path: Bypass global ai_model_usage tracking completely.
-  if (hasCustomKey) {
+  if (customKeyProvider) {
     if (requestedModel && !excludeModels.includes(requestedModel)) {
-      const modelConfig = AI_MODELS.find(m => m.name === requestedModel);
-      return { name: requestedModel, trackingName: modelConfig?.sharedQuotaKey || requestedModel };
+      const modelConfig = candidateModels.find(m => m.name === requestedModel);
+      if (modelConfig) {
+        return { name: requestedModel, trackingName: modelConfig.sharedQuotaKey || requestedModel };
+      }
     }
     const modelConfig = orderedModels[0];
     return { name: modelConfig.name, trackingName: modelConfig.sharedQuotaKey || modelConfig.name };
