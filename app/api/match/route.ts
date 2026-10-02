@@ -174,6 +174,7 @@ ${resumeText}
       attempts++;
       let activeModelName: string;
       let apiModelName: string;
+      let configModelName = 'unknown';
 
       try {
         // NOTE: Since /api/extract and /api/match may run concurrently in parallel, 
@@ -182,6 +183,7 @@ ${resumeText}
         const modelConfig = await getAvailableModel(user.id, excludedModels, requestedModel, byokProvider);
         activeModelName = modelConfig.trackingName;
         apiModelName = modelConfig.name;
+        configModelName = modelConfig.name;
 
         const providerPrefix = getProviderPrefix(apiModelName);
         apiModelName = apiModelName.includes(':') ? apiModelName.split(':')[1] : apiModelName;
@@ -238,7 +240,7 @@ ${resumeText}
           if (!hasCustomKey) {
             await blockModelInDb(activeModelName, blockSecs);
           }
-          excludedModels.push(activeModelName);
+          excludedModels.push(configModelName);
           console.warn(`[Match API] Model ${activeModelName} temporary failure (${parsedErr.isQuotaError ? 'quota' : 'unavailable'}). Trying fallback model...`);
 
           if (attempts >= maxAttempts) {
@@ -261,7 +263,7 @@ ${resumeText}
               );
             }
           }
-          excludedModels.push(activeModelName);
+          excludedModels.push(configModelName);
           console.error(`[Match API] Model ${activeModelName} deprecated or permanent failure. Falling back... Error: ${parsedErr.message}`);
           continue;
         } else {

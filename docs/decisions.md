@@ -19,6 +19,11 @@
 - Context: The new Groq models share the backend provider infrastructure, but BYOK currently only supports Gemini.
 - Decision: Scoped Phase 1 strictly to the shared-pool fallback implementation. Extending BYOK to allow users to supply their own Groq or other provider keys is explicitly deferred to a planned Phase 2.
 - Reasoning: Fixing the core feature outage (shared pool exhaustion) was urgent and required immediate shipping. Expanding the settings UI and routing logic for multi-provider BYOK is a separate concern that can be tackled safely later.
+
+## [2026-09-30] AI Fallback Chain Exclusion Bug Fix
+- Context: A bug in the fallback chain caused it to exclude the `trackingName` (e.g. `groq:shared-bucket`) instead of the specific model name (`groq:openai/gpt-oss-120b`). For models that share a quota bucket, this meant if the first model failed (even due to a temporary 5xx error), the shared `trackingName` was added to `excludedModels`, immediately skipping all remaining models in that bucket.
+- Decision: Updated the fallback loop in `/api/extract` and `/api/match` to cache and push the specific requested `configModelName` to `excludedModels`, rather than the resolved `activeModelName` (which is the tracking key).
+- Reasoning: `excludedModels` must strictly act as a "skip this specific model in the chain next time" mechanism. It should not be used to enforce quota blocking across models—that is the explicit job of the database-backed `ai_model_usage` table. This separation of concerns ensures a 5xx on the 120b model doesn't incorrectly skip the 20b fallback.
 ## [2026-09-19] Profiles-Users Join Limitation (Cron Job)
 - Context: During the Gamification Phase 3 cron implementation, we needed to query `profiles` and join the `auth.users` email.
 - Decision: Reverted a direct `users!inner(email)` PostgREST join and implemented a two-step query sequence (fetching `profiles`, then fetching emails from `users` based on the IDs).
