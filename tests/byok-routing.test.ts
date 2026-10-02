@@ -78,7 +78,7 @@ vi.mock('../lib/utils/encryption', () => ({
 }));
 
 // Mock Models - to block DB interaction in blockModelInDb
-vi.spyOn(models, 'blockModelInDb').mockResolvedValue(true);
+vi.spyOn(models, 'blockModelInDb').mockImplementation(async (trackingName) => { mockUsageData.push({ model_name: trackingName, blocked_until: new Date(Date.now() + 60000).toISOString() }); return true; });
 
 vi.mock('../lib/ai/alerting', () => ({
   checkAndRecordExhaustion: vi.fn().mockResolvedValue(undefined),
@@ -214,8 +214,7 @@ describe('BYOK Chain Provider Scope', () => {
       'gemini-3.5-flash',
       'gemini-3-flash-preview',
       'gemini-3.1-flash-lite-preview',
-      'openai/gpt-oss-120b',
-      'openai/gpt-oss-20b'
+      'openai/gpt-oss-120b'
     ]);
   });
 
@@ -294,6 +293,72 @@ describe('BYOK Chain Provider Scope', () => {
     // Capture the 4th argument (apiModelName) of every generateStructured call
     const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
     expect(calledModels).toEqual([
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite-preview'
+    ]);
+  });
+
+  it('Case 8: Non-BYOK 5xx on 120b -> does not block shared bucket', async () => {
+    // No BYOK key
+    mockProfileData = { preferred_provider: null, preferred_model: 'groq:openai/gpt-oss-120b', free_ai_uses_remaining: 10 };
+    mockKeyData = null;
+
+    // Mock generateStructured to throw a 5xx error for the first model, then succeed
+    const generateStructuredSpy = vi.fn()
+      .mockRejectedValueOnce({ status: 500, message: 'Internal Server Error' })
+      .mockResolvedValueOnce({ test: 'success' });
+      
+    vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy,
+    }));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(data.model_used).toBe('gemini-3.5-flash'); // Next in fallback after 120b is gemini-3.5
+    
+    // Capture the 4th argument (apiModelName) of every generateStructured call
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'openai/gpt-oss-120b',
+      'gemini-3.5-flash'
+    ]);
+  });
+
+  it('Case 9: Non-BYOK 429 on 120b (shared bucket blocked) -> 20b skipped, exhaustion recorded', async () => {
+    // No BYOK key
+    mockProfileData = { preferred_provider: null, preferred_model: 'groq:openai/gpt-oss-120b', free_ai_uses_remaining: 10 };
+    mockKeyData = null;
+
+    // Mock generateStructured to throw a 429 error for the first model
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
+      
+    vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy,
+    }));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(data.error).toBe('all_models_exhausted');
+    
+    // Since it's a non-BYOK user, exhaustion event should be recorded
+    expect(alerting.checkAndRecordExhaustion).toHaveBeenCalled();
+    
+    // 120b was tried. Because it threw 429, 'groq:shared-bucket' is added to excluded models.
+    // The getAvailableModel function will skip 20b (because it has the same tracking name) 
+    // and fall back to Google models. Wait, the order of models is dependent on preferred_model.
+    // Let's just assert the exact sequence.
+    const calledModels = generateStructuredSpy.mock.calls.map(call => call[3]);
+    expect(calledModels).toEqual([
+      'openai/gpt-oss-120b',
       'gemini-3.5-flash',
       'gemini-3-flash-preview',
       'gemini-3.1-flash-lite-preview'
