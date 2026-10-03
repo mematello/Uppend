@@ -89,7 +89,7 @@ export function buildExhaustionResponse(
 
     if (allRejected && byokState.orderedProviders.length > 0) {
       return NextResponse.json({ 
-        error: 'Invalid API key.', 
+        error: 'Your custom API key is invalid or expired. Please update it in your profile.', 
         message: `All your provided keys were invalid or rejected. ${details.join(', ')}`, 
         byok: true 
       }, { status: 401 });
@@ -99,6 +99,7 @@ export function buildExhaustionResponse(
       error: 'all_models_exhausted',
       byok: true,
       message: `Your models are exhausted or blocked: ${details.join(', ')}`,
+      retryAfterSeconds: retryAfterSeconds || 60,
       partialData: null
     }, { status: 429 });
   }
@@ -106,8 +107,7 @@ export function buildExhaustionResponse(
   if (isUnavailableError) {
     return NextResponse.json({
       error: 'service_unavailable',
-      retryAfterSeconds: retryAfterSeconds || 60,
-      message: 'The AI service is temporarily unavailable. Please try again later.'
+      message: 'The AI model is currently experiencing high demand. Please try again in a few moments.'
     }, { status: 503 });
   }
 
