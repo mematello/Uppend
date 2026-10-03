@@ -34,10 +34,11 @@ changelog.md for anything not called out below as recently changed.*
 - **Two minor non-blocking observations carried over** from the post-delete-session fix (still unaddressed, low priority): (1) bfcache redirect's `?message=Session+expired` param may not be read/displayed by `login/page.tsx` — cosmetic; (2) `checkLocalData` catch block in `migrate/page.tsx` redirects silently on local-data-read failure with no error message shown — narrow failure case, low stakes.
 - **Shared DB Environment Gap**: Testing branches still risks polluting production data. Formalizing separated environments (local mock or staging database) remains unaddressed.
 - **Legal Pages**: `/terms` and `/privacy` still draft-pending lawyer review. Discretionary, user's call on launch timing. Open questions for the lawyer:
-  - Free-tier Gemini data use (does Google use our specific API data for training/review?).
+  - Free-tier Gemini data use (confirmed unpaid tier; policy now discloses it; ask the lawyer whether a notice at paste or upload time is needed).
   - Groq DPA coverage (do we need to sign a specific DPA, or are standard terms enough?).
   - Data retention (verify exact retention durations for Google and Groq).
   - EEA/UK handling (are SCCs/cookie banners required for our US-based processors, given we use no analytics cookies?).
+  - EEA/UK paid-tier terms (confirm if EEA/UK users are exempt from free-tier data use per Google terms).
   - Vercel hosting/Analytics (whether this needs to be explicitly disclosed in the privacy policy, as it currently isn't mentioned).
 - **AGENTS.md Outdated Context**: The "Project Context" section still reads "ApplyFlow is an AI-powered job application tracker...". Still intentionally unfixed pending a manual pass.
 
