@@ -70,6 +70,12 @@ export async function POST(req: Request) {
 
     if (!hasCustomKey) {
       if (!process.env.GEMINI_API_KEY) {
+        return NextResponse.json({ error: 'GEMINI_API_KEY is missing' }, { status: 500 });
+      }
+      try {
+        getProvider('google', process.env.GEMINI_API_KEY);
+      } catch (err) {
+        console.error('[Match API] Fallback provider instantiation failed:', err);
         return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
       }
     }
