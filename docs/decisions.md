@@ -9,6 +9,7 @@
 - Context: The primary Gemini fallback chain occasionally exhausted entirely, breaking the core AI extraction and matching features. We needed a reliable secondary fallback provider.
 - Decision: Selected Groq over alternatives (Mistral, DeepSeek, OpenRouter).
 - Reasoning: Groq offers a generous free tier (1,000 requests per day) with an OpenAI-compatible API, making integration seamless without new SDK dependencies. It explicitly guarantees no training on user data in its free tier (unlike Mistral/DeepSeek), preserving privacy. OpenRouter was rejected because it requires a minimum $10 pre-funded balance for its "free" models to reliably avoid strict low-priority rate limits.
+- Addendum (2026-10-03): The claim that Groq does not train on free-tier data comes from Groq's DPA, which has not been read. The linked documentation (https://console.groq.com/docs/your-data) details retention defaults, not training practices, so the no-training claim remains unverified pending legal review.
 
 ## [2026-09-30] Fallback Models: gpt-oss-120b & gpt-oss-20b
 - Context: Selecting specific models on Groq for the fallback chain.
