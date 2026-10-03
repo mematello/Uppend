@@ -1,11 +1,22 @@
 "use server";
 
 import { createClient } from '../../../lib/supabase/server';
-import { getProvider } from '../../../lib/ai/provider';
+import { getProvider, ProviderUnavailableError, ProviderConfigError } from '../../../lib/ai/provider';
 import { encrypt } from '../../../lib/utils/encryption';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { PROVIDER_DEFAULT_MODELS, getProviderFromModel } from '../../../lib/ai/providers';
+
+const ProviderSchema = z.enum(['google', 'groq']);
+const KeySchema = z.string().trim().min(1).max(255);
 
 export async function updatePreferredProvider(provider: string) {
+  const parsedProvider = ProviderSchema.safeParse(provider);
+  if (!parsedProvider.success) {
+    return { error: 'Invalid input.' };
+  }
+  const cleanProvider = parsedProvider.data;
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -13,10 +24,33 @@ export async function updatePreferredProvider(provider: string) {
     return { error: 'Unauthorized' };
   }
 
+  const { data: keyData } = await supabase
+    .from('user_api_keys')
+    .select('provider')
+    .eq('user_id', user.id)
+    .eq('provider', cleanProvider)
+    .single();
+
+  if (!keyData) {
+    return { error: 'You must save an API key for this provider first.' };
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('preferred_model')
+    .eq('id', user.id)
+    .single();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updates: any = { preferred_provider: cleanProvider };
+  if (profile && getProviderFromModel(profile.preferred_model || '') !== cleanProvider) {
+    updates.preferred_model = PROVIDER_DEFAULT_MODELS[cleanProvider];
+  }
+
   const { error } = await supabase
     .from('profiles')
-    .update({ preferred_provider: provider })
-    .eq('id', user.id); // Explicit scoping for defense-in-depth
+    .update(updates)
+    .eq('id', user.id);
 
   if (error) {
     console.error("Error updating preferred provider:", error);
@@ -28,10 +62,15 @@ export async function updatePreferredProvider(provider: string) {
 }
 
 export async function saveApiKey(provider: string, rawKey: string) {
-  if (!rawKey || rawKey.trim() === '') {
-    return { error: 'API key cannot be empty.' };
+  const parsedProvider = ProviderSchema.safeParse(provider);
+  const parsedKey = KeySchema.safeParse(rawKey);
+
+  if (!parsedProvider.success || !parsedKey.success) {
+    return { error: 'Invalid input.' };
   }
-  const cleanKey = rawKey.trim();
+
+  const cleanProvider = parsedProvider.data;
+  const cleanKey = parsedKey.data;
 
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -40,18 +79,19 @@ export async function saveApiKey(provider: string, rawKey: string) {
     return { error: 'Unauthorized' };
   }
 
-  let providerInstance;
-  try {
-    providerInstance = getProvider(provider, cleanKey);
-  } catch (_err: unknown) {
-    return { error: 'Unsupported provider.' };
-  }
+  const providerInstance = getProvider(cleanProvider, cleanKey);
 
   let isValid = false;
   try {
     isValid = await providerInstance.validateKey(cleanKey);
   } catch (err: unknown) {
-    return { error: (err as Error).message };
+    if (err instanceof ProviderConfigError) {
+      return { error: 'Provider rejected the request configuration.' };
+    }
+    if (err instanceof ProviderUnavailableError) {
+      return { error: 'Provider is currently unavailable or rate-limited. Please try again later.' };
+    }
+    return { error: 'Provider is currently unavailable or rate-limited. Please try again later.' };
   }
 
   if (!isValid) {
@@ -70,8 +110,8 @@ export async function saveApiKey(provider: string, rawKey: string) {
     .from('user_api_keys')
     .upsert(
       {
-        user_id: user.id, // Enforced from server session
-        provider: provider,
+        user_id: user.id,
+        provider: cleanProvider,
         encrypted_key: encryptedData.encryptedKey,
         iv: encryptedData.iv,
         auth_tag: encryptedData.authTag
@@ -89,6 +129,12 @@ export async function saveApiKey(provider: string, rawKey: string) {
 }
 
 export async function deleteApiKey(provider: string) {
+  const parsedProvider = ProviderSchema.safeParse(provider);
+  if (!parsedProvider.success) {
+    return { error: 'Invalid input.' };
+  }
+  const cleanProvider = parsedProvider.data;
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -96,11 +142,40 @@ export async function deleteApiKey(provider: string) {
     return { error: 'Unauthorized' };
   }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('preferred_provider, preferred_model')
+    .eq('id', user.id)
+    .single();
+
+  if (profile) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: any = {};
+    if (profile.preferred_provider === cleanProvider) {
+      updates.preferred_provider = null;
+    }
+    if (getProviderFromModel(profile.preferred_model || '') === cleanProvider) {
+      updates.preferred_model = null;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+      
+      if (profileError) {
+        console.error("Error resetting profile provider state:", profileError);
+        return { error: 'Failed to reset profile provider state' };
+      }
+    }
+  }
+
   const { error } = await supabase
     .from('user_api_keys')
     .delete()
-    .eq('user_id', user.id) // Explicit scoping for defense-in-depth
-    .eq('provider', provider);
+    .eq('user_id', user.id)
+    .eq('provider', cleanProvider);
 
   if (error) {
     console.error("Error deleting API key:", error);

@@ -3,6 +3,20 @@ import { parseProviderError } from './models';
 import { z } from 'zod';
 
 
+export class ProviderUnavailableError extends Error {
+  constructor() {
+    super("Provider is currently unavailable or rate-limited. Please try again later.");
+    this.name = "ProviderUnavailableError";
+  }
+}
+
+export class ProviderConfigError extends Error {
+  constructor() {
+    super("Provider rejected the request configuration.");
+    this.name = "ProviderConfigError";
+  }
+}
+
 export interface AiProvider {
   /**
    * Generates a structured JSON object according to a Zod schema.
@@ -86,22 +100,30 @@ export class GoogleGeminiProvider implements AiProvider {
   }
 
   async validateKey(apiKey: string): Promise<boolean> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const tempAi = new GoogleGenAI({ apiKey });
-      await tempAi.models.get({ model: 'gemini-3.5-flash' });
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models`, {
+        headers: { 'x-goog-api-key': apiKey },
+        signal: controller.signal
+      });
+
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) return false;
+        if (res.status === 400) {
+          const bodyText = await res.text();
+          if (bodyText.includes("API_KEY_INVALID")) return false;
+          throw new ProviderConfigError();
+        }
+        throw new ProviderUnavailableError();
+      }
       return true;
-    } catch (error: unknown) {
-      const parsed = parseProviderError(error);
-      
-      if (parsed.isUnavailableError || parsed.isQuotaError) {
-        throw new Error("Provider is currently unavailable or rate-limited. Please try again later.");
-      }
-      
-      if (parsed.statusCode === 400 || parsed.statusCode === 401 || parsed.statusCode === 403) {
-        return false;
-      }
-      
-      return false;
+    } catch (err: unknown) {
+      if (err instanceof ProviderConfigError) throw err;
+      if (err instanceof ProviderUnavailableError) throw err;
+      throw new ProviderUnavailableError();
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 }
@@ -178,17 +200,28 @@ export class OpenAICompatibleProvider implements AiProvider {
   }
 
   async validateKey(apiKey: string): Promise<boolean> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
       const response = await fetch(`${this.baseUrl}/models`, {
-        headers: { 'Authorization': `Bearer ${apiKey}` }
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+        signal: controller.signal
       });
+
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) return false;
-        throw new Error(`HTTP ${response.status}`);
+        if (response.status === 400 || response.status === 404) {
+          throw new ProviderConfigError();
+        }
+        throw new ProviderUnavailableError();
       }
       return true;
-    } catch (e) {
-      return false;
+    } catch (err: unknown) {
+      if (err instanceof ProviderConfigError) throw err;
+      if (err instanceof ProviderUnavailableError) throw err;
+      throw new ProviderUnavailableError();
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 }
