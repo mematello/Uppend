@@ -156,9 +156,8 @@ Example Output:
 
     const serviceSupabase = createServiceClient();
     const excludedModels: string[] = [];
-    const rejectedKeys: string[] = [];
     const providerFailures: Record<string, string> = {};
-        let attempts = 0;
+    let attempts = 0;
     const maxAttempts = AI_MODELS.length;
     let lastError: ParsedAiError | null = null;
 
@@ -193,7 +192,6 @@ Example Output:
             aiProvider = getProvider(providerPrefix, decryptedKey);
           } catch (decryptErr) {
             console.error(`[Extract API] Decryption failed for user ${user.id} provider ${providerPrefix}:`, decryptErr);
-            rejectedKeys.push(providerPrefix);
             providerFailures[providerPrefix] = 'rejected';
             const providerModels = AI_MODELS.filter(m => getProviderPrefix(m.name) === providerPrefix).map(m => m.name);
             excludedModels.push(...providerModels);
@@ -284,7 +282,6 @@ Example Output:
           return NextResponse.json({ data: validated, model_used: activeModelName });
         }
       } catch (modelErr: unknown) {
-        console.log('apiModelName:', apiModelName);
         const parsedErr = parseProviderError(modelErr);
         lastError = parsedErr;
 
@@ -292,7 +289,6 @@ Example Output:
           const prefix = getProviderPrefix(configModelName);
           const isKeyInvalidError = parsedErr.statusCode === 400 && /(API_KEY_INVALID|API key not valid)/i.test((modelErr as Error)?.message || parsedErr.message);
           if (parsedErr.statusCode === 401 || parsedErr.statusCode === 403 || isKeyInvalidError) {
-            rejectedKeys.push(prefix);
             providerFailures[prefix] = 'rejected';
             const providerModels = AI_MODELS.filter(m => getProviderPrefix(m.name) === prefix).map(m => m.name);
             excludedModels.push(...providerModels);
