@@ -6,8 +6,28 @@
 
 ## [2026-10-03] BYOK Multi-Provider Fallback (Phase 1)
 - Context: Users need the ability to supply keys for multiple AI providers (Google, Groq) and have them used in a fallback chain.
-- Decision: Implemented multi-provider BYOK fallback in a fixed, preferred-first order. BYOK users exclusively use their own keys (never falling back to the server's shared keys) and their failures do not trigger global exhaustion events. A BYOK provider outage now returns a 429 with per-provider details rather than a generic 503. A 401 is only returned when ALL provided keys are rejected.
+- Decision: Implemented multi-provider BYOK fallback in a fixed, preferred-first order. BYOK users exclusively use their own keys (never falling back to the server's shared keys) and their failures do not trigger global exhaustion events. Keys are decrypted lazily per provider. The `hasCustomKey` state is derived from allowlisted providers rather than dynamically parsing user keys. A key is only rejected on a 401/403 or a Gemini 400 matching `API_KEY_INVALID`. A 401 is only returned to the client when ALL provided keys are rejected; otherwise a 429 is returned with per-provider details rather than a generic 503.
 - Reasoning: Strict isolation prevents a user with a bad key from silently consuming shared server quota, and ensures their failures don't trip global operator alerts. A preferred-first ordering allows user choice without complex UI for building custom chains.
+
+## [2026-10-03] BYOK Provider Isolation
+- Context: A bug in BYOK fallback logic could allow the chain to route Groq model names to the Google Gemini provider if the preferred provider failed.
+- Decision: BYOK chains are now strictly restricted to the key's own provider.
+- Reasoning: Prevents "Invalid API Key" cross-provider routing errors.
+
+## [2026-10-03] Vitest Harness Implementation
+- Context: Implementing a testing harness for the AI fallback chain and routing logic.
+- Decision: Chose `vitest@2` (because the project pins `@types/node` 20) with `vitest.config.ts` containing inline PostCSS configuration so `postcss.config.mjs` is left untouched. The tests use mocks for AI providers and Supabase but use the real `getAvailableModel` implementation.
+- Reasoning: Avoids breaking the Next.js build which relies on specific PostCSS configurations. Tests validate the fallback routing logic natively without risking live DB mutations or API usage.
+
+## [2026-10-03] Google Gemini API Tier & Privacy Disclosure
+- Context: Google's Gemini API terms state that unpaid/free-tier data may be used to improve Google's products and may be subject to human review.
+- Decision: The shared `GEMINI_API_KEY` is on Google AI Studio's unpaid free plan (stated by the owner on 2026-10-03). The Privacy Policy now explicitly discloses this free-tier data use to users.
+- Reasoning: Transparency is required because the shared pool processes user data through a tier that permits data training.
+
+## [2026-10-03] Merge Strategy
+- Context: Preserving git history and branch intent when merging feature branches to `main`.
+- Decision: Merges to `main` must use `--no-ff` (no fast-forward).
+- Reasoning: This preserves the explicit branch context and makes rollbacks or auditing of feature sets significantly easier by keeping the merge commit as a distinct node.
 
 ## [2026-09-30] Groq as Fallback AI Provider
 - Context: The primary Gemini fallback chain occasionally exhausted entirely, breaking the core AI extraction and matching features. We needed a reliable secondary fallback provider.
