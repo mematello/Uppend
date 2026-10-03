@@ -133,5 +133,17 @@ describe('Settings Actions', () => {
       }));
       expect(mockSupabase.delete).toHaveBeenCalled();
     });
+
+    it('returns error if profile reset fails', async () => {
+      mockSupabase.single.mockResolvedValueOnce({ 
+        data: { preferred_provider: 'groq', preferred_model: 'groq:openai/gpt-oss-120b' } 
+      });
+      mockSupabase.update.mockReturnValueOnce({ eq: vi.fn().mockResolvedValue({ error: { message: 'Update failed' } }) });
+
+      const result = await deleteApiKey('groq');
+      
+      expect(result.error).toBe('Failed to reset profile provider state');
+      expect(mockSupabase.delete).not.toHaveBeenCalled();
+    });
   });
 });
