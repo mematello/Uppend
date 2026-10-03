@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { parseProviderError } from './models';
 import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+
 
 export interface AiProvider {
   /**
