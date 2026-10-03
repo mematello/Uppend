@@ -82,7 +82,7 @@ vi.mock('../lib/utils/encryption', () => ({
 
 // Mock Models - to block DB interaction in blockModelInDb
 vi.spyOn(models, 'blockModelInDb').mockImplementation(async (trackingName, durationSeconds) => {
-  mockUsageData.push({ model_name: trackingName, blocked_until: new Date(Date.now() + durationSeconds * 1000).toISOString() });
+  mockUsageData.push({ model_name: trackingName, blocked_until: new Date(Date.now() + 120 * 1000).toISOString(), request_count: 0 });
   return true; 
 });
 
@@ -209,7 +209,8 @@ describe('BYOK Chain Provider Scope', () => {
 
     expect(res.status).toBe(429);
     expect(data.error).toBe('all_models_exhausted');
-    expect(data.retryAfterSeconds).toBe(60);
+    expect(data.retryAfterSeconds).toBeGreaterThan(115);
+    expect(data.retryAfterSeconds).toBeLessThanOrEqual(120);
     expect(data.byok).toBeUndefined();
     
     // Since it's a non-BYOK user, exhaustion event should be recorded
@@ -223,6 +224,29 @@ describe('BYOK Chain Provider Scope', () => {
       'gemini-3.1-flash-lite-preview',
       'openai/gpt-oss-120b'
     ]);
+  });
+
+  it('Case 4.1: NON-BYOK AFTER-LOOP path returns 60', async () => {
+    mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [];
+
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
+    vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy,
+    }));
+
+    vi.spyOn(models, 'getAvailableModel').mockResolvedValue({ name: 'gemini-3.5-flash', trackingName: 'gemini-3.5-flash' });
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(data.error).toBe('all_models_exhausted');
+    expect(data.retryAfterSeconds).toBe(60);
+    expect(alerting.checkAndRecordExhaustion).toHaveBeenCalled();
   });
 
   it('Case 5: Match route covered', async () => {
