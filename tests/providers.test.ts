@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTryFirst, getProviderFromModel, BYOK_PROVIDERS } from '../lib/ai/providers';
-import { BYOK_PROVIDERS as BYOK_PROVIDERS_FROM_BYOK } from '../lib/ai/byok';
 import { AI_MODELS } from '../lib/ai/models';
+import fs from 'fs';
+import path from 'path';
 
 describe('Providers Helpers', () => {
   describe('resolveTryFirst', () => {
@@ -40,7 +41,10 @@ describe('Providers Helpers', () => {
 
   describe('BYOK_PROVIDERS allowlist', () => {
     it('matches the allowlist in lib/ai/byok.ts', () => {
-      expect(BYOK_PROVIDERS).toEqual(BYOK_PROVIDERS_FROM_BYOK);
+      const byokContent = fs.readFileSync(path.join(__dirname, '../lib/ai/byok.ts'), 'utf8');
+      const match = byokContent.match(/const allowlist = \['(.*?)', '(.*?)'\];/);
+      const allowlist = [match![1], match![2]];
+      expect(BYOK_PROVIDERS).toEqual(allowlist);
     });
   });
 });
