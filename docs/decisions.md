@@ -1,5 +1,9 @@
 # Uppend — Decisions Log
 
+## [2026-10-03] Privacy Policy AI Processors
+- Context: Updating legal pages to accurately reflect the AI processors used in Phase 1 (Google Gemini and Groq).
+- Decision: Privacy Policy names Google and Groq explicitly; no sub-processor page for now; Groq no-training claim intentionally not stated.
+
 ## [2026-10-03] BYOK Multi-Provider Fallback (Phase 1)
 - Context: Users need the ability to supply keys for multiple AI providers (Google, Groq) and have them used in a fallback chain.
 - Decision: Implemented multi-provider BYOK fallback in a fixed, preferred-first order. BYOK users exclusively use their own keys (never falling back to the server's shared keys) and their failures do not trigger global exhaustion events. A BYOK provider outage now returns a 429 with per-provider details rather than a generic 503. A 401 is only returned when ALL provided keys are rejected.
