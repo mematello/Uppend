@@ -236,7 +236,7 @@ describe('BYOK Chain Provider Scope', () => {
       generateStructured: generateStructuredSpy,
     }));
 
-    vi.spyOn(models, 'getAvailableModel').mockResolvedValue({ name: 'gemini-3.5-flash', trackingName: 'gemini-3.5-flash' });
+    const modelSpy = vi.spyOn(models, 'getAvailableModel').mockResolvedValue({ name: 'gemini-3.5-flash', trackingName: 'gemini-3.5-flash' });
 
     const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
 
@@ -247,6 +247,7 @@ describe('BYOK Chain Provider Scope', () => {
     expect(data.error).toBe('all_models_exhausted');
     expect(data.retryAfterSeconds).toBe(60);
     expect(alerting.checkAndRecordExhaustion).toHaveBeenCalled();
+    modelSpy.mockRestore();
   });
 
   it('Case 5: Match route covered', async () => {
@@ -628,7 +629,7 @@ describe('BYOK Chain Provider Scope', () => {
     const data = await res.json();
     
     expect(res.status).toBe(401);
-    expect(data.error).toBe('Invalid API key.');
+    expect(data.error).toBe('Your custom API key is invalid or expired. Please update it in your profile.');
     expect(data.message).toContain('All your provided keys were invalid or rejected');
   });
 
@@ -773,7 +774,7 @@ describe('BYOK Chain Provider Scope', () => {
     
     // Should get a 401 from google immediately. stray_provider is ignored.
     expect(res.status).toBe(401);
-    expect(data.error).toBe('Invalid API key.');
+    expect(data.error).toBe('Your custom API key is invalid or expired. Please update it in your profile.');
     
     // Stray provider should not have been called
     expect(getProviderSpy).not.toHaveBeenCalledWith('stray_provider', expect.anything());
