@@ -5,9 +5,9 @@ import { getProvider, ProviderUnavailableError, ProviderConfigError } from '../.
 import { encrypt } from '../../../lib/utils/encryption';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { PROVIDER_DEFAULT_MODELS, getProviderFromModel } from '../../../lib/ai/providers';
+import { PROVIDER_DEFAULT_MODELS, getProviderFromModel, BYOK_PROVIDERS } from '../../../lib/ai/providers';
 
-const ProviderSchema = z.enum(['google', 'groq']);
+const ProviderSchema = z.enum(BYOK_PROVIDERS as [string, ...string[]]);
 const KeySchema = z.string().trim().min(1).max(255);
 
 export async function updatePreferredProvider(provider: string) {
@@ -142,11 +142,15 @@ export async function deleteApiKey(provider: string) {
     return { error: 'Unauthorized' };
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: readError } = await supabase
     .from('profiles')
     .select('preferred_provider, preferred_model')
     .eq('id', user.id)
     .single();
+
+  if (readError && readError.code !== 'PGRST116') {
+    return { error: 'Failed to read profile data' };
+  }
 
   if (profile) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

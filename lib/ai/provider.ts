@@ -1,5 +1,4 @@
 import { GoogleGenAI } from '@google/genai';
-import { parseProviderError } from './models';
 import { z } from 'zod';
 
 
@@ -110,9 +109,11 @@ export class GoogleGeminiProvider implements AiProvider {
 
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) return false;
-        if (res.status === 400) {
-          const bodyText = await res.text();
-          if (bodyText.includes("API_KEY_INVALID")) return false;
+        if (res.status === 400 || res.status === 404) {
+          if (res.status === 400) {
+            const bodyText = await res.text();
+            if (bodyText.includes("API_KEY_INVALID")) return false;
+          }
           throw new ProviderConfigError();
         }
         throw new ProviderUnavailableError();

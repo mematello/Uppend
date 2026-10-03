@@ -16,7 +16,7 @@ describe('validateKey (Google and Groq)', () => {
   });
 
   describe('GoogleGeminiProvider', () => {
-    const google = new GoogleGeminiProvider(''); // Key doesn't matter for mock
+    const google = new GoogleGeminiProvider('dummy-key'); // Key doesn't matter for mock
     
     it('returns true on 200 OK', async () => {
       fetchMock.mockResolvedValueOnce({ ok: true });
@@ -41,11 +41,17 @@ describe('validateKey (Google and Groq)', () => {
       expect(await google.validateKey('test-key')).toBe(false);
     });
 
-    it('throws ProviderConfigError on 400 without API_KEY_INVALID', async () => {
+    it('throws ProviderConfigError on 400 without API_KEY_INVALID, and 404', async () => {
       fetchMock.mockResolvedValueOnce({
         ok: false,
         status: 400,
         text: () => Promise.resolve('{"error": "Some other error"}')
+      });
+      await expect(google.validateKey('test-key')).rejects.toThrow(ProviderConfigError);
+
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 404
       });
       await expect(google.validateKey('test-key')).rejects.toThrow(ProviderConfigError);
     });

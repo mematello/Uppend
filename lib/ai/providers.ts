@@ -3,6 +3,8 @@ export const PROVIDER_DISPLAY_NAMES: Record<string, string> = {
   groq: 'Groq',
 };
 
+export const BYOK_PROVIDERS = ['google', 'groq'];
+
 export const PROVIDER_DEFAULT_MODELS: Record<string, string> = {
   google: 'gemini-3.5-flash',
   groq: 'groq:openai/gpt-oss-120b',

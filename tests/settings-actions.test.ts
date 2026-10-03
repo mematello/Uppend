@@ -106,6 +106,17 @@ describe('Settings Actions', () => {
       expect(result.error).toBe('Invalid input.');
     });
 
+    it('returns error if profile read fails', async () => {
+      mockSupabase.single.mockResolvedValueOnce({ 
+        data: null, 
+        error: { code: 'some-error', message: 'Read failed' } 
+      });
+      const result = await deleteApiKey('groq');
+      expect(result.error).toBe('Failed to read profile data');
+      expect(mockSupabase.update).not.toHaveBeenCalled();
+      expect(mockSupabase.delete).not.toHaveBeenCalled();
+    });
+
     it('resets profile if provider matches preferred_provider and preferred_model', async () => {
       mockSupabase.single.mockResolvedValueOnce({ 
         data: { preferred_provider: 'groq', preferred_model: 'groq:openai/gpt-oss-120b' } 
