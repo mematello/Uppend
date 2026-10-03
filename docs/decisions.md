@@ -1,5 +1,10 @@
 # Uppend — Decisions Log
 
+## [2026-10-03] BYOK Multi-Provider Fallback (Phase 1)
+- Context: Users need the ability to supply keys for multiple AI providers (Google, Groq) and have them used in a fallback chain.
+- Decision: Implemented multi-provider BYOK fallback in a fixed, preferred-first order. BYOK users exclusively use their own keys (never falling back to the server's shared keys) and their failures do not trigger global exhaustion events. A BYOK provider outage now returns a 429 with per-provider details rather than a generic 503. A 401 is only returned when ALL provided keys are rejected.
+- Reasoning: Strict isolation prevents a user with a bad key from silently consuming shared server quota, and ensures their failures don't trip global operator alerts. A preferred-first ordering allows user choice without complex UI for building custom chains.
+
 ## [2026-09-30] Groq as Fallback AI Provider
 - Context: The primary Gemini fallback chain occasionally exhausted entirely, breaking the core AI extraction and matching features. We needed a reliable secondary fallback provider.
 - Decision: Selected Groq over alternatives (Mistral, DeepSeek, OpenRouter).

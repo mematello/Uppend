@@ -24,6 +24,7 @@ global.fetch = vi.fn().mockImplementation(() => {
 let mockProfileData: any = { preferred_provider: 'google', preferred_model: null };
 let mockKeyData: any = [{ provider: 'google', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
 let mockUsageData: any = [];
+let getAvailableModelSpy: any = null;
 
 // Mock Supabase Server Client
 vi.mock('../lib/supabase/server', () => {
@@ -102,6 +103,10 @@ describe('BYOK Chain Provider Scope', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    if (getAvailableModelSpy) {
+      getAvailableModelSpy.mockRestore();
+      getAvailableModelSpy = null;
+    }
   });
 
   const createMockRequest = (body: any) => {
@@ -236,7 +241,7 @@ describe('BYOK Chain Provider Scope', () => {
       generateStructured: generateStructuredSpy,
     }));
 
-    const modelSpy = vi.spyOn(models, 'getAvailableModel').mockResolvedValue({ name: 'gemini-3.5-flash', trackingName: 'gemini-3.5-flash' });
+    getAvailableModelSpy = vi.spyOn(models, 'getAvailableModel').mockResolvedValue({ name: 'gemini-3.5-flash', trackingName: 'gemini-3.5-flash' });
 
     const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
 
@@ -247,7 +252,6 @@ describe('BYOK Chain Provider Scope', () => {
     expect(data.error).toBe('all_models_exhausted');
     expect(data.retryAfterSeconds).toBe(60);
     expect(alerting.checkAndRecordExhaustion).toHaveBeenCalled();
-    modelSpy.mockRestore();
   });
 
   it('Case 5: Match route covered', async () => {

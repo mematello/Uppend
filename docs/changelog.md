@@ -1,5 +1,12 @@
 # Uppend — Changelog
 
+## [2026-10-03] (Session 24)
+- Implemented: BYOK multi-provider fallback (Stage 1). Users can now save keys for multiple providers (Google, Groq), which are evaluated in a fixed order (preferred provider first).
+- Changed: BYOK users now exclusively use their own keys. If all custom keys fail (e.g. rate limits), the request fails rather than falling back to the server's shared keys.
+- Changed: BYOK failures (like rate limits) no longer trigger global exhaustion telemetry events, preventing false operator alerts.
+- Changed: Provider outages for BYOK users now return a 429 with per-provider status details instead of a generic 503.
+- Changed: A 401 "Invalid API key" error is now only returned if *all* provided custom keys are rejected.
+
 ## [2026-10-01] (Session 23)
 - Fixed: BYOK provider routing bug where the fallback chain could attempt to send Groq model names to the Google Gemini provider endpoint, which may result in an "Invalid API Key" error (a possible consequence, though not observed in production). BYOK chains are now strictly scoped to the user's active provider.
 - Fixed: BYOK exhaustion telemetry bug where BYOK users exhausting their own keys were logging `system_events` and tripping the global operator alert. BYOK failures no longer record exhaustion events.
