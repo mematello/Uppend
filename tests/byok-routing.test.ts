@@ -209,6 +209,7 @@ describe('BYOK Chain Provider Scope', () => {
 
     expect(res.status).toBe(429);
     expect(data.error).toBe('all_models_exhausted');
+    expect(data.retryAfterSeconds).toBe(60);
     expect(data.byok).toBeUndefined();
     
     // Since it's a non-BYOK user, exhaustion event should be recorded

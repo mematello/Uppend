@@ -186,7 +186,7 @@ Example Output:
             });
             aiProvider = getProvider(providerPrefix, decryptedKey);
           } catch (decryptErr) {
-            console.error(`[Match API] Decryption failed for user ${user.id} provider ${providerPrefix}:`, decryptErr);
+            console.error(`[Extract API] Decryption failed for user ${user.id} provider ${providerPrefix}:`, decryptErr);
             rejectedKeys.push(providerPrefix);
             providerFailures[providerPrefix] = 'rejected';
             const providerModels = AI_MODELS.filter(m => getProviderPrefix(m.name) === providerPrefix).map(m => m.name);
@@ -205,9 +205,7 @@ Example Output:
         if (error instanceof AllModelsExhaustedError) {
           console.error('[Extract API] All models exhausted or blocked.');
           if (!hasCustomKey) {
-            if (!hasCustomKey) {
             await checkAndRecordExhaustion();
-          }
           }
 
           return buildExhaustionResponse(hasCustomKey, byokState, providerFailures, error.retryAfterSeconds || 60);
@@ -310,9 +308,9 @@ Example Output:
           console.warn(`[Extract API] Model ${activeModelName} temporary failure (${parsedErr.isQuotaError ? 'quota' : 'unavailable'}). Trying fallback model...`);
 
           if (attempts >= maxAttempts) {
-          if (!hasCustomKey) {
-            await checkAndRecordExhaustion();
-          }
+            if (!hasCustomKey) {
+              await checkAndRecordExhaustion();
+            }
           }
 
           continue;

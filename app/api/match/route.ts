@@ -165,9 +165,7 @@ ${resumeText}
         if (error instanceof AllModelsExhaustedError) {
           console.error('[Match API] All models exhausted or blocked.');
           if (!hasCustomKey) {
-            if (!hasCustomKey) {
             await checkAndRecordExhaustion();
-          }
           }
 
           return buildExhaustionResponse(hasCustomKey, byokState, providerFailures, error.retryAfterSeconds || 60);
@@ -216,7 +214,7 @@ ${resumeText}
 
           if (attempts >= maxAttempts) {
             if (!hasCustomKey) {
-            await checkAndRecordExhaustion();
+              await checkAndRecordExhaustion();
             }
           }
 

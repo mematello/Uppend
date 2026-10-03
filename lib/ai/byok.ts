@@ -111,6 +111,6 @@ export function buildExhaustionResponse(
 
   return NextResponse.json({
     error: 'all_models_exhausted',
-    retryAfterSeconds: 60
+    retryAfterSeconds: retryAfterSeconds || 60
   }, { status: 429 });
 }
