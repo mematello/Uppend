@@ -779,4 +779,25 @@ describe('BYOK Chain Provider Scope', () => {
     expect(getProviderSpy).not.toHaveBeenCalledWith('stray_provider', expect.anything());
     expect(getProviderSpy).toHaveBeenCalledWith('google', expect.anything());
   });
+  it('Case 23: Stray provider row ignored (treated as non-BYOK)', async () => {
+    mockProfileData = { preferred_provider: null, preferred_model: null, free_ai_uses_remaining: 10 };
+    mockKeyData = [{ provider: 'stray_provider', encrypted_key: 'encrypted', iv: 'iv', auth_tag: 'tag' }];
+
+    const generateStructuredSpy = vi.fn().mockRejectedValue({ status: 429, message: 'Quota exceeded' });
+    vi.spyOn(provider, 'getProvider').mockImplementation((providerName) => ({
+      validateKey: vi.fn().mockResolvedValue(true),
+      generateStructured: generateStructuredSpy,
+    }));
+
+    const req = createMockRequest({ jobDescription: 'This is a long enough job description to pass validation' });
+
+    const res = await ExtractPOST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(429);
+    expect(data.error).toBe('all_models_exhausted');
+    expect(data.byok).toBeUndefined(); // treated as non-BYOK
+    expect(alerting.checkAndRecordExhaustion).toHaveBeenCalled();
+  });
+
 });

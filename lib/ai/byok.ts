@@ -40,10 +40,10 @@ export async function resolveByokState(supabase: SupabaseClient, userId: string)
     }
   }
 
-  const hasCustomKey = Object.keys(keysByProvider).length > 0;
+  const hasKeys = Object.keys(keysByProvider).length > 0;
   
   const orderedProviders: string[] = [];
-  if (hasCustomKey) {
+  if (hasKeys) {
     const allowlist = ['google', 'groq'];
     const activeProviders = allowlist.filter(p => !!keysByProvider[p]);
     
@@ -57,6 +57,8 @@ export async function resolveByokState(supabase: SupabaseClient, userId: string)
       }
     }
   }
+
+  const hasCustomKey = orderedProviders.length > 0;
 
   return {
     hasCustomKey,
