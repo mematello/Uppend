@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       </div>
 
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
-      <p className="text-sm text-gray-500 mb-8">Last Updated: {new Date().toLocaleDateString()}</p>
+      <p className="text-sm text-gray-500 mb-8">Last Updated: October 3, 2026</p>
 
       <section className="mb-8">
         <h2 className="text-xl font-semibold mb-4">1. Information We Collect</h2>
@@ -39,7 +39,8 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-semibold mb-4">3. Third-Party Processors</h2>
         <p>Uppend relies on the following third-party services to function:</p>
         <ul className="list-disc pl-5 space-y-2">
-          <li><strong>Google Gemini API:</strong> Acts as our AI processor. The raw job descriptions and extracted resume text are sent to Gemini to generate structured data and fit scores. Note: Even if you use the &quot;Bring Your Own Key&quot; (BYOK) feature, your data still transits through Google&apos;s infrastructure.</li>
+          <li><strong>AI Processors (Google and Groq):</strong> To generate structured data and fit scores, we send the job description text you provide and the text extracted from your resume to an AI provider. We do not send your account ID or login email, but your resume text may contain your name and contact details. The shared AI pool uses Google Gemini and may use Groq when Gemini is unavailable. If you use the &apos;Bring Your Own Key&apos; (BYOK) feature, your text goes only to the provider(s) whose key(s) you have saved. Each provider handles this data under its own terms, including how long it keeps it and whether it uses it to improve its products (see the <a href="https://ai.google.dev/terms" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Gemini API terms</a> and the <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Groq data documentation</a>). 
+          {/* Lawyer Review Note: Content sent through Google's free (unpaid) Gemini API quota may be used by Google to improve its products and may be read by human reviewers, pending confirmation of our billing tier. */}</li>
           <li><strong>Supabase:</strong> Our backend provider. For authenticated users, Supabase handles database storage, authentication, and secure file hosting for resumes (Supabase Storage).</li>
           <li><strong>Gmail SMTP:</strong> Used to deliver authentication magic links and optional follow-up reminder emails regarding your applications.</li>
         </ul>

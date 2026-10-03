@@ -6,6 +6,7 @@
 - Changed: BYOK failures (like rate limits) no longer trigger global exhaustion telemetry events, preventing false operator alerts.
 - Changed: Provider outages for BYOK users now return a 429 with per-provider status details instead of a generic 503.
 - Changed: A 401 "Invalid API key" error is now only returned if *all* provided custom keys are rejected.
+- Updated: Privacy Policy now names Google and Groq as AI processors, states that resume text may contain personal details, and links each provider's terms; Last Updated date is now fixed instead of showing the visitor's current date.
 
 ## [2026-10-01] (Session 23)
 - Fixed: BYOK provider routing bug where the fallback chain could attempt to send Groq model names to the Google Gemini provider endpoint, which may result in an "Invalid API Key" error (a possible consequence, though not observed in production). BYOK chains are now strictly scoped to the user's active provider.

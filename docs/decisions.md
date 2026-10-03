@@ -1,5 +1,9 @@
 # Uppend — Decisions Log
 
+## [2026-10-03] Privacy Policy AI Processors
+- Context: Updating legal pages to accurately reflect the AI processors used in Phase 1 (Google Gemini and Groq).
+- Decision: Privacy Policy names Google and Groq explicitly; no sub-processor page for now; Groq no-training claim intentionally not stated.
+
 ## [2026-10-03] BYOK Multi-Provider Fallback (Phase 1)
 - Context: Users need the ability to supply keys for multiple AI providers (Google, Groq) and have them used in a fallback chain.
 - Decision: Implemented multi-provider BYOK fallback in a fixed, preferred-first order. BYOK users exclusively use their own keys (never falling back to the server's shared keys) and their failures do not trigger global exhaustion events. A BYOK provider outage now returns a 429 with per-provider details rather than a generic 503. A 401 is only returned when ALL provided keys are rejected.
@@ -9,6 +13,7 @@
 - Context: The primary Gemini fallback chain occasionally exhausted entirely, breaking the core AI extraction and matching features. We needed a reliable secondary fallback provider.
 - Decision: Selected Groq over alternatives (Mistral, DeepSeek, OpenRouter).
 - Reasoning: Groq offers a generous free tier (1,000 requests per day) with an OpenAI-compatible API, making integration seamless without new SDK dependencies. It explicitly guarantees no training on user data in its free tier (unlike Mistral/DeepSeek), preserving privacy. OpenRouter was rejected because it requires a minimum $10 pre-funded balance for its "free" models to reliably avoid strict low-priority rate limits.
+- Addendum (2026-10-03): The claim that Groq does not train on free-tier data comes from Groq's DPA, which has not been read. The linked documentation (https://console.groq.com/docs/your-data) details retention defaults, not training practices, so the no-training claim remains unverified pending legal review.
 
 ## [2026-09-30] Fallback Models: gpt-oss-120b & gpt-oss-20b
 - Context: Selecting specific models on Groq for the fallback chain.
