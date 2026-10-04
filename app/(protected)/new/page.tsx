@@ -103,7 +103,6 @@ export default function NewApplicationPage() {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        let userHasKey = false;
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
