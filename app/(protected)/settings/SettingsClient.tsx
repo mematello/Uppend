@@ -75,7 +75,7 @@ export default function SettingsClient({
     const result = await saveApiKey(newKeyProvider, newApiKeyValue);
     if (result.error) {
       setKeyMessage({ text: result.error, type: 'error' });
-      setNewApiKeyValue('');
+    } else {
       setKeyMessage({ text: 'API key saved successfully!', type: 'success' });
       setNewApiKeyValue('');
       // Optimistically update the list
