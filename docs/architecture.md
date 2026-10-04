@@ -9,6 +9,7 @@ app/
   api/
     extract/            → AI job-description extraction endpoint
     match/              → AI resume-fit analysis endpoint (Billing rides on extract)
+    models/             → Returns available AI models and user BYOK provider state
     cron/reminders/     → Scheduled follow-up email job (triggered via external cron-job.org)
     account/delete/     → Account deletion and storage cleanup
     applications/migrate/ → Endpoint for migrating local applications to Supabase
@@ -19,6 +20,7 @@ components/
 lib/
   utils/
     email.ts            → Shared Nodemailer transporter (lazy-verified) for all system emails
+  ai/providers.ts       → Source of truth for AI providers, display names, and client-safe helpers
   ai/models.ts          → Model selection, fallback, and error-parsing logic
   ai/guard.ts           → Pre-filter heuristic scanning for AI prompt injection defense
   ai/alerting.ts        → Operator alerting for AI model exhaustion and deprecation
@@ -52,7 +54,7 @@ docs/
   - `TERMINAL_EXECUTION`: Malformed requests or schema failures. Fails fast immediately without burning downstream model quota.
 - **Billing Relationship**: The `/api/match` route depends entirely on `/api/extract` for billing enforcement and free-tier decrementing. Since they fire in parallel, `/api/extract` acts as the billing gatekeeper; `/api/match` checks quota but does not deduct from it.
 - **Operator Alerting**: The system actively pages operators via email (using Nodemailer/Gmail SMTP via `lib/utils/email.ts`) on critical AI failures. Alerts are triggered on model deprecation (`PERMANENT_PROVIDER`) and fallback chain exhaustion. Exhaustion alerts are deduplicated via a 1-hour sliding window suppressing duplicates, governed by a `record_exhaustion_event` RPC that locks a state row and trips at a >= 3 event threshold. The SMTP connection is "lazy-verified" (no handshake on import) to ensure `/api/extract` and `/api/match` don't pick up an implicit network dependency just by importing `alerting.ts`.
-- **Settings & BYOK**: The `app/(protected)/settings/` page includes an "AI Providers & BYOK" section scoped to Google Gemini only, allowing users to override global limits securely.
+- **Settings & BYOK**: The `app/(protected)/settings/` page includes a "Custom API Keys (BYOK)" section supporting multiple providers (e.g., Google, Groq). Users can securely override global limits and only see models for the providers they have keys for, driven by the `/api/models` endpoint.
 - **Theme**: Dark mode is implemented via `next-themes` (system default + manual toggle).
 - **Data Export & Privacy Controls**: Settings exposes a CSV/JSON/XLSX export and a 'Clear Local Data' IndexedDB wipe.
 - **Auth & System Email Delivery**: Authentication emails, scheduled follow-up reminders (`/api/cron/reminders`), and operator alerts are all delivered via Gmail SMTP (`uppend.noreply@gmail.com`). Resend has been completely removed to consolidate around a single email infrastructure. The `/api/cron/reminders` endpoint is triggered every minute by an external scheduler (cron-job.org) using a Bearer token with `CRON_SECRET`.

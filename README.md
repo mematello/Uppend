@@ -103,11 +103,13 @@ app/
   api/
     extract/            → AI job-description extraction endpoint
     match/              → AI resume-fit analysis endpoint
+    models/             → Returns available AI models and user BYOK provider state
     cron/reminders/     → scheduled follow-up email job
     account/delete/     → account deletion and storage cleanup
 lib/
   utils/
     email.ts            → shared Nodemailer transporter
+  ai/providers.ts       → source of truth for AI providers and client-safe helpers
   ai/models.ts          → model selection, fallback, and error-parsing logic
   supabase/             → browser / server / service-role Supabase clients
 supabase/
