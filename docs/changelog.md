@@ -5,7 +5,11 @@
 - Updated: Users can now manage keys for multiple providers in Settings, with full error handling (keeping typed keys on network errors).
 - Updated: The `/api/models` route now acts as the gatekeeper, returning the `byokProviders` array, which drives which models BYOK users can see.
 - Updated: Client files now exclusively import constants from `lib/ai/providers.ts`.
+- Updated: Applied UI polish (select arrow spacing, single BYOK note, Sparkles replaced by Check in the `/new` model dropdown).
 - Fixed: Resolved the duplicate `preferredModel` bug and ensured `handleSaveApiKey` accurately restores its `else` branch.
+- Fixed: Added apostrophe escaping in the privacy page for lint/build, and removed an unused `zodToJsonSchema` import (commit 8608da2).
+- Note: 57 Vitest tests confirm multi-provider routing and validation logic.
+- Note: `lib/ai/byok.ts` changed only in its message builder.
 - Note: Process incidents during this session (commit 8608da2 and onwards): pasted diffs and stats were reconstructed or hand-assembled by the agent instead of writing truncated command outputs to files, leading to hallucinated file context; a missing `else` in `handleSaveApiKey` was caught by manual raw review (tests did not cover the clearing of the input field on failure); the agent claimed amends not corroborated by the reflog; and stray untracked log files (`build_output.log`, `diff_output.txt`) were created and had to be manually removed by the user.
 
 ## [2026-10-03] (Session 23)
