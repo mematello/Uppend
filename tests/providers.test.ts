@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { resolveTryFirst, getProviderFromModel, BYOK_PROVIDERS } from '../lib/ai/providers';
-import { AI_MODELS } from '../lib/ai/models';
+import { AI_MODELS, getProviderPrefix } from '../lib/ai/models';
 import fs from 'fs';
 import path from 'path';
 
@@ -25,14 +25,6 @@ describe('Providers Helpers', () => {
 
   describe('getProviderFromModel', () => {
     it('agrees with getProviderPrefix for every AI_MODELS name', () => {
-      // Re-implement the getProviderPrefix logic from byok.ts to test against
-      const getProviderPrefix = (name: string) => {
-        if (!name) return 'google';
-        if (name.startsWith('groq:')) return 'groq';
-        if (name.startsWith('gemini') || name.includes('gemini')) return 'google';
-        return 'google';
-      };
-
       for (const model of AI_MODELS) {
         expect(getProviderFromModel(model.name)).toBe(getProviderPrefix(model.name));
       }
@@ -43,6 +35,7 @@ describe('Providers Helpers', () => {
     it('matches the allowlist in lib/ai/byok.ts', () => {
       const byokContent = fs.readFileSync(path.join(__dirname, '../lib/ai/byok.ts'), 'utf8');
       const match = byokContent.match(/const allowlist = \['(.*?)', '(.*?)'\];/);
+      expect(match).not.toBeNull();
       const allowlist = [match![1], match![2]];
       expect(BYOK_PROVIDERS).toEqual(allowlist);
     });
