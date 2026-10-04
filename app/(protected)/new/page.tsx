@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 import ResumePreviewModal from "../../../components/ResumePreviewModal";
-import { Sparkles, ChevronDown } from "lucide-react";
+import { Sparkles, ChevronDown, Check } from "lucide-react";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
@@ -540,7 +540,6 @@ export default function NewApplicationPage() {
                 disabled={isUpdatingModel}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4" />
                 {preferredModel || "Select Model"}
                 <svg className={`w-4 h-4 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
@@ -553,6 +552,11 @@ export default function NewApplicationPage() {
                       <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                         Select AI Engine
                       </div>
+                      {hasCustomKey && (
+                        <div className="px-3 pb-2 text-xs text-blue-600 dark:text-blue-400">
+                          Using your API key
+                        </div>
+                      )}
                       {aiModels.length === 0 ? (
                         <div className="px-3 py-2 text-sm text-gray-500">Loading...</div>
                       ) : (
@@ -578,11 +582,13 @@ export default function NewApplicationPage() {
                             >
                               <div className="flex flex-col">
                                 <span className="font-medium">{m.name}</span>
-                                <span className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-                                  {hasCustomKey ? 'Using your API key' : (unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`)}
-                                </span>
+                                {!hasCustomKey && (
+                                  <span className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                                    {unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`}
+                                  </span>
+                                )}
                               </div>
-                              {isSelected && <Sparkles className="w-4 h-4" />}
+                              {isSelected && <Check className="w-4 h-4" />}
                             </button>
                           )
                         })

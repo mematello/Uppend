@@ -10,6 +10,7 @@ import { updatePreferredProvider, saveApiKey, deleteApiKey } from './actions';
 import * as xlsx from 'xlsx';
 import { getApplications } from '../../../lib/local/applications';
 import { ClearLocalDataButton } from '../../../components/ClearLocalDataButton';
+import { ChevronDown } from 'lucide-react';
 
 import { Application, Resume, Profile, AIModel, ApiKey } from '../../../lib/types';
 import { resolveTryFirst, BYOK_PROVIDERS, PROVIDER_DISPLAY_NAMES, getProviderFromModel } from '../../../lib/ai/providers';
@@ -624,17 +625,20 @@ export default function SettingsClient({
         <div className="mb-8">
           <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">Active Provider</h3>
           <div className="flex items-center gap-3">
-            <select
-              value={preferredProvider || ''}
-              onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
-              className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              {apiKeys.map(k => (
-                <option key={k.provider} value={k.provider}>
-                  {PROVIDER_DISPLAY_NAMES[k.provider] || k.provider}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select
+                value={preferredProvider || ''}
+                onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
+                className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {apiKeys.map(k => (
+                  <option key={k.provider} value={k.provider}>
+                    {PROVIDER_DISPLAY_NAMES[k.provider] || k.provider}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+            </div>
             <span className="text-xs text-gray-500 dark:text-zinc-400">Default for extraction & matching</span>
           </div>
           {providerMessage.text && (
@@ -682,15 +686,18 @@ export default function SettingsClient({
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">Provider</label>
               <div className="flex items-center">
-                <select
-                  value={newKeyProvider}
-                  onChange={(e) => setNewKeyProvider(e.target.value)}
-                  className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  {BYOK_PROVIDERS.map(p => (
-                    <option key={p} value={p}>{PROVIDER_DISPLAY_NAMES[p] || p}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={newKeyProvider}
+                    onChange={(e) => setNewKeyProvider(e.target.value)}
+                    className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    {BYOK_PROVIDERS.map(p => (
+                      <option key={p} value={p}>{PROVIDER_DISPLAY_NAMES[p] || p}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+                </div>
               </div>
             </div>
             <div>
