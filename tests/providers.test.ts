@@ -1,0 +1,43 @@
+import { describe, it, expect } from 'vitest';
+import { resolveTryFirst, getProviderFromModel, BYOK_PROVIDERS } from '../lib/ai/providers';
+import { AI_MODELS, getProviderPrefix } from '../lib/ai/models';
+import fs from 'fs';
+import path from 'path';
+
+describe('Providers Helpers', () => {
+  describe('resolveTryFirst', () => {
+    it('returns preferred if held', () => {
+      expect(resolveTryFirst('groq', ['google', 'groq'])).toBe('groq');
+      expect(resolveTryFirst('google', ['google'])).toBe('google');
+    });
+
+    it('returns first held in order (google before groq) if preferred is not held or null', () => {
+      expect(resolveTryFirst('groq', ['google'])).toBe('google');
+      expect(resolveTryFirst(null, ['groq', 'google'])).toBe('google');
+      expect(resolveTryFirst(null, ['groq'])).toBe('groq');
+    });
+
+    it('returns null if none held', () => {
+      expect(resolveTryFirst('google', [])).toBe(null);
+      expect(resolveTryFirst(null, [])).toBe(null);
+    });
+  });
+
+  describe('getProviderFromModel', () => {
+    it('agrees with getProviderPrefix for every AI_MODELS name', () => {
+      for (const model of AI_MODELS) {
+        expect(getProviderFromModel(model.name)).toBe(getProviderPrefix(model.name));
+      }
+    });
+  });
+
+  describe('BYOK_PROVIDERS allowlist', () => {
+    it('matches the allowlist in lib/ai/byok.ts', () => {
+      const byokContent = fs.readFileSync(path.join(__dirname, '../lib/ai/byok.ts'), 'utf8');
+      const match = byokContent.match(/const allowlist = \['(.*?)', '(.*?)'\];/);
+      expect(match).not.toBeNull();
+      const allowlist = [match![1], match![2]];
+      expect(BYOK_PROVIDERS).toEqual(allowlist);
+    });
+  });
+});

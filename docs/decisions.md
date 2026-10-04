@@ -473,3 +473,7 @@
   symptom. This is the same class of issue as the 2026-08-24 production
   redirect fix (`https://` + `/**` wildcard), which was never extended
   to cover local development at the time.
+
+## [2026-10-04] BYOK Multi-Provider UI (Stage 2)
+- Context: Extending the BYOK settings and routing logic to support multiple providers (Google, Groq), superseding the 2026-08-16 "BYOK Gemini-Only Scope" and 2026-08-24 "BYOK Default Provider Fallback" decisions.
+- Decision: Saving a key is blocked when the provider is unavailable or the network fails, and the typed key is kept in the input. BYOK users see only models of providers they hold a key for. The UI label is simplified to "Using your API key" (dropping "Unlimited"). Changing the preferred provider/model writes both `preferred_provider` and `preferred_model`. Deleting a key resets the profile provider first, then deletes the key. `validateKey` classifies 401/403 as rejected, 429/5xx/timeout/network as unavailable, and 400/404 as config error. The Google validation check uses the models endpoint with the `x-goog-api-key` header (instead of `models.get` on a hardcoded model). Client files now import only `lib/ai/providers.ts` for AI constants. The `lib/ai/byok.ts` change was strictly limited to using display names.

@@ -10,8 +10,10 @@ import { updatePreferredProvider, saveApiKey, deleteApiKey } from './actions';
 import * as xlsx from 'xlsx';
 import { getApplications } from '../../../lib/local/applications';
 import { ClearLocalDataButton } from '../../../components/ClearLocalDataButton';
+import { ChevronDown } from 'lucide-react';
 
 import { Application, Resume, Profile, AIModel, ApiKey } from '../../../lib/types';
+import { resolveTryFirst, BYOK_PROVIDERS, PROVIDER_DISPLAY_NAMES, getProviderFromModel } from '../../../lib/ai/providers';
 
 export default function SettingsClient({ 
   initialProfile, 
@@ -32,19 +34,34 @@ export default function SettingsClient({
   const [mounted, setMounted] = useState(false);
 
   // AI Providers State
-  const [preferredProvider, setPreferredProvider] = useState<string>(initialProfile.preferred_provider || 'google');
+  const [preferredProvider, setPreferredProvider] = useState<string | null>(resolveTryFirst(initialProfile.preferred_provider, (initialApiKeys ?? []).map(k => k.provider)));
   const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys || []);
-  const hasGoogleKey = apiKeys.some(k => k.provider === 'google');
   const [newKeyProvider, setNewKeyProvider] = useState('google');
   const [newApiKeyValue, setNewApiKeyValue] = useState('');
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [keyMessage, setKeyMessage] = useState({ text: '', type: '' });
+  const [providerMessage, setProviderMessage] = useState({ text: '', type: '' });
+  const [deleteKeyMessage, setDeleteKeyMessage] = useState({ text: '', type: '' });
 
   // Handlers for AI Providers
   const handleUpdatePreferredProvider = async (provider: string) => {
+    const previous = preferredProvider;
     setPreferredProvider(provider);
-    await updatePreferredProvider(provider);
-    router.refresh();
+    setProviderMessage({ text: '', type: '' });
+    const result = await updatePreferredProvider(provider);
+    if (result?.error) {
+      setPreferredProvider(previous);
+      setProviderMessage({ text: result.error, type: 'error' });
+    } else {
+      setProviderMessage({ text: 'Preferred provider updated!', type: 'success' });
+      const res = await fetch('/api/models');
+      if (res.ok) {
+        const data = await res.json();
+        setAiModels(data.data);
+        setPreferredModel(data.preferredModel);
+      }
+      router.refresh();
+    }
   };
 
   const handleSaveApiKey = async (e: React.FormEvent) => {
@@ -59,32 +76,59 @@ export default function SettingsClient({
     const result = await saveApiKey(newKeyProvider, newApiKeyValue);
     if (result.error) {
       setKeyMessage({ text: result.error, type: 'error' });
-      setNewApiKeyValue('');
     } else {
       setKeyMessage({ text: 'API key saved successfully!', type: 'success' });
       setNewApiKeyValue('');
       // Optimistically update the list
       const existingKeyIndex = apiKeys.findIndex(k => k.provider === newKeyProvider);
       const newKeyEntry = { provider: newKeyProvider, created_at: new Date().toISOString() };
+      let newApiKeysList;
       if (existingKeyIndex >= 0) {
         const newKeys = [...apiKeys];
         newKeys[existingKeyIndex] = newKeyEntry;
-        setApiKeys(newKeys);
+        newApiKeysList = newKeys;
       } else {
-        setApiKeys([...apiKeys, newKeyEntry]);
+        newApiKeysList = [...apiKeys, newKeyEntry];
       }
+      setApiKeys(newApiKeysList);
+      
+      const res = await fetch('/api/models');
+      if (res.ok) {
+        const data = await res.json();
+        setAiModels(data.data);
+        setPreferredModel(data.preferredModel);
+      }
+      
+      setPreferredProvider(resolveTryFirst(preferredProvider, newApiKeysList.map(k => k.provider)));
       router.refresh();
     }
     setIsSavingKey(false);
   };
 
   const handleDeleteApiKey = async (provider: string) => {
-    if (!window.confirm(`Are you sure you want to delete your ${provider} API key?`)) return;
+    setDeleteKeyMessage({ text: '', type: '' });
+    const isLastKey = apiKeys.length === 1;
+    let confirmMsg = `Are you sure you want to delete your ${PROVIDER_DISPLAY_NAMES[provider] || provider} API key?`;
+    if (isLastKey) {
+      confirmMsg += "\n\nYou will return to the shared AI pool; its lifetime free uses may already be used up.";
+    }
+    if (!window.confirm(confirmMsg)) return;
+    
     const result = await deleteApiKey(provider);
     if (result.error) {
-      alert(`Error: ${result.error}`);
+      setDeleteKeyMessage({ text: result.error, type: 'error' });
     } else {
-      setApiKeys(apiKeys.filter(k => k.provider !== provider));
+      const newApiKeysList = apiKeys.filter(k => k.provider !== provider);
+      setApiKeys(newApiKeysList);
+      
+      const res = await fetch('/api/models');
+      if (res.ok) {
+        const data = await res.json();
+        setAiModels(data.data);
+        setPreferredModel(data.preferredModel);
+      }
+      
+      setPreferredProvider(resolveTryFirst(preferredProvider, newApiKeysList.map(k => k.provider)));
       router.refresh();
     }
   };
@@ -275,7 +319,7 @@ export default function SettingsClient({
     setAiModels(prev => prev.map(m => ({ ...m, is_preferred: m.name === modelName })));
 
     try {
-       await supabase.from('profiles').update({ preferred_model: modelName }).eq('id', initialProfile.id);
+       await supabase.from('profiles').update({ preferred_model: modelName, preferred_provider: getProviderFromModel(modelName) }).eq('id', initialProfile.id);
     } catch (e) {
        console.error("Failed to save preferred model", e);
     }
@@ -568,27 +612,42 @@ export default function SettingsClient({
 
       {/* AI Provider Settings */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Google Gemini API Key (BYOK)</h2>
+        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Custom API Keys (BYOK)</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-2 text-sm">
-          Securely provide your own Google Gemini API key to bypass global usage limits.
+          Securely provide your own API keys to bypass global usage limits.
         </p>
         <p className="text-gray-500 dark:text-zinc-500 mb-6 text-xs">
-          Don&apos;t have an API key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Google AI Studio</a>.
+          Don&apos;t have an API key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Google AI Studio</a> or <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Groq Console</a>.
         </p>
         
         {/* Preferred Provider Selection */}
+        {apiKeys.length >= 2 && (
         <div className="mb-8">
           <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">Active Provider</h3>
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-300">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Google Gemini
-            </span>
+            <div className="relative">
+              <select
+                value={preferredProvider || ''}
+                onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
+                className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {apiKeys.map(k => (
+                  <option key={k.provider} value={k.provider}>
+                    {PROVIDER_DISPLAY_NAMES[k.provider] || k.provider}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+            </div>
             <span className="text-xs text-gray-500 dark:text-zinc-400">Default for extraction & matching</span>
           </div>
+          {providerMessage.text && (
+            <p className={`text-sm mt-2 ${providerMessage.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              {providerMessage.text}
+            </p>
+          )}
         </div>
+        )}
 
         {/* Saved Keys */}
         <div className="mb-8">
@@ -600,7 +659,7 @@ export default function SettingsClient({
               {apiKeys.map((key) => (
                 <div key={key.provider} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md">
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100 capitalize">{key.provider}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100 capitalize">{PROVIDER_DISPLAY_NAMES[key.provider] || key.provider}</p>
                     <p className="text-xs text-gray-500 dark:text-zinc-400">Added: {new Date(key.created_at).toLocaleDateString()}</p>
                   </div>
                   <button 
@@ -613,6 +672,11 @@ export default function SettingsClient({
               ))}
             </div>
           )}
+          {deleteKeyMessage.text && (
+            <p className={`text-sm mt-2 ${deleteKeyMessage.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+              {deleteKeyMessage.text}
+            </p>
+          )}
         </div>
 
         {/* Add Key Form */}
@@ -622,12 +686,18 @@ export default function SettingsClient({
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">Provider</label>
               <div className="flex items-center">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm font-medium text-blue-700 dark:text-blue-300">
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Google Gemini
-                </span>
+                <div className="relative">
+                  <select
+                    value={newKeyProvider}
+                    onChange={(e) => setNewKeyProvider(e.target.value)}
+                    className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    {BYOK_PROVIDERS.map(p => (
+                      <option key={p} value={p}>{PROVIDER_DISPLAY_NAMES[p] || p}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
+                </div>
               </div>
             </div>
             <div>
@@ -665,14 +735,14 @@ export default function SettingsClient({
            <div className="text-sm text-gray-500">Loading models...</div>
         ) : (
           <div className="space-y-4">
-            {hasGoogleKey && (
+            {apiKeys.length > 0 && (
               <div className="p-3 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800/50 dark:text-blue-400">
                 BYOK Active — your own quota, not shared limits
               </div>
             )}
             {aiModels.map(model => {
-              const isBlocked = !hasGoogleKey && model.blocked_until && new Date(model.blocked_until) > new Date();
-              const isExhausted = !hasGoogleKey && model.request_count >= model.dailyLimit;
+              const isBlocked = apiKeys.length === 0 && model.blocked_until && new Date(model.blocked_until) > new Date();
+              const isExhausted = apiKeys.length === 0 && model.request_count >= model.dailyLimit;
               const unavailable = isBlocked || isExhausted;
               const isPreferred = model.name === preferredModel;
               
@@ -697,8 +767,8 @@ export default function SettingsClient({
                 ...aiModels.filter(m => m.name !== preferredModel)
               ];
               const activeModel = orderedModels.find(m => {
-                const mb = !hasGoogleKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-                const me = !hasGoogleKey && m.request_count >= m.dailyLimit;
+                const mb = apiKeys.length === 0 && m.blocked_until && new Date(m.blocked_until) > new Date();
+                const me = apiKeys.length === 0 && m.request_count >= m.dailyLimit;
                 return !mb && !me;
               });
               
@@ -726,7 +796,7 @@ export default function SettingsClient({
                       </label>
                       <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">{model.description}</p>
                       
-                      {!hasGoogleKey && (
+                      {apiKeys.length === 0 && (
                         <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                           <div className="flex-1 max-w-xs h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                             <div 
