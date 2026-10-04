@@ -15,6 +15,7 @@ import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarnin
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
 
 import { AIModel } from "../../../lib/types";
+import { getProviderFromModel } from "../../../lib/ai/providers";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function NewApplicationPage() {
   const [activeModelName, setActiveModelName] = useState<string>("");
   const [isUpdatingModel, setIsUpdatingModel] = useState(false);
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
-  const [hasGoogleKey, setHasGoogleKey] = useState(false);
+  const [hasCustomKey, setHasCustomKey] = useState(false);
   const [freeUses, setFreeUses] = useState<number | null>(null);
   const [limitExhausted, setLimitExhausted] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -112,23 +113,16 @@ export default function NewApplicationPage() {
           if (profile) {
             setFreeUses(profile.free_ai_uses_remaining);
           }
-
-          const { data: keysData } = await supabase
-            .from('user_api_keys')
-            .select('provider')
-            .eq('user_id', user.id)
-            .eq('provider', 'google');
-          if (keysData && keysData.length > 0) {
-            userHasKey = true;
-            setHasGoogleKey(true);
-          }
         }
 
         const res = await fetch('/api/models');
         if (res.ok) {
           const data = await res.json();
-          const { data: modelsData, preferredModel: prefModel } = data;
+          const { data: modelsData, preferredModel: prefModel, byokProviders } = data;
           
+          const customKey = byokProviders && byokProviders.length > 0;
+          setHasCustomKey(customKey);
+
           setAiModels(modelsData);
           setPreferredModel(prefModel);
           
@@ -137,8 +131,8 @@ export default function NewApplicationPage() {
             ...modelsData.filter((m: AIModel) => m.name !== prefModel)
           ];
           const active = orderedModels.find((m: AIModel) => {
-            const mb = !userHasKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-            const me = !userHasKey && m.request_count >= m.dailyLimit;
+            const mb = !customKey && m.blocked_until && new Date(m.blocked_until) > new Date();
+            const me = !customKey && m.request_count >= m.dailyLimit;
             return !mb && !me;
           });
           
@@ -163,7 +157,7 @@ export default function NewApplicationPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('profiles').update({ preferred_model: newModel }).eq('id', user.id);
+        await supabase.from('profiles').update({ preferred_model: newModel, preferred_provider: getProviderFromModel(newModel) }).eq('id', user.id);
       }
       
       const orderedModels = [
@@ -171,8 +165,8 @@ export default function NewApplicationPage() {
         ...aiModels.filter((m: AIModel) => m.name !== newModel)
       ];
       const active = orderedModels.find((m: AIModel) => {
-        const mb = !hasGoogleKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-        const me = !hasGoogleKey && m.request_count >= m.dailyLimit;
+        const mb = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
+        const me = !hasCustomKey && m.request_count >= m.dailyLimit;
         return !mb && !me;
       });
       if (active) {
@@ -257,7 +251,7 @@ export default function NewApplicationPage() {
 
         if (data.error === 'FREE_LIMIT_EXHAUSTED' || errorMsg === 'FREE_LIMIT_EXHAUSTED') {
           errorMsg = 'FREE_LIMIT_EXHAUSTED';
-        } else if (status === 429) {
+        } else if (status === 429 && !data.byok) {
           const min = Math.ceil(((data.retryAfterSeconds as number) || 60) / 60);
           errorMsg = `All AI models are currently at capacity. Please try again after ${min} minute${min !== 1 ? 's' : ''}.`;
         } else if (status === 503 || data.error === 'service_unavailable') {
@@ -274,6 +268,7 @@ export default function NewApplicationPage() {
       // Handle Match outcome
       let matchSuccess = false;
       let matchErrorType: string | null = null;
+      let matchByokMessage: string | null = null;
       let matchedData: Record<string, unknown> | null = null;
       let matchModelUsed: string | null = null;
 
@@ -286,6 +281,9 @@ export default function NewApplicationPage() {
           matchedData = mRes.data.data as Record<string, unknown>;
         } else {
           matchErrorType = mRes.status === 429 ? '429' : (mRes.status === 503 || mRes.data?.error === 'service_unavailable' ? '503' : 'other');
+          if (mRes.data?.byok) {
+            matchByokMessage = (mRes.data?.message as string) ?? null;
+          }
         }
       }
 
@@ -373,6 +371,8 @@ export default function NewApplicationPage() {
           } else {
             setToast({ message: "Extraction & Match Analysis complete!", type: 'success' });
           }
+        } else if (matchByokMessage) {
+          setToast({ message: `Extraction complete! (Match error: ${matchByokMessage})`, type: 'error' });
         } else if (matchErrorType === '429') {
           setToast({ message: "Extraction complete! (AI models at capacity for match analysis)", type: 'error' });
         } else if (matchErrorType === '503') {
@@ -390,7 +390,7 @@ export default function NewApplicationPage() {
         }
       }
 
-      if (!hasGoogleKey && freeUses !== null && freeUses > 0) {
+      if (!hasCustomKey && freeUses !== null && freeUses > 0) {
         setFreeUses(prev => (prev ? prev - 1 : 0));
       }
 
@@ -558,8 +558,8 @@ export default function NewApplicationPage() {
                         <div className="px-3 py-2 text-sm text-gray-500">Loading...</div>
                       ) : (
                         aiModels.map((m: AIModel) => {
-                          const isBlocked = !hasGoogleKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-                          const isExhausted = !hasGoogleKey && m.request_count >= m.dailyLimit;
+                          const isBlocked = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
+                          const isExhausted = !hasCustomKey && m.request_count >= m.dailyLimit;
                           const unavailable = isBlocked || isExhausted;
                           const isSelected = preferredModel === m.name;
                           
@@ -580,7 +580,7 @@ export default function NewApplicationPage() {
                               <div className="flex flex-col">
                                 <span className="font-medium">{m.name}</span>
                                 <span className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-                                  {hasGoogleKey ? 'Unlimited (using your API key)' : (unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`)}
+                                  {hasCustomKey ? 'Using your API key' : (unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`)}
                                 </span>
                               </div>
                               {isSelected && <Sparkles className="w-4 h-4" />}
@@ -611,7 +611,7 @@ export default function NewApplicationPage() {
             {limitExhausted ? (
               <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 max-w-lg">
                 <div className="text-sm text-amber-800 dark:text-amber-400">
-                  You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own Google Gemini API key.
+                  You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
                 </div>
                 <Link href="/settings" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium whitespace-nowrap transition-colors">
                   Go to Settings
@@ -627,7 +627,7 @@ export default function NewApplicationPage() {
                 >
                   {isExtracting ? "Extracting with AI..." : "✨ Extract Data"}
                 </button>
-                {!hasGoogleKey && freeUses !== null && (
+                {!hasCustomKey && freeUses !== null && (
                   <span className="text-xs text-gray-500 dark:text-zinc-400 mr-1">
                     {freeUses} of 5 free AI uses remaining
                   </span>
