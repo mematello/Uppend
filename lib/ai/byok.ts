@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { PROVIDER_DISPLAY_NAMES } from './providers';
 
 export interface EncryptedKey {
   encrypted_key: string;
@@ -81,7 +82,8 @@ export function buildExhaustionResponse(
     
     for (const p of byokState.orderedProviders) {
       const status = providerFailures[p] || 'not tried';
-      details.push(`${p} (${status})`);
+      const displayName = PROVIDER_DISPLAY_NAMES[p] || p;
+      details.push(`${displayName} (${status})`);
       if (status !== 'rejected') {
         allRejected = false;
       }

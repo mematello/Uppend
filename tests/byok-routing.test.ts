@@ -132,7 +132,7 @@ describe('BYOK Chain Provider Scope', () => {
     expect(res.status).toBe(429);
     expect(data.error).toBe('all_models_exhausted');
     expect(data.byok).toBe(true);
-    expect(data.message).toContain('google');
+    expect(data.message).toContain('Google Gemini');
     
     // Ensure the event logger was NOT called
     expect(alerting.checkAndRecordExhaustion).not.toHaveBeenCalled();
@@ -163,7 +163,7 @@ describe('BYOK Chain Provider Scope', () => {
     expect(res.status).toBe(429);
     expect(data.error).toBe('all_models_exhausted');
     expect(data.byok).toBe(true);
-    expect(data.message).toContain('groq');
+    expect(data.message).toContain('Groq');
     
     expect(alerting.checkAndRecordExhaustion).not.toHaveBeenCalled();
     
@@ -322,7 +322,7 @@ describe('BYOK Chain Provider Scope', () => {
     expect(res.status).toBe(429);
     expect(data.error).toBe('all_models_exhausted');
     expect(data.byok).toBe(true);
-    expect(data.message).toContain('google');
+    expect(data.message).toContain('Google Gemini');
     expect(alerting.checkAndRecordExhaustion).not.toHaveBeenCalled();
     expect(provider.getProvider).not.toHaveBeenCalledWith('groq', expect.anything());
 
