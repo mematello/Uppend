@@ -22,7 +22,6 @@ export async function GET() {
       .eq('id', user.id)
       .single();
 
-    const preferredModel = profile?.preferred_model || AI_MODELS[0].name;
 
     // Fetch current usage for all models today
     const today = new Date().toISOString().split('T')[0];
