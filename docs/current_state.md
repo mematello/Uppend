@@ -10,7 +10,7 @@
 - **Vitest Harness**: The test harness (`vitest@2`) natively tests the AI provider routing and fallback logic natively with mocks. Run via `npm test`.
 - **Privacy Policy**: Explicitly names Google and Groq as processors, links their terms, and discloses Google's free-tier data usage (training/human review) for the shared pool.
 - **Re-Engagement Email & At-Risk States**: Production rules handle streak at-risk and loss properly; automated email flow enables snooze, found_job, or still_looking status toggling.
-- **BYOK Stage 2 UI (merge commit b7a9677)**: Multi-provider key list, try-first selector, `/api/models` gating (BYOK users see only their providers' models), validateKey classification (401/403 rejected; 429/5xx/timeout/network unavailable; 400/404 config error; Google check via models endpoint with x-goog-api-key header), `lib/ai/providers.ts`, `byok.ts` message uses display names, 57 Vitest tests, UI polish (select arrow spacing, single BYOK note, Sparkles replaced by Check in the `/new` model dropdown). Live checks passed (user-reported). main pushed to origin: yes. Production check with a throwaway key: passed.
+- **BYOK Stage 2 UI (merge commit b7a9677)**: Multi-provider key list, try-first selector, `/api/models` gating (BYOK users see only their providers' models), validateKey classification (401/403 rejected; 429/5xx/timeout/network unavailable; 400/404 config error; Google check via models endpoint with x-goog-api-key header), `lib/ai/providers.ts`, `byok.ts` message uses display names, 57 Vitest tests, UI polish (select arrow spacing, single BYOK note, Sparkles replaced by Check in the `/new` model dropdown). Live checks passed (user-reported). main pushed to origin: [YES/NO]. Production check with a throwaway key: [PASSED/PENDING].
 
 ## 2. Open / blocking
 
@@ -24,6 +24,7 @@
 - **Minor follow-ups, non-blocking**: updatePreferredProvider returns "You must save an API key" on any DB error (not only "no row"); `any` types for the `updates` objects in actions.ts; deleteApiKey does a no-op update when preferred_model is already null.
 - **UI & Flow Backlog**: Timezone dropdown picker; Mobile layout issues (stacked progress rows, left-aligned dashboard header); Source auto-detect missing on application edit page (decided /new-only on 2026-09-15; confirm whether this is a reversal request).
 - **AGENTS.md Outdated Context**: Project description still claims "solo-developer personal tool" (unchanged).
+- **SaaS Architecture Review**: Review query performance in `/dashboard` (slimming projection instead of `select('*')`), confirm `revalidateTag` usage across mutations, and note future needs for server-side pagination if users exceed hundreds of applications.
 
 ## 3. Next steps, priority order
 

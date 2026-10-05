@@ -4,12 +4,12 @@ This manifest tracks the repository's documentation files (the memory layer), th
 
 | File Path | Purpose | Rough Token Size | Last Updated |
 | :--- | :--- | :--- | :--- |
-| `README.md` | Main project entry point and setup instructions. | ~2,800 | 2026-08 |
+| `README.md` | Main project entry point and setup instructions. | ~2,800 | 2026-10-04 (Session 24) |
 | `AGENTS.md` | System prompt rules and constraints for AI agents. | ~775 (est) | 2026-10-04 (Session 24) |
 | `docs/current_state.md` | Single source of truth for current project status and active tasks. | ~900 (est) | 2026-10-04 (Session 24) |
 | `docs/manifest.md` | This file; index and token budget of all documentation. | ~375 (est) | 2026-10-04 (Session 24) |
 | `docs/project_overview.md` | High-level summary of the product and its goals. | ~350 | 2026-08-25 |
-| `docs/architecture.md` | System architecture, tech stack, and core patterns. | ~1,800 | 2026-09-05 |
+| `docs/architecture.md` | System architecture, tech stack, and core patterns. | ~1,800 | 2026-10-04 (Session 24) |
 | `docs/schema.md` | Database schemas, RLS policies, and Postgres functions. | ~1,700 | 2026-09-19 (Session 20) |
 | `docs/changelog.md` | Append-only log of shipped work and resolved issues. | ~8,125 (est) | 2026-10-04 (Session 24) |
 | `docs/decisions.md` | Append-only log of architectural and technical trade-offs. | ~13,250 (est) | 2026-10-04 (Session 24) |
