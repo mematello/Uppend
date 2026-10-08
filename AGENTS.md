@@ -11,10 +11,10 @@ Uppend is an AI-powered job application tracker built as a solo-developer person
 - **Data Scoping**: Every new API route handling user data must scope queries to the authenticated user explicitly, even where RLS also enforces it (belt and suspenders).
 - **Schema Changes**: When a plan involves a schema change, state it as an open question for approval rather than assuming it's fine, per our established workflow.
 - **UI Tasks**: Purely presentational/UI tasks should not touch data-fetching, API routes, or RLS logic unless explicitly asked.
-- **Verification/Testing**: Verification/testing tasks must use synthetic or seed test data, never real user data pulled via service_role or any RLS-bypassing method, even for validation purposes. Service-role use requires explicit proposal and approval BEFORE the action, not disclosure after.
+- **Verification/Testing**: Verification/testing tasks must use synthetic or seed test data, never real user data pulled via service_role or any RLS-bypassing method, even for validation purposes. Service-role use requires explicit proposal and approval BEFORE the action, not disclosure after. Report raw terminal output verbatim. If output is cut off, write it to a file and show it in chunks. Never reconstruct, summarize or complete command output. Never commit log or output files.
 - **No Merge or Push Without Approval**: Never merge into main or push to any remote without explicit prior approval, even when tests pass. Present the diff and test output first.
 - **No Local History Rewrites After Review**: Don't reset, amend, or rebase commits that have already been shown for review. Add follow-up commits instead.
-- **No Git History Rewrites (Pushed)**: Never perform git rebase, git commit --amend on pushed commits, squash-merges that erase commit history, or force-pushes, without explicit prior approval — even to remove commits related to a mistake or incident. Incidents should be documented (via a normal revert or follow-up commit) not erased from history.
+- **No Git History Rewrites**: Never perform git rebase, git commit --amend on pushed or unpushed commits, squash-merges that erase commit history, or force-pushes, without explicit prior approval — even to remove commits related to a mistake or incident. Incidents should be documented (via a normal revert or follow-up commit) not erased from history. Fixes go in new commits.
 
 ## Workflow
 - Always produce an implementation plan before writing code, for review and approval. No direct-to-code changes on non-trivial tasks.
