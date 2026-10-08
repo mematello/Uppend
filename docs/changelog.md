@@ -1,5 +1,8 @@
 # Uppend — Changelog
 
+## [2026-10-08] (Session 25)
+- Investigated (no code changes): timeout exposure on /api/extract and /api/match; findings and the unapproved proposal are in docs/current_state.md.
+
 ## [2026-10-04] (Session 24)
 - Implemented: BYOK multi-provider settings and `/new` application UI updates (Stage 2).
 - Updated: Users can now manage keys for multiple providers in Settings, with full error handling (keeping typed keys on network errors).
