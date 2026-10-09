@@ -108,11 +108,11 @@ State tracker for atomic locking and deduplication suppression of operator alert
 
 ### `action_tokens`
 Tokens for re-engagement email actions (e.g., snooze, found_job).
-- `token` (UUID, Primary Key, Default `gen_random_uuid()`)
-- `user_id` (UUID, NOT NULL, References `auth.users(id)` ON DELETE CASCADE)
-- `action_type` (TEXT, NOT NULL)
-- `expires_at` (TIMESTAMPTZ, NOT NULL)
-- `consumed_at` (TIMESTAMPTZ, nullable)
+- `token` (UUID, `PRIMARY KEY DEFAULT gen_random_uuid()`, verified via `20260920212200_reengagement_feature.sql:9`)
+- `user_id` (UUID, `NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE`, verified via `20260920212200_reengagement_feature.sql:10`)
+- `action_type` (TEXT, `NOT NULL`, verified via `20260920212200_reengagement_feature.sql:11`)
+- `expires_at` (TIMESTAMPTZ, `NOT NULL`, verified via `20260920212200_reengagement_feature.sql:12`)
+- `consumed_at` (TIMESTAMPTZ, verified via `20260920212200_reengagement_feature.sql:13`)
 
 ### `v_reengagement_candidates` (View)
 Identifies users eligible for a re-engagement email based on inactivity.
@@ -170,8 +170,9 @@ All application tables have RLS enabled to isolate tenant data.
   - **Privileges (Live DB)**: `EXECUTE` revoked from `PUBLIC`, `anon`, `authenticated`. Granted to `service_role`.
 - **`redeem_reengagement_token(p_token, p_action)` (RPC)**
   Runs with elevated privileges (SECURITY DEFINER) to consume a single-use action token and update the user's `reengagement_status`.
-  - **Privileges (Live DB)**: `EXECUTE` is available to `PUBLIC` (including `anon`) so the unauthenticated `/api/reengagement` route can call it.
+  - **Privileges (Live DB)**: `EXECUTE` is available to `anon` and `authenticated` (verified live) so the unauthenticated `/api/reengagement` route can call it.
 - **`handle_new_user()` (Trigger)**
-  *(Note: This function exists ONLY in the live database and is missing from `supabase/migrations/`)*
-  Automatically creates a `profiles` record when a new user signs up in `auth.users`.
-  - **Privileges (Live DB)**: SECURITY DEFINER.
+  *(Note: The trigger attaching it to `auth.users` is UNVERIFIED and not in migrations.)*
+  `INSERT INTO public.users (id, email) VALUES (new.id, new.email); RETURN new;`
+  - **Privileges (Live DB)**: `EXECUTE` available to `anon`, `authenticated`, `service_role` (live check 2026-10-09).
+  - **Properties**: SECURITY DEFINER, LANGUAGE plpgsql, search_path unpinned.
