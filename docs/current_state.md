@@ -2,7 +2,7 @@
 
 *This file is the single source of truth for "what's true right now." It is rewritten in place at the close of every session — not appended to. Resolved items are removed here and folded into changelog.md / decisions.md instead. See architecture.md / decisions.md / schema.md / changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-10-04 (Session 24)*
+*Last updated: 2026-10-08 (Session 25)*
 
 ## 1. Confirmed working / shipped (Main branch, fully pushed)
 - **BYOK Stage 1 Multi-Provider Backend**: Fallback chain supports custom keys for multiple providers (Google, Groq) restricted strictly to their respective models. Outages properly return provider details in a 429.
@@ -14,7 +14,17 @@
 
 ## 2. Open / blocking
 
-- **maxDuration risk**: neither `/api/extract` nor `/api/match` sets it; a two-key BYOK chain can make up to 5 sequential calls, and Stage 2 makes that reachable by users. NEXT, own plan cycle on its own branch, needs explicit approval (protected routes).
+- **maxDuration / provider timeouts (investigated, plan not yet approved)**
+   Verified findings:
+   - No maxDuration (or any function timeout) is configured anywhere in the repo.
+   - Vercel docs list Hobby default and maximum function duration as 300s with Fluid compute (https://vercel.com/docs/functions/limitations). Whether Fluid compute is enabled on this project is NOT confirmed.
+   - Neither provider's generateStructured has a timeout or abort signal (lib/ai/provider.ts).
+   - parseProviderError (lib/ai/models.ts) classifies AbortError, TimeoutError, "fetch failed" and ECONNRESET as TERMINAL_EXECUTION. In /api/extract that means attempt 2 runs on the same model and the request then fails with a 422 and no fallback to other models.
+   - The shared-pool block time on temporary errors is retryAfterSeconds || (quota ? 86400 : 300).
+   - Worst-case sequential provider calls: shared pool 5; BYOK one key 3; BYOK two keys 5. /api/extract could go higher in contrived cases (attempt 2 after a schema-parse failure, then a provider error): UNVERIFIED.
+   - There is no overall time budget in either route.
+   Proposed, NOT approved: per-call timeouts inside lib/ai/provider.ts plus classifying timeout/network errors as TEMPORARY_PROVIDER with a short retryAfterSeconds in parseProviderError; no change to app/api/extract or app/api/match; its own branch.
+   Still open: the timeout value (needs real latency data from Vercel logs), which Google SDK mechanism to use (the SDK type evidence is ambiguous), what the routes return when every model times out (UNVERIFIED), and the Vercel dashboard values (Fluid compute, max duration), which I have not provided yet.
 - **5xx Shared Bucket Blocking**: Should a 5xx error on `120b` block the shared bucket entirely, or still try `20b`? (unchanged)
 - **Billing Tier Decision**: Decide between keeping the unpaid tier and disclosing training data usage vs. enabling billing for Google AI Studio. (unchanged)
 - **Legal Counsel Review**: Review free-tier data use disclosure (paste/upload notice?), Groq DPA coverage, retention durations, EEA/UK handling (SCCs/cookie banners, and Google's paid-terms exception), and Vercel hosting/analytics disclosure. (unchanged)

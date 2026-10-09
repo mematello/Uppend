@@ -1,5 +1,8 @@
 # Uppend — Decisions Log
 
+## [2026-10-08] Correction: Vercel Hobby function duration
+- Context: the 2026-09-15 "Cron Reminders: Time-Budget-Aware Retry" entry assumed an implicit ~10s Vercel Hobby execution cap. Finding: Vercel's current docs list a 300s default and maximum for Hobby with Fluid compute; the 2026-09-15 entry itself records runs reaching 12-13s without being killed, which is consistent with that. The cause of the cron "Timeout" is therefore not established as a Vercel kill. The retry time budget stays in place, but its stated rationale is superseded.
+
 ## [2026-10-03] Privacy Policy AI Processors
 - Context: Updating legal pages to accurately reflect the AI processors used in Phase 1 (Google Gemini and Groq).
 - Decision: Privacy Policy names Google and Groq explicitly; no sub-processor page for now; Groq no-training claim intentionally not stated.
