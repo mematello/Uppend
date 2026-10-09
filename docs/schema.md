@@ -106,6 +106,20 @@ State tracker for atomic locking and deduplication suppression of operator alert
 - `alert_type` (TEXT, Primary Key)
 - `last_alert_sent_at` (TIMESTAMPTZ, nullable)
 
+### `action_tokens`
+Tokens for re-engagement email actions (e.g., snooze, found_job).
+- `token` (UUID, Primary Key, Default `gen_random_uuid()`)
+- `user_id` (UUID, NOT NULL, References `auth.users(id)` ON DELETE CASCADE)
+- `action_type` (TEXT, NOT NULL)
+- `expires_at` (TIMESTAMPTZ, NOT NULL)
+- `consumed_at` (TIMESTAMPTZ, nullable)
+
+### `v_reengagement_candidates` (View)
+Identifies users eligible for a re-engagement email based on inactivity.
+- Columns: `user_id`, `full_name`, `email`, `reminder_timezone`, `reengagement_last_sent_date`, `reengagement_status`, `reengagement_snoozed_until`, `last_application_at`.
+- **Note**: This view joins `auth.users`. It does NOT use `security_invoker = true`.
+- **Privileges (Live DB)**: `SELECT` revoked from `anon` and `authenticated`. Accessible only by `service_role` (and superusers).
+
 ---
 
 ## Enums
@@ -131,7 +145,7 @@ All application tables have RLS enabled to isolate tenant data.
   - View/Upload/Update/Delete files where the first segment of the storage folder path exactly matches `auth.uid()`.
 - **`ai_model_usage`**:
   - SELECT access granted to all authenticated users (so the frontend can render which models are available). Inserts/Updates are isolated server-side via Security Definer RPC functions.
-- **`system_events` & `system_alerts_state`**:
+- **`system_events` & `system_alerts_state` & `action_tokens`**:
   - Full Deny-All access; explicitly isolated to server-side/service-role access via RPCs.
 
 ---
@@ -142,11 +156,22 @@ All application tables have RLS enabled to isolate tenant data.
   Automatically sets `updated_at = NOW()` on the `applications` table before any `UPDATE` operation.
 - **`increment_model_usage(p_model_name)` (RPC)**
   Runs with elevated privileges (SECURITY DEFINER) to upsert and increment the `request_count` for a specific AI model for the current date, avoiding race conditions.
+  - **Privileges (Live DB)**: `EXECUTE` revoked from `PUBLIC`, `anon`, `authenticated`. Granted to `service_role`.
 - **`block_model(p_model_name, p_blocked_until)` (RPC)**
   Runs with elevated privileges (SECURITY DEFINER) to upsert and update the `blocked_until` timestamp when a model hits a 429 Quota Exceeded error or is deprecated. Now returns a `boolean` indicating if the block was successfully/newly applied.
+  - **Privileges (Live DB)**: `EXECUTE` revoked from `PUBLIC`, `anon`, `authenticated`. Granted to `service_role`.
 - **`decrement_free_ai_uses(p_user_id)` (RPC)**
   Runs with elevated privileges (SECURITY DEFINER) to atomically decrement `free_ai_uses_remaining` in the `profiles` table. Raises a `FREE_LIMIT_EXHAUSTED` exception if the user has 0 uses remaining to prevent negative balance race conditions.
+  - **Privileges (Live DB)**: `EXECUTE` revoked from `PUBLIC`, `anon`, `authenticated`. Granted to `service_role`.
 - **`protect_free_ai_uses` (Trigger)**
   Reverts any updates to `free_ai_uses_remaining` on the `profiles` table unless performed by the `service_role`.
 - **`record_exhaustion_event()` (RPC)**
   Runs with elevated privileges (SECURITY DEFINER) to record an exhaustion event, purge events older than 48 hours, and utilize a `FOR UPDATE` lock on `system_alerts_state` to prevent concurrent alerts. Returns a `boolean` if the alert should fire (>= 3 events in a 1-hour rolling window).
+  - **Privileges (Live DB)**: `EXECUTE` revoked from `PUBLIC`, `anon`, `authenticated`. Granted to `service_role`.
+- **`redeem_reengagement_token(p_token, p_action)` (RPC)**
+  Runs with elevated privileges (SECURITY DEFINER) to consume a single-use action token and update the user's `reengagement_status`.
+  - **Privileges (Live DB)**: `EXECUTE` is available to `PUBLIC` (including `anon`) so the unauthenticated `/api/reengagement` route can call it.
+- **`handle_new_user()` (Trigger)**
+  *(Note: This function exists ONLY in the live database and is missing from `supabase/migrations/`)*
+  Automatically creates a `profiles` record when a new user signs up in `auth.users`.
+  - **Privileges (Live DB)**: SECURITY DEFINER.

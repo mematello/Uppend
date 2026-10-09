@@ -1,5 +1,11 @@
 # Uppend — Decisions Log
 
+## [2026-10-09] DB Privilege Lockdown & Exposure Window
+- Context: A security review discovered that `v_reengagement_candidates` and four sensitive `SECURITY DEFINER` RPC functions (`decrement_free_ai_uses`, `increment_model_usage`, `block_model`, `record_exhaustion_event`) were unintentionally accessible due to PostgreSQL's default `PUBLIC` execution privileges.
+- Finding: The view joined `auth.users` without `security_invoker = true`, exposing `email`, `full_name`, `reminder_timezone`, `last_application_at`, and `reengagement_status` to anyone with the `anon` or `authenticated` key. The four functions were callable by anyone with the `anon` key. It is unknown whether anything was exploited. The exposure window was from when the 20260920212200 migration was applied (apply date: <owner to confirm>) until 2026-10-09.
+- Decision: Explicitly revoked `anon` and `authenticated` access from the view, and revoked `EXECUTE` on the four functions from `public`, `anon`, and `authenticated`, explicitly granting them to `service_role`. `redeem_reengagement_token` was intentionally left public because `/api/reengagement` invokes it via the standard cookie client.
+- Reasoning (Rejected Alternative): Setting `security_invoker = true` on the view was rejected because a live check confirmed that the `service_role` natively lacks `SELECT` privileges on `auth.users`. Enabling `security_invoker` would have broken the backend cron query (`app/api/cron/reminders/route.ts:454`), which depends on the `service_role` bypassing RLS.
+
 ## [2026-10-08] Correction: Vercel Hobby function duration
 - Context: the 2026-09-15 "Cron Reminders: Time-Budget-Aware Retry" entry assumed an implicit ~10s Vercel Hobby execution cap. Finding: Vercel's current docs list a 300s default and maximum for Hobby with Fluid compute; the 2026-09-15 entry itself records runs reaching 12-13s without being killed, which is consistent with that. The cause of the cron "Timeout" is therefore not established as a Vercel kill. The retry time budget stays in place, but its stated rationale is superseded.
 

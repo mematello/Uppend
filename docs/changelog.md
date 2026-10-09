@@ -1,5 +1,9 @@
 # Uppend — Changelog
 
+## [2026-10-09] (Session 26)
+- Secured DB privileges: Added a new migration (`20261009000000_secure_rpc_and_views.sql`) to sync live manual database security fixes to the repo state. This revokes `anon`/`authenticated` access from `v_reengagement_candidates` and locks down four sensitive `SECURITY DEFINER` RPC functions to `service_role` only.
+
+
 ## [2026-10-08] (Session 25)
 - Investigated (no code changes): timeout exposure on /api/extract and /api/match; findings and the unapproved proposal are in docs/current_state.md.
 
