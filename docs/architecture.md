@@ -34,7 +34,7 @@ docs/
 ## Data model
 - **`users`** & **`profiles`**: Tied to Supabase Auth. Contains `free_ai_uses_remaining` (protected by trigger).
 - **`applications`**: Core entity (company, role, status, AI fit scores). Includes `currency`.
-- **`interview_stages`**: Tracks specific interview rounds per application.
+- **`interview_stages`**: Tracks specific interview rounds per application (read by the settings export only; no app code writes it, per grep of app/ and lib/ on 2026-10-09).
 - **`resumes`**: References to user's uploaded PDFs in Supabase Storage.
 - **`ai_model_usage`**: Internal tracking for Gemini rate limits (shared across concurrent requests).
 - **`user_api_keys`**: Encrypted user-provided API keys for BYOK.

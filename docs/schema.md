@@ -65,6 +65,7 @@ Tracks specific rounds of interviews for an application.
 - `stage_name` (TEXT, NOT NULL)
 - `stage_date` (TIMESTAMPTZ, nullable)
 - `notes` (TEXT, nullable)
+- **Note**: Read-only by the settings export; no writer found in app/ or lib/, row count UNVERIFIED.
 
 ### `resumes`
 Stores references to physical PDF/DOCX resumes uploaded by the user.

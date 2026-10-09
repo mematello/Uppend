@@ -1,5 +1,16 @@
 # Uppend — Decisions Log
 
+## [2026-10-09] Post-lockdown advisor result and deferrals
+- Context: Supabase advisor scan (2026-10-09 01:27 UTC) confirmed `auth_users_exposed` is gone without restructuring the view. The scan reported 0 errors, 13 warnings, and 5 suggestions.
+- Finding: Warnings included `function_search_path_mutable` on 8 public functions (`set_updated_at`, `handle_new_user`, `increment_model_usage`, `protect_free_ai_uses`, `decrement_free_ai_uses`, `record_exhaustion_event`, `redeem_reengagement_token`, `block_model`); `anon` AND `authenticated` can execute `handle_new_user` and `redeem_reengagement_token`; leaked password protection disabled. Suggestions: RLS enabled with no policy on `action_tokens`, `interview_stages`, `system_alerts_state`, `system_events`, `users`.
+- Decision:
+  - Restructuring `v_reengagement_candidates` to join `public.users` is DROPPED (advisor cleared without it).
+  - Default privileges: still an open question (no views-only default exists; see the existing open item). No migration drafted.
+  - `search_path` pinning: scope is all 8 flagged public functions, not only `SECURITY DEFINER` ones; its own migration cycle, tested per function.
+  - `handle_new_user`: warning is anon/authenticated `EXECUTE` on a trigger function. Direct RPC call is expected to error (UNVERIFIED). Needs a read-only check of the live trigger definition first; the trigger is not in migrations.
+  - `redeem_reengagement_token` stays executable by `anon` and `authenticated` (needed by `/api/reengagement`). Open item: review its validation (expiry, single use, action check).
+  - Leaked password protection: the app uses magic-link auth (decision 2026-08-16). Open item: check whether password signups are enabled in Supabase Auth settings; whether the feature exists on the current plan is UNVERIFIED.
+
 ## [2026-10-09] DB Privilege Lockdown & Exposure Window
 - Context: A Supabase advisory email dated 2026-10-07 (auth_users_exposed) flagged a security issue, which was confirmed via live queries on 2026-10-09. `v_reengagement_candidates` and four sensitive `SECURITY DEFINER` RPC functions (`decrement_free_ai_uses`, `increment_model_usage`, `block_model`, `record_exhaustion_event`) were unintentionally accessible. The cause was Supabase's default grants on public-schema objects to `anon` and `authenticated` (and for the functions, also PostgreSQL's default `EXECUTE` grant to `PUBLIC`). The live check cannot tell which grant path applied.
 - Finding: The view joined `auth.users` without `security_invoker = true`, exposing `email`, `full_name`, `reminder_timezone`, `last_application_at`, and `reengagement_status` to anyone with the `anon` or `authenticated` key. The four functions were callable by anyone with the `anon` key. It is unknown whether anything was exploited. The exposure window was from when the 20260920212200 migration was applied (apply date: date not recorded; no earlier than 2026-09-20 (migration file date)) until 2026-10-09.

@@ -1,8 +1,9 @@
 # Uppend — Changelog
 
 ## [2026-10-09] (Session 26)
-- Secured DB privileges: Added a new migration (`20261009000000_secure_rpc_and_views.sql`) to sync live manual database security fixes to the repo state. This revokes `anon`/`authenticated` access from `v_reengagement_candidates` and locks down four sensitive `SECURITY DEFINER` RPC functions to `service_role` only.
-
+- Secured DB privileges: Added a new migration (`20261009000000_secure_rpc_and_views.sql`) to sync live manual database security fixes to the repo state. This revokes `anon`/`authenticated` access from `v_reengagement_candidates` and locks down four sensitive `SECURITY DEFINER` RPC functions to `service_role` only. Merged to `main` and pushed.
+- Verified: Production smoke test after the manual revokes passed (extraction and analysis worked); cron-job.org reminder runs return 200 (owner report). Supabase advisor scan (2026-10-09 01:27 UTC) confirmed `auth_users_exposed` is gone without restructuring the view.
+- Note: Process incidents during this session: Agent-pasted "terminal output" was presented as terminal output several times; the owner's real terminal output was the only evidence used. Blob hashes in agent-pasted diffs differed from the owner's terminal for the same visible content. A literal "<DATE>" placeholder survived two commits before being caught in review. Agent claims corrected in review: `service_role` was described as a superuser with implicit `auth.users` access (live check: `service_role` has no `SELECT` on `auth.users`, so `security_invoker` would have broken the cron); a blanket revoke of `EXECUTE` on `redeem_reengagement_token` was proposed (would have broken re-engagement email links); "PagerDuty" was mentioned although the repo has no PagerDuty integration.
 
 ## [2026-10-08] (Session 25)
 - Investigated (no code changes): timeout exposure on /api/extract and /api/match; findings and the unapproved proposal are in docs/current_state.md.

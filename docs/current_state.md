@@ -2,9 +2,10 @@
 
 *This file is the single source of truth for "what's true right now." It is rewritten in place at the close of every session — not appended to. Resolved items are removed here and folded into changelog.md / decisions.md instead. See architecture.md / decisions.md / schema.md / changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-10-09 (Session 26)*
+*Last updated: 2026-10-09 (Session 26 close)*
 
 ## 1. Confirmed working / shipped (Main branch, fully pushed)
+- **DB Privilege Lockdown**: `main` = 0752ba9, pushed to origin. DB privilege lockdown is shipped. Production smoke test after the manual revokes passed (extraction and analysis worked); cron-job.org reminder runs return 200 (owner report). Supabase advisor (scan 2026-10-09 01:27 UTC) confirms `auth_users_exposed` is gone without restructuring the view.
 - **BYOK Stage 1 Multi-Provider Backend**: Fallback chain supports custom keys for multiple providers (Google, Groq) restricted strictly to their respective models. Outages properly return provider details in a 429.
 - **Model-Name Exclusion Fix**: Exclusion logic strictly blocks by `modelName` and not the shared `trackingName`, preventing cross-provider routing bleed.
 - **Vitest Harness**: The test harness (`vitest@2`) natively tests the AI provider routing and fallback logic natively with mocks. Run via `npm test`.
@@ -15,10 +16,13 @@
 ## 2. Open / blocking
 
 - **Source-field bug on /new**: Owner report: when a JD is pasted and the source is auto-selected, it is overwritten to blank after extraction and analysis; NOT yet investigated, no cause established.
+- **search_path unpinned**: The 8 flagged public functions (`set_updated_at`, `handle_new_user`, `increment_model_usage`, `protect_free_ai_uses`, `decrement_free_ai_uses`, `record_exhaustion_event`, `redeem_reengagement_token`, `block_model`) currently have unpinned search paths (its own migration cycle, tested per function).
+- **handle_new_user drift**: `handle_new_user` and its trigger exist in the live database but are not present in the `supabase/migrations/` directory. Warning is anon/authenticated EXECUTE on a trigger function. Direct RPC call is expected to error (UNVERIFIED). Needs a read-only check of the live trigger definition first; the trigger is not in migrations.
+- **redeem_reengagement_token validation review**: Stays executable by anon and authenticated (needed by `/api/reengagement`). Open item: review its validation (expiry, single use, action check).
+- **Leaked password protection / password signups check**: The app uses magic-link auth (decision 2026-08-16). Open item: check whether password signups are enabled in Supabase Auth settings; whether the feature exists on the current plan is UNVERIFIED.
+- **interview_stages dormant table**: Read-only by the settings export, nothing inserts or updates it (app stores interview info in `applications.interview_stage` and `interview_notes`). Presumed empty (UNVERIFIED). Decision pending: keep dormant or drop in a migration.
+- **Re-engagement migration apply date**: The date the re-engagement migration was applied to the live DB is not recorded.
 - **default-privileges migration**: Decide how to stop Supabase's default grants (EXECUTE/SELECT to anon and authenticated on new public-schema functions and views) from exposing future objects. Postgres default privileges apply to functions and to tables/views separately, and there is no views-only default; revoking default table grants would affect future tables. Options to evaluate: a functions-only default-privileges migration plus a rule that every migration creating a view or function states its grants explicitly. Needs approval before any migration is drafted.
-- **search_path unpinned**: All `SECURITY DEFINER` functions currently have unpinned search paths (live `proconfig` is null).
-- **handle_new_user drift**: `handle_new_user` and its trigger exist in the live database but are not present in the `supabase/migrations/` directory.
-- **v_reengagement_candidates view restructure**: Deferred optional restructure of the view (e.g., joining `public.users` instead of `auth.users` and using `security_invoker = true`) until the Supabase advisor re-scans.
 - **maxDuration / provider timeouts (investigated, plan not yet approved)**
    Verified findings:
    - No maxDuration (or any function timeout) is configured anywhere in the repo.
@@ -44,12 +48,13 @@
 ## 3. Next steps, priority order
 
 **Backlog:**
-1. **maxDuration cycle**: own branch and plan cycle after Stage 2.
-2. **JD URL-fetching**: Large feature, touches a Protected AI Route, needs its own full plan cycle.
-3. **Visual Identity Pass**: A visual-identity pass on the app's uniform rounded-full pill treatment is needed.
-4. **Non-tech-job-seeker generalization idea**: An idea to broaden the platform for non-tech job seekers (touches `applications.tech_stack` schema + both Protected AI Route prompts).
-5. **Archive as snapshot**: Allow users to archive all/selected applications rather than deleting them when starting fresh.
-6. **Application sharing**: First multi-user/social feature — let a user share an application for others to apply.
+1. **maxDuration plan review**: Needs Antigravity's amended plan checked against raw evidence, and the owner's Vercel dashboard values: Fluid compute on/off, max duration, typical and longest `/api/extract` and `/api/match` durations.
+2. **Open items in Section 2**, starting with the source-field bug.
+3. **JD URL-fetching**: Large feature, touches a Protected AI Route, needs its own full plan cycle.
+4. **Visual Identity Pass**: A visual-identity pass on the app's uniform rounded-full pill treatment is needed.
+5. **Non-tech-job-seeker generalization idea**: An idea to broaden the platform for non-tech job seekers (touches `applications.tech_stack` schema + both Protected AI Route prompts).
+6. **Archive as snapshot**: Allow users to archive all/selected applications rather than deleting them when starting fresh.
+7. **Application sharing**: First multi-user/social feature — let a user share an application for others to apply.
 
 ## 4. Future plans (not yet scoped)
 
