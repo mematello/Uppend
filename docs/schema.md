@@ -172,7 +172,7 @@ All application tables have RLS enabled to isolate tenant data.
   Runs with elevated privileges (SECURITY DEFINER) to consume a single-use action token and update the user's `reengagement_status`.
   - **Privileges (Live DB)**: `EXECUTE` is available to `anon` and `authenticated` (verified live) so the unauthenticated `/api/reengagement` route can call it.
 - **`handle_new_user()` (Trigger)**
-  *(Note: The trigger attaching it to `auth.users` is UNVERIFIED and not in migrations.)*
+  *(Note: This function exists ONLY in the live database and is missing from `supabase/migrations/`. The trigger attaching it to `auth.users` is UNVERIFIED and not in migrations.)*
   `INSERT INTO public.users (id, email) VALUES (new.id, new.email); RETURN new;`
   - **Privileges (Live DB)**: `EXECUTE` available to `anon`, `authenticated`, `service_role` (live check 2026-10-09).
   - **Properties**: SECURITY DEFINER, LANGUAGE plpgsql, search_path unpinned.

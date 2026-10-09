@@ -15,7 +15,7 @@
 ## 2. Open / blocking
 
 - **Source-field bug on /new**: Owner report: when a JD is pasted and the source is auto-selected, it is overwritten to blank after extraction and analysis; NOT yet investigated, no cause established.
-- **default-privileges migration**: Draft a separate migration to alter default privileges for the `public` schema (functions only, not tables) so future objects don't automatically grant `EXECUTE` to `PUBLIC`.
+- **default-privileges migration**: Draft a separate migration to alter default privileges for the `public` schema (functions only, not tables) to restrict Supabase's default grants of `EXECUTE`/`SELECT` to `anon` and `authenticated` on public-schema objects, and Postgres's default `EXECUTE` to `PUBLIC` for functions.
 - **search_path unpinned**: All `SECURITY DEFINER` functions currently have unpinned search paths (live `proconfig` is null).
 - **handle_new_user drift**: `handle_new_user` and its trigger exist in the live database but are not present in the `supabase/migrations/` directory.
 - **v_reengagement_candidates view restructure**: Deferred optional restructure of the view (e.g., joining `public.users` instead of `auth.users` and using `security_invoker = true`) until the Supabase advisor re-scans.
@@ -32,7 +32,7 @@
    Still open: the timeout value (needs real latency data from Vercel logs), which Google SDK mechanism to use (the SDK type evidence is ambiguous), what the routes return when every model times out (UNVERIFIED), and the Vercel dashboard values (Fluid compute, max duration), which I have not provided yet.
 - **5xx Shared Bucket Blocking**: Should a 5xx error on `120b` block the shared bucket entirely, or still try `20b`? (unchanged)
 - **Billing Tier Decision**: Decide between keeping the unpaid tier and disclosing training data usage vs. enabling billing for Google AI Studio. (unchanged)
-- **Legal Counsel Review**: Review free-tier data use disclosure (paste/upload notice?), Groq DPA coverage, retention durations, EEA/UK handling (SCCs/cookie banners, and Google's paid-terms exception), Vercel hosting/analytics disclosure, and the DB privilege exposure window (from when the 20260920212200 migration was applied (apply date: <owner to confirm>) until 2026-10-09).
+- **Legal Counsel Review**: Review free-tier data use disclosure (paste/upload notice?), Groq DPA coverage, retention durations, EEA/UK handling (SCCs/cookie banners, and Google's paid-terms exception), Vercel hosting/analytics disclosure, and the DB privilege exposure window (from when the 20260920212200 migration was applied (apply date: <DATE>) until 2026-10-09).
 - **zod-to-json-schema is still in package.json** with no imports in app/ or lib/ (only a comment at lib/ai/provider.ts:121); removal touches the lockfile, so its own task.
 - **Corrupted Currency Symbols**: probably a PowerShell display issue (Get-Content without -Encoding UTF8 showed "âœ¨" for "✨"); verify with -Encoding UTF8 or git diff before treating it as a bug.
 - **Remaining sparkle icons**: "Analyzing fit..." line and the "✨ Extract Data" button text were left in place; decision pending.
