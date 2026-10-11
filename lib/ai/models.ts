@@ -32,10 +32,10 @@ export interface ParsedAiError {
 export const parseGeminiError = parseProviderError;
 
 export function parseProviderError(e: unknown): ParsedAiError {
-  const rawMessage = e instanceof Error ? e.message : String(e || '');
   const errObj = (e && typeof e === 'object') ? (e as Record<string, unknown>) : {};
+  const rawMessage = typeof errObj.message === 'string' ? errObj.message : (e instanceof Error ? e.message : String(e || ''));
   
-  let statusCode: number | null = typeof errObj.status === 'number' ? errObj.status : (typeof errObj.code === 'number' ? errObj.code : null);
+  let statusCode: number | null = typeof errObj.status === 'number' ? errObj.status : (typeof errObj.code === 'number' && errObj.code >= 100 && errObj.code <= 599 ? errObj.code : null);
   let statusText: string | null = typeof errObj.status === 'string' ? errObj.status : null;
   let message = rawMessage;
   const headers = (errObj.headers as unknown) as Headers | null;
@@ -57,6 +57,27 @@ export function parseProviderError(e: unknown): ParsedAiError {
 
   const upperRaw = (rawMessage + ' ' + (statusText || '') + ' ' + (statusCode || '')).toUpperCase();
 
+  // Read name and cause only from errObj (typed unknown)
+  const errName = typeof errObj.name === 'string' ? errObj.name : '';
+  const rawCause = errObj.cause;
+  const causeObj = (rawCause && typeof rawCause === 'object') ? (rawCause as Record<string, unknown>) : null;
+  const causeCode = typeof causeObj?.code === 'string' ? causeObj.code : null;
+
+  const isNetworkCause = Boolean(
+    causeCode && ['ECONNRESET', 'ENOTFOUND', 'ECONNREFUSED', 'ETIMEDOUT', 'UND_ERR_CONNECT_TIMEOUT'].includes(causeCode)
+  );
+
+  // Apply timeout/network classification ONLY when statusCode === null after parsing.
+  // Real HTTP statuses keep their current classes.
+  // Note: SDK's own p-retry AbortError is not expected because we do not set
+  // httpOptions.retryOptions; enabling SDK retries requires revisiting this classifier.
+  const isTimeoutOrNetwork = statusCode === null && (
+    errName === 'AbortError' ||
+    errName === 'TimeoutError' ||
+    (errName === 'TypeError' && rawMessage.includes('fetch failed')) ||
+    isNetworkCause
+  );
+
   const isQuotaError =
     statusCode === 429 ||
     statusText === 'RESOURCE_EXHAUSTED' ||
@@ -72,7 +93,8 @@ export function parseProviderError(e: unknown): ParsedAiError {
     upperRaw.includes('503') ||
     upperRaw.includes('UNAVAILABLE') ||
     upperRaw.includes('HIGH DEMAND') ||
-    upperRaw.includes('TEMPORARILY OVERLOADED');
+    upperRaw.includes('TEMPORARILY OVERLOADED') ||
+    isTimeoutOrNetwork;
 
   let retryAfterSeconds: number | null = null;
   const match = rawMessage.match(/retryDelay.*?([\d\.]+)s/) || rawMessage.match(/retry in ([\d\.]+)s/);
@@ -96,6 +118,10 @@ export function parseProviderError(e: unknown): ParsedAiError {
         }
       }
     }
+  }
+
+  if (isTimeoutOrNetwork && retryAfterSeconds === null) {
+    retryAfterSeconds = 30;
   }
 
   let errorClass: 'TEMPORARY_PROVIDER' | 'PERMANENT_PROVIDER' | 'TERMINAL_EXECUTION' = 'TERMINAL_EXECUTION';
