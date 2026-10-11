@@ -1,5 +1,21 @@
 # Uppend — Decisions Log
 
+## [2026-10-12] Provider timeout mechanism
+- Context: Adding per-call timeouts for Google and Groq providers (Session 27).
+- Decision: own AbortController + setTimeout, not AbortSignal.timeout (not driven by vitest fake timers) and not httpOptions.timeout (the SDK raises the global undici dispatcher timeouts with Math.max at index.mjs ~13783). PROVIDER_TIMEOUT_MS = 45000 is a ceiling-safe starting value, NOT measured: 5 calls x 45s = 225s plus DB overhead under the 300s Default Max Duration (owner-reported dashboard value; Fluid compute toggle unconfirmed). Revisit with real call durations. Supersedes the 2026-10-04 "maxDuration fix as its own cycle" entry: no maxDuration config change was needed or made.
+
+## [2026-10-12] Classification via isUnavailableError=true
+- Decision: Classification via isUnavailableError=true so the existing check in /api/extract (route line ~257) rethrows to the fallback loop; avoids editing protected routes. Model block is retryAfterSeconds=30 (shared pool).
+
+## [2026-10-12] Operator alert on exhaustion and Groq shared-bucket timeout
+- Decision: Accepted: operator alert when every model times out (checkAndRecordExhaustion); 30s block of both Groq models via groq:shared-bucket (related to the open 5xx shared-bucket question).
+
+## [2026-10-12] Parser side changes
+- Decision: statusCode only accepts numeric `code` in 100..599 (DOMException legacy codes 20/23 would otherwise count as HTTP status); rawMessage now read from errObj.message first (affects non-Error objects only; needed by two parser tests using plain objects).
+
+## [2026-10-12] Corrected call counts
+- Decision: Corrected call counts (from the route loop and getAvailableModel read in owner terminal): shared pool max 4 provider calls (3 Gemini + 1 Groq, because groq:shared-bucket is blocked after the first Groq failure), 5 only if blockModelInDb fails (it swallows errors); BYOK Google-only 3, Groq-only 2, both 5.
+
 ## [2026-10-09] Post-lockdown advisor result and deferrals
 - Context: Supabase advisor scan (2026-10-09 01:27 UTC) confirmed `auth_users_exposed` is gone without restructuring the view. The scan reported 0 errors, 13 warnings, and 5 suggestions.
 - Finding: Warnings included `function_search_path_mutable` on 8 public functions (`set_updated_at`, `handle_new_user`, `increment_model_usage`, `protect_free_ai_uses`, `decrement_free_ai_uses`, `record_exhaustion_event`, `redeem_reengagement_token`, `block_model`); `anon` AND `authenticated` can execute `handle_new_user` and `redeem_reengagement_token`; leaked password protection disabled. Suggestions: RLS enabled with no policy on `action_tokens`, `interview_stages`, `system_alerts_state`, `system_events`, `users`.

@@ -1,5 +1,11 @@
 # Uppend — Changelog
 
+## [2026-10-12] (Session 27)
+- Implemented: per-call provider timeouts (merge de8f0ce; commits e85b495, 6e1ef79, 6aeb821). parseProviderError classifies AbortError/TimeoutError/TypeError 'fetch failed'/network cause codes (only when statusCode === null) as TEMPORARY_PROVIDER, isUnavailableError=true, isQuotaError=false, retryAfterSeconds=30; both providers abort after PROVIDER_TIMEOUT_MS = 45000 via AbortController + setTimeout cleared in finally (Groq covers the body read). app/api/extract and app/api/match untouched (empty git diff main...HEAD -- app).
+- Verified (owner terminal): npm test 81/81; tsc exit 0; build succeeded; local probe: Google SDK with controller.abort() rejects AbortError 'This operation was aborted' and sends 1 HTTP request per call (success and abort). Production smoke test: PENDING.
+- Changed: a network/timeout error in /api/extract no longer runs attempt 2 on the same model or returns 422; it falls back to the next model.
+- Note (process incidents this session): agent text with hand-added line numbers and edited quotes was labelled "Raw Terminal Output"; the agent ran a requested-not-to-run experiment in a background task and described results it did not show; it asserted Google's changelog lacks gemini-3.5-flash / gemini-3-flash-preview / gemini-3.1-flash-lite-preview ("2024 changelog"), contradicted by Google's current docs and the owner's Google email; its PowerShell here-string probe would have failed (backticks, module path). Owner terminal output was the only evidence used.
+
 ## [2026-10-09] (Session 26)
 - Secured DB privileges: Added a new migration (`20261009000000_secure_rpc_and_views.sql`) to sync live manual database security fixes to the repo state. This revokes `anon`/`authenticated` access from `v_reengagement_candidates` and locks down four sensitive `SECURITY DEFINER` RPC functions to `service_role` only. Merged to `main` and pushed.
 - Verified: Production smoke test after the manual revokes passed (extraction and analysis worked); cron-job.org reminder runs return 200 (owner report). Supabase advisor scan (2026-10-09 01:27 UTC) confirmed `auth_users_exposed` is gone without restructuring the view.
