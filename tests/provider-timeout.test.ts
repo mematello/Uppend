@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseProviderError } from '../lib/ai/models';
+import { z } from 'zod';
+import { GoogleGeminiProvider, OpenAICompatibleProvider, PROVIDER_TIMEOUT_MS } from '../lib/ai/provider';
 
 describe('parseProviderError timeout & network error detection', () => {
   describe('Timeout and Network Error Shapes', () => {
@@ -137,6 +139,127 @@ describe('parseProviderError timeout & network error detection', () => {
       expect(parsed.statusCode).toBe(400);
       expect(parsed.errorClass).toBe('TERMINAL_EXECUTION');
       expect(parsed.isUnavailableError).toBe(false);
+    });
+  });
+});
+
+describe('Provider generateStructured Timeout Helper', () => {
+  const TestSchema = z.object({ role: z.string() });
+  const dummyGeminiSchema = { type: 'OBJECT', properties: { role: { type: 'STRING' } } };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  describe('GoogleGeminiProvider', () => {
+    it('aborts generateContent via config.abortSignal and rejects with AbortError when timeout expires', async () => {
+      const google = new GoogleGeminiProvider('dummy-key');
+      (google as any).ai = {
+        models: {
+          generateContent: vi.fn(({ config }) => {
+            return new Promise((_, reject) => {
+              if (config?.abortSignal) {
+                config.abortSignal.addEventListener('abort', () => {
+                  reject(new DOMException('This operation was aborted', 'AbortError'));
+                });
+              }
+            });
+          })
+        }
+      };
+
+      const promise = google.generateStructured('prompt', TestSchema, dummyGeminiSchema, 'gemini-3.5-flash', 'content');
+      expect(vi.getTimerCount()).toBe(1);
+
+      const assertion = expect(promise).rejects.toThrow('This operation was aborted');
+      await vi.advanceTimersByTimeAsync(PROVIDER_TIMEOUT_MS);
+      await assertion;
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('clears timeout on successful completion (timer count is 0)', async () => {
+      const google = new GoogleGeminiProvider('dummy-key');
+      (google as any).ai = {
+        models: {
+          generateContent: vi.fn().mockResolvedValue({
+            text: JSON.stringify({ role: 'Engineer' })
+          })
+        }
+      };
+
+      const result = await google.generateStructured('prompt', TestSchema, dummyGeminiSchema, 'gemini-3.5-flash', 'content');
+      expect(result).toEqual({ role: 'Engineer' });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+  });
+
+  describe('OpenAICompatibleProvider (Groq)', () => {
+    it('aborts fetch via signal and rejects with AbortError when timeout expires', async () => {
+      const groq = new OpenAICompatibleProvider('dummy-key');
+      const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+        return new Promise((_, reject) => {
+          if (init?.signal) {
+            init.signal.addEventListener('abort', () => {
+              reject(new DOMException('This operation was aborted', 'AbortError'));
+            });
+          }
+        });
+      });
+      global.fetch = fetchMock as any;
+
+      const promise = groq.generateStructured('prompt', TestSchema, dummyGeminiSchema, 'groq:openai/gpt-oss-120b', 'content');
+      expect(vi.getTimerCount()).toBe(1);
+
+      const assertion = expect(promise).rejects.toThrow('This operation was aborted');
+      await vi.advanceTimersByTimeAsync(PROVIDER_TIMEOUT_MS);
+      await assertion;
+
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('clears timeout on successful completion (timer count is 0)', async () => {
+      const groq = new OpenAICompatibleProvider('dummy-key');
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{ message: { content: JSON.stringify({ role: 'Engineer' }) } }]
+        })
+      }) as any;
+
+      const result = await groq.generateStructured('prompt', TestSchema, dummyGeminiSchema, 'groq:openai/gpt-oss-120b', 'content');
+      expect(result).toEqual({ role: 'Engineer' });
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('aborts hanging body read after fetch response headers arrive and clears timer in finally', async () => {
+      const groq = new OpenAICompatibleProvider('dummy-key');
+      global.fetch = vi.fn((_url: string, init?: RequestInit) => {
+        return Promise.resolve({
+          ok: true,
+          json: () => new Promise((_, reject) => {
+            if (init?.signal) {
+              init.signal.addEventListener('abort', () => {
+                reject(new DOMException('This operation was aborted', 'AbortError'));
+              });
+            }
+          })
+        });
+      }) as any;
+
+      const promise = groq.generateStructured('prompt', TestSchema, dummyGeminiSchema, 'groq:openai/gpt-oss-120b', 'content');
+      expect(vi.getTimerCount()).toBe(1);
+
+      const assertion = expect(promise).rejects.toThrow('This operation was aborted');
+      await vi.advanceTimersByTimeAsync(PROVIDER_TIMEOUT_MS);
+      await assertion;
+
+      expect(vi.getTimerCount()).toBe(0);
     });
   });
 });

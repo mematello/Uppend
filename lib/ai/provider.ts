@@ -16,6 +16,8 @@ export class ProviderConfigError extends Error {
   }
 }
 
+export const PROVIDER_TIMEOUT_MS = 45000;
+
 export interface AiProvider {
   /**
    * Generates a structured JSON object according to a Zod schema.
@@ -80,22 +82,29 @@ export class GoogleGeminiProvider implements AiProvider {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async generateStructured<T extends z.ZodTypeAny>(prompt: string, schema: T, geminiSchema: any, modelName: string, content: string): Promise<z.infer<T>> {
-    const response = await this.ai.models.generateContent({
-      model: modelName,
-      contents: content,
-      config: {
-        systemInstruction: prompt,
-        responseMimeType: 'application/json',
-        responseSchema: geminiSchema,
-        temperature: 0.1,
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+    try {
+      const response = await this.ai.models.generateContent({
+        model: modelName,
+        contents: content,
+        config: {
+          abortSignal: controller.signal,
+          systemInstruction: prompt,
+          responseMimeType: 'application/json',
+          responseSchema: geminiSchema,
+          temperature: 0.1,
+        }
+      });
+
+      if (!response.text) {
+        throw new Error("No response text from AI model");
       }
-    });
 
-    if (!response.text) {
-      throw new Error("No response text from AI model");
+      return schema.parse(JSON.parse(response.text));
+    } finally {
+      clearTimeout(timeoutId);
     }
-
-    return schema.parse(JSON.parse(response.text));
   }
 
   async validateKey(apiKey: string): Promise<boolean> {
@@ -162,42 +171,49 @@ export class OpenAICompatibleProvider implements AiProvider {
       }
     };
 
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`
-      },
-      body: JSON.stringify(body)
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PROVIDER_TIMEOUT_MS);
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
 
-    if (!response.ok) {
-      let errorData: Record<string, unknown> | undefined;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { error: { message: await response.text() } };
-      }
-      
-      const errorMsg = typeof errorData?.error === 'object' && errorData.error !== null && 'message' in errorData.error
-        ? String(errorData.error.message)
-        : response.statusText;
+      if (!response.ok) {
+        let errorData: Record<string, unknown> | undefined;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { error: { message: await response.text() } };
+        }
         
-      const err = new Error(errorMsg) as Error & { status?: number, headers?: Headers, error?: unknown };
-      err.status = response.status;
-      err.headers = response.headers;
-      err.error = errorData?.error;
-      throw err;
-    }
+        const errorMsg = typeof errorData?.error === 'object' && errorData.error !== null && 'message' in errorData.error
+          ? String(errorData.error.message)
+          : response.statusText;
+          
+        const err = new Error(errorMsg) as Error & { status?: number, headers?: Headers, error?: unknown };
+        err.status = response.status;
+        err.headers = response.headers;
+        err.error = errorData?.error;
+        throw err;
+      }
 
-    const data = await response.json();
-    const resultText = data.choices?.[0]?.message?.content;
-    
-    if (!resultText) {
-      throw new Error("No response text from AI model");
-    }
+      const data = await response.json();
+      const resultText = data.choices?.[0]?.message?.content;
+      
+      if (!resultText) {
+        throw new Error("No response text from AI model");
+      }
 
-    return schema.parse(JSON.parse(resultText));
+      return schema.parse(JSON.parse(resultText));
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   async validateKey(apiKey: string): Promise<boolean> {
