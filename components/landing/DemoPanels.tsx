@@ -2,21 +2,21 @@ import React from "react";
 import styles from "./landing.module.css";
 
 export const FULL_JD_TEXT =
-  "Acme Corp is hiring a Frontend Engineer to build modern web apps. We offer competitive pay of ₱60,000-₱90,000. You'll use React, TypeScript, and TailwindCSS to build features. The ideal candidate is a team player who must be willing to work in our office in BGC, Taguig at least 3 days a week.";
+  "Acme Corp is hiring a Frontend Engineer to build modern web apps. We offer ₱60,000-₱90,000. You'll use React, TypeScript, TailwindCSS. Office in BGC, Taguig, 3 days a week.";
 
 // Segmented representation of the JD text for highlighted token rendering in Beat 2
 export function HighlightedRawJD({ compact = false }: { compact?: boolean }) {
   return (
     <p
       className={`text-xs leading-relaxed text-[var(--landing-ink)] font-mono break-words ${styles.monoLabel} ${
-        compact ? "text-[11px] leading-normal" : ""
+        compact ? "line-clamp-3 text-[11px] leading-normal" : ""
       }`}
     >
       <span className={styles.tokenHighlight}>Acme Corp</span> is hiring a{" "}
-      <span className={styles.tokenHighlight}>Frontend Engineer</span> to build modern web apps. We offer competitive pay of{" "}
+      <span className={styles.tokenHighlight}>Frontend Engineer</span> to build modern web apps. We offer{" "}
       <span className={styles.tokenHighlight}>₱60,000-₱90,000</span>. You&apos;ll use{" "}
-      <span className={styles.tokenHighlight}>React, TypeScript, and TailwindCSS</span> to build features. The ideal candidate is a team player who must be willing to work in our office in{" "}
-      <span className={styles.tokenHighlight}>BGC, Taguig at least 3 days a week</span>.
+      <span className={styles.tokenHighlight}>React, TypeScript, TailwindCSS</span>. Office in{" "}
+      <span className={styles.tokenHighlight}>BGC, Taguig, 3 days a week</span>.
     </p>
   );
 }
