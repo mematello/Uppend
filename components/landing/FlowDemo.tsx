@@ -199,10 +199,10 @@ export function FlowDemo() {
           })}
         </div>
 
-        {/* Content Body: FIXED HEIGHT (h-[340px] mobile, h-[360px] desktop), ZERO layout shift */}
-        <div className="p-3 sm:p-3.5 h-[340px] sm:h-[360px] overflow-hidden">
-          {/* MOBILE VIEW (md:hidden): Single active panel fills fixed body */}
-          <div className="block md:hidden h-full overflow-hidden">
+        {/* Content Body: FIXED HEIGHT (h-[380px] mobile, h-[360px] sm-to-lg, h-[420px] xl), ZERO layout shift */}
+        <div className="p-3 sm:p-3.5 h-[380px] sm:h-[360px] xl:h-[420px] overflow-hidden">
+          {/* SINGLE PANEL VIEW (< xl: 375px to 1279px): Single active panel at full width */}
+          <div className="block xl:hidden h-full overflow-hidden">
             {beat === 1 && <Beat1Panel typedChars={typedChars} />}
             {beat === 2 && (
               <Beat2Panel
@@ -215,8 +215,8 @@ export function FlowDemo() {
             {beat === 4 && <Beat4Panel isApplied={isApplied} />}
           </div>
 
-          {/* DESKTOP VIEW (hidden md:grid): 2x2 grid with equal-height rows (grid-rows-2) filling fixed body */}
-          <div className="hidden md:grid md:grid-cols-2 md:grid-rows-2 gap-2.5 h-full overflow-hidden">
+          {/* 2x2 GRID VIEW (>= xl: 1280px+): 2x2 grid with equal-height rows */}
+          <div className="hidden xl:grid xl:grid-cols-2 xl:grid-rows-2 gap-2.5 h-full overflow-hidden">
             <div className={`h-full overflow-hidden transition-opacity duration-300 ${beat === 1 ? "opacity-100 ring-1 ring-[var(--landing-ink)] rounded-sm" : "opacity-35"}`}>
               <Beat1Panel
                 typedChars={typedChars}

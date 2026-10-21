@@ -9,7 +9,7 @@ export function HighlightedRawJD({ compact = false }: { compact?: boolean }) {
   return (
     <p
       className={`text-xs leading-relaxed text-[var(--landing-ink)] font-mono break-words ${styles.monoLabel} ${
-        compact ? "line-clamp-3 text-[11px] leading-normal" : ""
+        compact ? "text-[11px] leading-normal" : ""
       }`}
     >
       <span className={styles.tokenHighlight}>Acme Corp</span> is hiring a{" "}
