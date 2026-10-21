@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Metadata } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
 import { LandingHeader } from "../components/landing/LandingHeader";
@@ -6,6 +5,7 @@ import { LandingHero } from "../components/landing/LandingHero";
 import { HowItWorks } from "../components/landing/HowItWorks";
 import { PrivacyNotice } from "../components/landing/PrivacyNotice";
 import { OriginStory } from "../components/landing/OriginStory";
+import { SiteFooter } from "../components/landing/SiteFooter";
 import styles from "../components/landing/landing.module.css";
 
 const fraunces = Fraunces({
@@ -54,21 +54,8 @@ export default function Home() {
         <OriginStory />
       </main>
 
-      {/* Footer (Untouched for Stage 3) */}
-      <footer className="border-t border-gray-200 dark:border-zinc-800 py-12 text-center bg-white dark:bg-zinc-950">
-        <h2 className="text-2xl font-bold mb-6">Ready to land your next role?</h2>
-        <Link href="/signup" className="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-lg font-medium transition-colors mb-10">
-          Create your free account
-        </Link>
-        <div className="flex items-center justify-center gap-4 text-sm text-gray-500 dark:text-zinc-500 mb-4">
-          <Link href="/terms" className="hover:text-gray-900 dark:hover:text-zinc-300">Terms of Service</Link>
-          <span>&middot;</span>
-          <Link href="/privacy" className="hover:text-gray-900 dark:hover:text-zinc-300">Privacy Policy</Link>
-        </div>
-        <p className="text-sm text-gray-400 dark:text-zinc-600">
-          &copy; {new Date().getFullYear()} Uppend. All rights reserved.
-        </p>
-      </footer>
+      {/* Stage 3: Site Footer */}
+      <SiteFooter />
     </div>
   );
 }
