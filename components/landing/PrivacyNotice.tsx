@@ -45,7 +45,7 @@ export function PrivacyNotice() {
         <div className={`p-6 sm:p-8 rounded-sm border border-[var(--landing-hairline)] bg-[var(--landing-card)] flex flex-col justify-between ${styles.ledgerCard}`}>
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-[var(--landing-accent)] border border-black inline-block" />
+              <span className="w-2 h-2 rounded-full bg-[var(--landing-accent)] border border-[var(--landing-ink)] inline-block" />
               <h3 className={`text-sm tracking-wider uppercase text-[var(--landing-ink)] font-semibold ${styles.monoLabel}`}>
                 With an account
               </h3>

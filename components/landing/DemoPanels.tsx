@@ -9,7 +9,7 @@ export function HighlightedRawJD({ compact = false }: { compact?: boolean }) {
   return (
     <p
       className={`text-xs leading-relaxed text-[var(--landing-ink)] font-mono break-words ${styles.monoLabel} ${
-        compact ? "line-clamp-3 text-[11px] leading-normal" : ""
+        compact ? "text-[11px] leading-tight" : ""
       }`}
     >
       <span className={styles.tokenHighlight}>Acme Corp</span> is hiring a{" "}
@@ -101,7 +101,7 @@ export function Beat2Panel({
 
       {/* On mobile Beat 2: compact highlighted text above fields */}
       {showRawHighlightOnTop && (
-        <div className="mb-2 p-1.5 bg-[var(--landing-card)] border border-[var(--landing-hairline)] rounded-sm shrink-0">
+        <div className="mb-2 py-1 px-1.5 bg-[var(--landing-card)] border border-[var(--landing-hairline)] rounded-sm shrink-0">
           <div className={`text-[9px] text-[var(--landing-muted)] uppercase tracking-wider mb-0.5 ${styles.monoLabel}`}>
             Tokens detected in raw text:
           </div>

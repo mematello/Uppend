@@ -199,8 +199,8 @@ export function FlowDemo() {
           })}
         </div>
 
-        {/* Content Body: FIXED HEIGHT (h-[340px] mobile, h-[440px] desktop), ZERO layout shift */}
-        <div className="p-3 sm:p-3.5 h-[340px] md:h-[440px] overflow-hidden">
+        {/* Content Body: FIXED HEIGHT (h-[340px] mobile, h-[480px] desktop), ZERO layout shift */}
+        <div className="p-3 sm:p-3.5 h-[340px] md:h-[480px] overflow-hidden">
           {/* MOBILE VIEW (md:hidden): Single active panel fills fixed body */}
           <div className="block md:hidden h-full overflow-hidden">
             {beat === 1 && <Beat1Panel typedChars={typedChars} />}
