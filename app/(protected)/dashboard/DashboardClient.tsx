@@ -11,6 +11,8 @@ import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 import { Panel } from '../../../components/ui/Panel';
 import { Field } from '../../../components/ui/Field';
+import { Chip } from '../../../components/ui/Chip';
+import { Button } from '../../../components/ui/Button';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "chip-draft",
@@ -210,7 +212,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
   const SortIcon = ({ field }: { field: string }) => {
     if (sortField !== field) return <span className="w-4 h-4 inline-block opacity-0 group-hover:opacity-30 transition-opacity"><ChevronDown className="w-4 h-4" /></span>;
     return (
-      <span className="w-4 h-4 inline-block text-gray-900 dark:text-zinc-200">
+      <span className="w-4 h-4 inline-block text-ink">
         {sortAsc ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </span>
     );
@@ -383,36 +385,36 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       </div>
 
       {/* Table Container */}
-      <div className="bg-card rounded-xl border border-hairline overflow-hidden shadow-sm md:overflow-x-auto">
+      <Panel className="overflow-hidden md:overflow-x-auto mb-8">
         <table className="w-full text-left border-collapse block md:table min-w-full md:min-w-[800px]">
-          <thead className="bg-[var(--paper)] border-b border-hairline hidden md:table-header-group">
+          <thead className="bg-paper border-b border-hairline hidden md:table-header-group">
             <tr>
               <th 
-                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
+                className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('company_name')}
               >
                 <div className="flex items-center gap-1">Company <SortIcon field="company_name" /></div>
               </th>
               <th 
-                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
+                className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('role')}
               >
                 <div className="flex items-center gap-1">Role <SortIcon field="role" /></div>
               </th>
-              <th className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] whitespace-nowrap">Status</th>
+              <th className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink whitespace-nowrap border-b border-hairline">Status</th>
               <th 
-                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
+                className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('date_applied')}
               >
                 <div className="flex items-center gap-1">Date Applied <SortIcon field="date_applied" /></div>
               </th>
               <th 
-                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
+                className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('priority')}
               >
                 <div className="flex items-center gap-1">Priority <SortIcon field="priority" /></div>
               </th>
-              <th className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] whitespace-nowrap">Next Action Date</th>
+              <th className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink whitespace-nowrap border-b border-hairline">Next Action Date</th>
             </tr>
           </thead>
           <tbody className="block md:table-row-group divide-y divide-hairline">
@@ -420,9 +422,9 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               <tr 
                 key={app.id} 
                 onClick={() => handleRowClick(app.id)}
-                className="hover:bg-[var(--row-hover)] transition-all duration-150 cursor-pointer group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
+                className="hover:bg-row-hover transition-colors duration-150 cursor-pointer group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
               >
-                <td className="md:p-4 font-medium text-gray-900 dark:text-zinc-100 text-lg md:text-base block md:table-cell mb-1 md:mb-0">
+                <td className="md:p-4 font-medium text-ink text-base md:text-sm block md:table-cell mb-1 md:mb-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="min-w-0 md:max-w-[12rem] md:truncate" title={app.company_name}>
                       {app.company_name}
@@ -433,7 +435,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                         target="_blank" 
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[var(--muted)] hover:text-[var(--ink)] opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex-shrink-0"
+                        className="text-muted-ink hover:text-ink opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 shrink-0"
                         title="View job posting"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -441,63 +443,57 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     )}
                   </div>
                 </td>
-                <td className="md:p-4 text-gray-600 dark:text-zinc-300 block md:table-cell mb-3 md:mb-0">
+                <td className="md:p-4 text-muted-ink text-base md:text-sm block md:table-cell mb-3 md:mb-0">
                   {app.role}
                 </td>
                 <td className="md:p-4 block md:table-cell mb-3 md:mb-0">
-                  {/* Status Dropdown masquerading as a colored badge */}
-                  <div className={`inline-flex items-center rounded-full text-xs font-semibold select-none ${STATUS_COLORS[app.status]}`}>
-                    <select
+                  <Chip className={`${STATUS_COLORS[app.status]} px-0 py-0`}>
+                    <Field
+                      variant="select"
+                      tone="chip"
                       value={app.status}
-                      onClick={(e) => e.stopPropagation()} // Prevent row click
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleStatusChange(app.id, e.target.value, e)}
-                      className="bg-transparent appearance-none border-none outline-none cursor-pointer pl-3 pr-8 py-1.5 focus:ring-0 font-label uppercase text-xs tracking-wider"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                        backgroundPosition: 'right 0.5rem center',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundSize: '1.25em 1.25em'
-                      }}
                     >
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="draft">Draft</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="applied">Applied</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="screening">Screening</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="interview">Interview</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="offer">Offer</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="rejected">Rejected</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="withdrawn">Withdrawn</option>
-                      <option className="bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100" value="ghosted">Ghosted</option>
-                    </select>
-                  </div>
+                      <option value="draft">Draft</option>
+                      <option value="applied">Applied</option>
+                      <option value="screening">Screening</option>
+                      <option value="interview">Interview</option>
+                      <option value="offer">Offer</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="withdrawn">Withdrawn</option>
+                      <option value="ghosted">Ghosted</option>
+                    </Field>
+                  </Chip>
                 </td>
-                <td className="md:p-4 text-gray-500 dark:text-zinc-400 block md:table-cell text-sm md:text-base mb-1 md:mb-0">
-                  <span className="md:hidden font-medium text-gray-700 dark:text-zinc-300 mr-2">Applied:</span>
+                <td className="md:p-4 text-muted-ink font-mono tabular-nums block md:table-cell text-sm md:text-sm mb-1 md:mb-0">
+                  <span className="md:hidden font-sans font-medium text-ink mr-2">Applied:</span>
                   {app.date_applied || "—"}
                 </td>
                 <td className="md:p-4 block md:table-cell mb-2 md:mb-0">
                   <div className="flex items-center">
-                    <span className="md:hidden font-medium text-gray-700 dark:text-zinc-300 mr-2 text-sm">Priority:</span>
+                    <span className="md:hidden font-sans font-medium text-ink mr-2 text-sm">Priority:</span>
                     {app.priority ? (
-                      <span className={`text-xs px-2.5 py-1 rounded-md font-medium border ${
-                        app.priority === 'high' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
-                        app.priority === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800' :
-                        'bg-card text-[var(--muted)] border-hairline'
+                      <span className={`bg-transparent font-label text-xs uppercase tracking-wider px-2 py-0.5 rounded-ledger inline-flex ${
+                        app.priority === 'high' ? 'border border-ink text-ink font-semibold' :
+                        app.priority === 'medium' ? 'border border-field-border text-ink' :
+                        'border border-hairline text-muted-ink'
                       }`}>
                         {app.priority.toUpperCase()}
                       </span>
-                    ) : <span className="text-gray-500 md:hidden">—</span>}
-                    {!app.priority && <span className="hidden md:inline text-gray-500">—</span>}
+                    ) : <span className="text-muted-ink md:hidden">—</span>}
+                    {!app.priority && <span className="hidden md:inline text-muted-ink">—</span>}
                   </div>
                 </td>
-                <td className="md:p-4 text-gray-500 dark:text-zinc-400 block md:table-cell text-sm md:text-base">
-                  <span className="md:hidden font-medium text-gray-700 dark:text-zinc-300 mr-2">Next Action:</span>
+                <td className="md:p-4 text-muted-ink font-mono tabular-nums block md:table-cell text-sm md:text-sm">
+                  <span className="md:hidden font-sans font-medium text-ink mr-2">Next Action:</span>
                   {app.next_action_date || "—"}
                 </td>
               </tr>
             ))}
             {sortedApps.length === 0 && (
               <tr className="block md:table-row">
-                <td colSpan={6} className="p-12 text-center text-gray-500 dark:text-zinc-400 block md:table-cell">
+                <td colSpan={6} className="p-12 text-center text-muted-ink block md:table-cell">
                   {searchQuery ? "No applications found matching your search and filter." : "No applications match the current filter."}
                 </td>
               </tr>
@@ -505,51 +501,53 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           </tbody>
         </table>
         {sortedApps.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-hairline bg-card">
-            <div className="flex items-center gap-2 mb-4 sm:mb-0">
-              <span className="text-sm text-gray-600 dark:text-zinc-400">Rows per page:</span>
-              <select
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border-t border-hairline bg-card">
+            <div className="flex items-center gap-2">
+              <span className="font-label text-xs uppercase tracking-wider text-muted-ink">Rows per page:</span>
+              <Field
+                variant="select"
+                wrapperClassName="w-auto"
                 value={pageSize}
                 onChange={handlePageSizeChange}
-                className="bg-card border border-hairline text-gray-900 dark:text-zinc-100 text-sm rounded-md focus-ink block p-1.5"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
                 <option value={100}>100</option>
-              </select>
+              </Field>
             </div>
-            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-zinc-400">
-              <span>Page {safeCurrentPage} of {totalPages}</span>
+            <div className="flex items-center gap-4 text-sm text-muted-ink">
+              <span className="font-mono tabular-nums">Page {safeCurrentPage} of {totalPages}</span>
               <div className="flex gap-1">
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => setCurrentPage(p => {
                     const newPage = Math.max(1, p - 1);
                     sessionStorage.setItem('dashboard_current_page', String(newPage));
                     return newPage;
                   })}
                   disabled={safeCurrentPage === 1}
-                  className="px-3 py-1 rounded btn-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-sm"
                 >
                   Previous
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={() => setCurrentPage(p => {
                     const newPage = Math.min(totalPages, p + 1);
                     sessionStorage.setItem('dashboard_current_page', String(newPage));
                     return newPage;
                   })}
                   disabled={safeCurrentPage === totalPages}
-                  className="px-3 py-1 rounded btn-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-sm"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         )}
-      </div>
-
+      </Panel>
 
     </div>
   );
