@@ -6,6 +6,7 @@
   --paper: #F6F3EC;
   --ink: #121212;
   --accent: #D4F03C;
+  --on-accent: #121212;
   --hairline: #E5E0D4;
   --hairline-subtle: #ECE8DE;
   --muted: #525252;
@@ -20,6 +21,7 @@
   --paper: #0E0E0C;
   --ink: #EDEAE2;
   --accent: #D4F03C;
+  --on-accent: #121212;
   --hairline: #23221E;
   --hairline-subtle: #191815;
   --muted: #A3A3A3;
@@ -38,6 +40,70 @@
   .animate-page-fade-in {
     animation: pageFadeIn 0.25s ease-out forwards;
   }
+
+  .btn-primary {
+    background-color: var(--ink);
+    color: var(--paper);
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--on-accent);
+  }
+  .btn-primary:focus-visible {
+    outline: none;
+    background-color: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background-color: var(--card);
+    border: 1px solid var(--hairline);
+    color: var(--ink);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--row-hover);
+  }
+  .btn-secondary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--ink);
+  }
+  .btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .link-ink {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    transition: color 0.15s ease;
+  }
+  .link-ink:hover {
+    color: var(--muted);
+  }
+
+  .focus-ink {
+    outline: none;
+  }
+  .focus-ink:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+  .focus-ink:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+
+  .font-display {
+    font-family: var(--font-landing-fraunces), Georgia, serif;
+  }
 }
 
 @keyframes pageFadeIn {
@@ -50,6 +116,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-landing-fraunces), Georgia, serif;
 
   --color-white: #FAF8F3;
 
