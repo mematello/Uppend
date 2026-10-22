@@ -72,10 +72,12 @@ export default function LogoutButton() {
     <>
       <button
         onClick={openModal}
-        className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center btn-secondary rounded-ledger text-muted-ink hover:text-ink transition-colors"
+        className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
         title="Log Out"
+        aria-label="Log Out"
       >
-        <LogOut className="w-5 h-5" />
+        <LogOut className="w-5 h-5 sm:hidden" />
+        <span className="hidden sm:inline">Log Out</span>
       </button>
       {typeof document !== "undefined" && createPortal(modalContent, document.body)}
     </>
