@@ -12,6 +12,8 @@
   --muted: #525252;
   --card: #FAF8F3;
   --row-hover: #F0EDE4;
+  --scrim: rgba(18, 18, 18, 0.6);
+  --field-border: #8E887E;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -27,6 +29,8 @@
   --muted: #A3A3A3;
   --card: #141311;
   --row-hover: #1A1916;
+  --scrim: rgba(18, 18, 18, 0.6);
+  --field-border: #6E685D;
 
   --background: var(--paper);
   --foreground: var(--ink);
@@ -239,10 +243,14 @@
   --color-paper: var(--paper);
   --color-ink: var(--ink);
   --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
   --color-card: var(--card);
   --color-hairline: var(--hairline);
   --color-row-hover: var(--row-hover);
   --color-muted-ink: var(--muted);
+  --color-scrim: var(--scrim);
+  --color-field-border: var(--field-border);
+  --radius-ledger: 0.125rem;
 
   --color-zinc-50: var(--color-stone-50);
   --color-zinc-100: var(--color-stone-100);
