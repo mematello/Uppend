@@ -66,13 +66,13 @@ export default function SignupPage() {
         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-6">
           <CheckCircle2 className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-3">You&apos;re logged in!</h2>
+        <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-3">You&apos;re logged in!</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-8">
           You successfully authenticated in another tab. You can safely close this tab or continue to your account.
         </p>
         <Link 
           href="/migrate?intent=signup" 
-          className="w-full rounded bg-blue-600 p-3 text-white font-medium hover:bg-blue-700 transition-colors shadow-sm"
+          className="w-full rounded btn-primary p-3 font-medium shadow-sm block text-center"
         >
           Continue to Dashboard
         </Link>
@@ -82,7 +82,7 @@ export default function SignupPage() {
 
   return (
     <>
-      <h1 className="mb-6 text-2xl font-bold text-center text-gray-900 dark:text-zinc-100">Create an Account</h1>
+      <h1 className="mb-6 text-2xl font-bold font-display text-center text-gray-900 dark:text-zinc-100">Create an Account</h1>
       <form onSubmit={handleSignup} className="flex flex-col gap-4">
         <input
           type="email"
@@ -90,12 +90,12 @@ export default function SignupPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-ink"
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-blue-600 p-2 text-white font-medium hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+          className="rounded btn-primary p-2 font-medium"
         >
           {loading ? "Sending..." : "Send Magic Link"}
         </button>
@@ -113,7 +113,7 @@ export default function SignupPage() {
       )}
       <div className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
+        <Link href="/login" className="font-medium link-ink">
           Log in
         </Link>
       </div>

@@ -14,7 +14,7 @@ export default function TermsPage() {
         </p>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
+      <h1 className="text-3xl font-bold font-display mb-6">Terms of Service</h1>
       <p className="text-sm text-gray-500 mb-8">Last Updated: {new Date().toLocaleDateString()}</p>
 
       <section className="mb-8">
