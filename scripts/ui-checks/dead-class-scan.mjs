@@ -128,7 +128,7 @@ for (const filePath of args) {
   }
 
   // 2. Check className and class attributes
-  const classAttrRegex = /(?:className|class)=(?:\{`([\s\S]*?)`\}|"([^"]+)"|'([^']+)'|\{([^}]+)\})/g;
+  const classAttrRegex = /(?:className|class)=(?:\{`([\s\S]*?)`(?:\s*\.\s*trim\(\))?\s*\}|"([^"]+)"|'([^']+)'|\{([^}]+)\})/g;
   let match;
   while ((match = classAttrRegex.exec(content)) !== null) {
     const lineNo = content.slice(0, match.index).split('\n').length;
