@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
+import { ChevronUp, ChevronDown, Search, ExternalLink, Target, Calendar, Flame, Check, Quote } from 'lucide-react';
 import Link from 'next/link';
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
 import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../lib/utils/streaks';
 import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
+import { Panel } from '../../../components/ui/Panel';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "chip-draft",
@@ -133,15 +134,15 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         {isLocal && (
-          <div className="w-full max-w-2xl mb-8 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg text-sm text-left">
-            <strong>You are in local mode.</strong> Data is saved to this device only and will be lost if you clear your browser data. <Link href="/signup" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300">Sign up to cloud sync</Link>.
+          <div className="w-full max-w-2xl mb-8 p-4 bg-card text-ink border border-hairline rounded-ledger text-sm text-left">
+            <strong>You are in local mode.</strong> Data is saved to this device only and will be lost if you clear your browser data. <Link href="/signup" className="underline font-semibold hover:text-muted-ink">Sign up to cloud sync</Link>.
           </div>
         )}
-        <h2 className="text-2xl font-bold font-display mb-4">No applications yet</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-8 max-w-md">
+        <h2 className="text-2xl font-bold font-display mb-4 text-ink">No applications yet</h2>
+        <p className="text-muted-ink mb-8 max-w-md">
           You haven&apos;t tracked any job applications yet. Paste your first job description to get started!
         </p>
-        <Link href="/new" className="px-6 py-3 btn-primary rounded-md font-medium shadow-sm">
+        <Link href="/new" className="px-6 py-3 btn-primary rounded-ledger font-medium">
           Track New Application
         </Link>
       </div>
@@ -217,72 +218,69 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
   return (
     <div>
       {isLocal && (
-        <div className="mb-6 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+        <div className="mb-6 p-4 bg-card text-ink border border-hairline rounded-ledger text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
           <span><strong>You are in local mode.</strong> Data is saved to this device only and will be lost if you clear your browser data.</span>
-          <Link href="/signup" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300 whitespace-nowrap min-h-[44px] sm:min-h-0 flex items-center">Sign up to cloud sync</Link>
+          <Link href="/signup" className="underline font-semibold hover:text-muted-ink whitespace-nowrap min-h-[44px] sm:min-h-0 flex items-center">Sign up to cloud sync</Link>
         </div>
       )}
 
-      {/* Overview Stats */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6 items-start sm:items-center sm:justify-between">
-        {quote ? (
-          <div 
-            className="text-sm italic text-gray-500 dark:text-zinc-400 line-clamp-2 w-full sm:w-auto sm:max-w-md"
-            title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
-          >
-            &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
-          </div>
-        ) : (
-          <div></div>
-        )}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto shrink-0">
-          <div 
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shrink-0 w-full sm:w-auto text-center border border-hairline bg-card text-[var(--muted)]"
-          title="Applications created this week (Mon–Sun)"
-        >
-          📅 {weeklyCount} this week
-        </div>
-
+      {/* Stats Strip */}
+      <Panel className="grid grid-cols-2 lg:grid-cols-none lg:grid-flow-col lg:auto-cols-fr mb-6">
+        {/* Cell 1: Daily Goal */}
         <div 
-          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shrink-0 w-full sm:w-auto text-center border ${
-            goalInfo.met
-              ? 'bg-transparent text-green-700 border-green-700 dark:text-green-400 dark:border-green-600'
-              : 'bg-transparent text-[var(--muted)] border-hairline'
-          }`}
+          className="p-4 border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 flex flex-col justify-center"
           title={`${goalInfo.count} of ${goalInfo.goal} applications today`}
         >
-          <div 
-            className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out ${
-              goalInfo.met 
-                ? 'bg-green-100/60 dark:bg-green-900/30' 
-                : 'bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]'
-            }`} 
-            style={{ width: `${progressPct}%` }} 
-          />
-          <span className="relative z-10 flex items-center gap-1.5">
-            📋 {goalInfo.count}/{goalInfo.goal} today
-          </span>
+          <div className="flex items-center justify-between gap-1.5 font-label text-xs tracking-wider text-ink">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Target className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
+              <span className="truncate">{goalInfo.count}/{goalInfo.goal} today</span>
+              {goalInfo.met && <Check className="w-4 h-4 text-ink shrink-0" strokeWidth={1.75} />}
+            </div>
+          </div>
+          <div className="h-1 w-full mt-2 rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]">
+            <div 
+              className="h-full bg-ink transition-all duration-500 ease-out" 
+              style={{ width: `${progressPct}%` }} 
+            />
+          </div>
         </div>
 
+        {/* Cell 2: Weekly Count */}
+        <div 
+          className="p-4 border-hairline border-b lg:border-b-0 lg:border-r lg:last:border-r-0 flex flex-col justify-center"
+          title="Applications created this week (Mon–Sun)"
+        >
+          <div className="flex items-center gap-1.5 font-label text-xs tracking-wider text-ink">
+            <Calendar className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
+            <span>{weeklyCount} this week</span>
+          </div>
+        </div>
+
+        {/* Cell 3: Streak */}
         {streakInfo.status !== 'none' && (
-          <div className="relative w-full sm:w-auto flex justify-center sm:block">
+          <div 
+            className={`relative col-span-2 lg:col-span-1 p-4 border-hairline border-b lg:border-b-0 lg:border-r lg:last:border-r-0 flex flex-col justify-center transition-colors ${
+              streakInfo.status === 'active'
+                ? 'bg-accent text-on-accent'
+                : 'bg-card text-ink'
+            }`}
+          >
             <button 
+              type="button"
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
-                streakInfo.status === 'active'
-                  ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
-                  : 'bg-card text-[var(--muted)] border border-hairline'
-              }`}
+              className="inline-flex items-center gap-1.5 font-label text-xs tracking-wider text-inherit text-left min-h-[44px] sm:min-h-0 w-full"
             >
+              <Flame className={`w-4 h-4 shrink-0 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`} strokeWidth={1.75} />
               {streakInfo.status === 'active' 
-                ? `🔥 ${streakInfo.count} Day Streak` 
-                : <span className="truncate">🕊️ {streakInfo.count} Day Streak — apply today to keep it!</span>}
+                ? <span>{streakInfo.count} Day Streak</span> 
+                : <span className="truncate">{streakInfo.count} Day Streak — apply today to keep it!</span>}
             </button>
             
             {isHeatmapOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsHeatmapOpen(false)}></div>
-                <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
+                <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-card rounded-ledger border border-hairline z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
                   <ActivityHeatmapDropdown
                     applications={applications}
                     accountCreatedAt={accountCreatedAt || null}
@@ -293,8 +291,20 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             )}
           </div>
         )}
-        </div>
-      </div>
+
+        {/* Cell 4: Quote of the Day */}
+        {quote && (
+          <div className="col-span-2 lg:col-span-1 p-4 border-hairline border-b last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 flex items-center gap-2 min-w-0">
+            <Quote className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
+            <div 
+              className="text-xs text-muted-ink italic line-clamp-2 min-w-0"
+              title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
+            >
+              &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
+            </div>
+          </div>
+        )}
+      </Panel>
 
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
