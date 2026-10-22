@@ -283,11 +283,11 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               className="w-full h-full flex flex-col gap-3 text-left min-h-[44px]"
             >
               <div className={`font-label text-xs uppercase tracking-wider h-4 leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
-                Day streak
+                Streak
               </div>
               <div className="flex items-end min-h-[2.5rem]">
                 <span className={`font-display text-3xl leading-none tabular-nums ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
-                  {streakInfo.count}
+                  {streakInfo.count} {streakInfo.count === 1 ? 'day' : 'days'}
                 </span>
               </div>
               <div className="min-h-[1rem] flex items-center">
