@@ -2,14 +2,14 @@
 /* Ledger meets terminal: paper, ink, hairline borders, chartreuse accent */
 
 .landingRoot {
-  --landing-paper: #F6F3EC;
-  --landing-ink: #121212;
-  --landing-accent: #D4F03C;
-  --landing-hairline: #E5E0D4;
-  --landing-hairline-subtle: #ECE8DE;
-  --landing-muted: #525252; /* neutral-600: contrast >= 6.5:1 on #F6F3EC */
-  --landing-card: #FAF8F3;
-  --landing-row-hover: #F0EDE4;
+  --landing-paper: var(--paper);
+  --landing-ink: var(--ink);
+  --landing-accent: var(--accent);
+  --landing-hairline: var(--hairline);
+  --landing-hairline-subtle: var(--hairline-subtle);
+  --landing-muted: var(--muted);
+  --landing-card: var(--card);
+  --landing-row-hover: var(--row-hover);
 
   background-color: var(--landing-paper);
   color: var(--landing-ink);
@@ -17,14 +17,14 @@
 }
 
 :global(.dark) .landingRoot {
-  --landing-paper: #0E0E0C;
-  --landing-ink: #EDEAE2;
-  --landing-accent: #D4F03C;
-  --landing-hairline: #23221E;
-  --landing-hairline-subtle: #191815;
-  --landing-muted: #A3A3A3; /* neutral-400: contrast >= 8.2:1 on #0E0E0C */
-  --landing-card: #141311;
-  --landing-row-hover: #1A1916;
+  --landing-paper: var(--paper);
+  --landing-ink: var(--ink);
+  --landing-accent: var(--accent);
+  --landing-hairline: var(--hairline);
+  --landing-hairline-subtle: var(--hairline-subtle);
+  --landing-muted: var(--muted);
+  --landing-card: var(--card);
+  --landing-row-hover: var(--row-hover);
 
   background-color: var(--landing-paper);
   color: var(--landing-ink);
