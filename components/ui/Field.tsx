@@ -1,0 +1,76 @@
+import React from 'react';
+import { ChevronDown } from 'lucide-react';
+
+export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  variant: 'input';
+  icon?: React.ReactNode;
+}
+
+export interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  variant: 'select';
+  tone?: 'default' | 'chip';
+}
+
+export type FieldProps = InputFieldProps | SelectFieldProps;
+
+export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement, FieldProps>(
+  function Field(props, ref) {
+    if (props.variant === 'input') {
+      const { variant: _v, icon, className = '', ...inputProps } = props;
+      if (icon) {
+        return (
+          <div className="relative w-full">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-ink">
+              {icon}
+            </div>
+            <input
+              ref={ref as React.ForwardedRef<HTMLInputElement>}
+              className={`pl-9 pr-4 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${className}`.trim()}
+              {...inputProps}
+            />
+          </div>
+        );
+      }
+      return (
+        <input
+          ref={ref as React.ForwardedRef<HTMLInputElement>}
+          className={`px-4 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${className}`.trim()}
+          {...inputProps}
+        />
+      );
+    }
+
+    // variant === 'select'
+    const { variant: _v, tone = 'default', className = '', children, ...selectProps } = props;
+
+    if (tone === 'chip') {
+      return (
+        <div className="relative inline-flex items-center">
+          <select
+            ref={ref as React.ForwardedRef<HTMLSelectElement>}
+            className={`bg-transparent appearance-none border-none outline-none cursor-pointer pl-2.5 pr-7 py-1 text-inherit focus:ring-0 font-label uppercase text-base sm:text-xs tracking-wider ${className}`.trim()}
+            {...selectProps}
+          >
+            {children}
+          </select>
+          <ChevronDown className="w-3.5 h-3.5 pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-current" />
+        </div>
+      );
+    }
+
+    return (
+      <div className="relative inline-block w-full">
+        <select
+          ref={ref as React.ForwardedRef<HTMLSelectElement>}
+          className={`appearance-none pr-8 pl-3 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink focus-ink transition-colors cursor-pointer ${className}`.trim()}
+          {...selectProps}
+        >
+          {children}
+        </select>
+        <ChevronDown className="w-4 h-4 text-muted-ink pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2" />
+      </div>
+    );
+  }
+);
+
+Field.displayName = 'Field';
