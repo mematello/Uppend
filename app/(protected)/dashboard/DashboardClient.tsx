@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronUp, ChevronDown, Search, ExternalLink, Target, Calendar, Flame, Check, Quote } from 'lucide-react';
+import { ChevronUp, ChevronDown, Search, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
@@ -231,24 +231,19 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       <Panel className="grid grid-cols-2 lg:flex mb-6">
         {/* Cell 1: Daily Goal */}
         <div 
-          className="p-5 min-h-[104px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col justify-between gap-2"
+          className="p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col gap-3"
           title={`${goalInfo.count} of ${goalInfo.goal} applications today`}
         >
-          <div className="flex items-center justify-between">
-            <Target className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
+          <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+            Today&apos;s goal
           </div>
-          <div>
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="font-display text-3xl leading-none tabular-nums text-ink">
-                {goalInfo.count}/{goalInfo.goal}
-              </span>
-              {' '}
-              <span className="font-label text-xs uppercase tracking-wider text-muted-ink">
-                today
-              </span>
-              {goalInfo.met && <Check className="w-4 h-4 text-ink shrink-0 inline-block" strokeWidth={1.75} />}
-            </div>
-            <div className="h-1.5 w-full mt-2 rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]">
+          <div className="flex items-end min-h-[2.5rem]">
+            <span className="font-display text-3xl leading-none tabular-nums text-ink">
+              {goalInfo.count}/{goalInfo.goal}
+            </span>
+          </div>
+          <div className="min-h-[1rem] flex items-center">
+            <div className="h-1.5 w-full rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]">
               <div 
                 className="h-full bg-ink transition-all duration-500 ease-out" 
                 style={{ width: `${progressPct}%` }} 
@@ -259,27 +254,24 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
         {/* Cell 2: Weekly Count */}
         <div 
-          className="p-5 min-h-[104px] border-hairline border-b lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col justify-between gap-2"
+          className="p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col gap-3"
           title="Applications created this week (Mon–Sun)"
         >
-          <div className="flex items-center justify-between">
-            <Calendar className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
+          <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+            This week
           </div>
-          <div className="flex items-baseline gap-1.5 flex-wrap">
+          <div className="flex items-end min-h-[2.5rem]">
             <span className="font-display text-3xl leading-none tabular-nums text-ink">
               {weeklyCount}
             </span>
-            {' '}
-            <span className="font-label text-xs uppercase tracking-wider text-muted-ink">
-              this week
-            </span>
           </div>
+          <div className="min-h-[1rem]" />
         </div>
 
         {/* Cell 3: Streak */}
         {streakInfo.status !== 'none' && (
           <div 
-            className={`relative col-span-2 lg:col-span-1 p-5 min-h-[104px] border-hairline border-b lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-[1.4] flex flex-col justify-between gap-2 transition-colors ${
+            className={`relative col-span-2 lg:col-span-1 p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-[1.4] transition-colors ${
               streakInfo.status === 'active'
                 ? 'bg-accent text-on-accent'
                 : 'bg-card text-ink'
@@ -288,21 +280,22 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button 
               type="button"
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className="flex flex-col items-start justify-between gap-2 text-left w-full min-h-[44px] sm:min-h-0 h-full"
+              className="w-full h-full flex flex-col gap-3 text-left min-h-[44px]"
             >
-              <div className="flex items-center justify-between w-full">
-                <Flame className={`w-4 h-4 shrink-0 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`} strokeWidth={1.75} />
+              <div className={`font-label text-xs uppercase tracking-wider h-4 leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
+                Day streak
               </div>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
+              <div className="flex items-end min-h-[2.5rem]">
                 <span className={`font-display text-3xl leading-none tabular-nums ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
                   {streakInfo.count}
                 </span>
-                {' '}
-                <span className={`font-label text-xs uppercase tracking-wider ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
-                  {streakInfo.status === 'active' 
-                    ? "Day Streak" 
-                    : "Day Streak — apply today to keep it!"}
-                </span>
+              </div>
+              <div className="min-h-[1rem] flex items-center">
+                {streakInfo.status === 'at_risk' && (
+                  <span className="font-label text-xs normal-case tracking-normal text-ink">
+                    apply today to keep it!
+                  </span>
+                )}
               </div>
             </button>
             
@@ -323,14 +316,19 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
         {/* Cell 4: Quote of the Day */}
         {quote && (
-          <div className="col-span-2 lg:col-span-1 p-5 min-h-[104px] border-hairline border-b last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-[2] flex flex-col justify-between items-start gap-3 min-w-0">
-            <Quote className="w-4 h-4 text-muted-ink shrink-0" strokeWidth={1.75} />
-            <div 
-              className="font-display italic text-base text-ink break-words min-w-0"
-              title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
-            >
-              &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
+          <div className="col-span-2 lg:col-span-1 p-5 min-h-[120px] border-hairline border-b last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-[2] flex flex-col gap-3 min-w-0">
+            <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+              Quote of the day
             </div>
+            <div className="flex items-start min-h-[2.5rem] min-w-0">
+              <div 
+                className="font-display italic text-base text-ink break-words min-w-0"
+                title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
+              >
+                &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
+              </div>
+            </div>
+            <div className="min-h-[1rem]" />
           </div>
         )}
       </Panel>
