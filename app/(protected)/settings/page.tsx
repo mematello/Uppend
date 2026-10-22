@@ -59,7 +59,7 @@ export default async function SettingsPage() {
         <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 mb-2 flex items-center gap-2 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold font-display">Settings</h1>
       </div>
       
       <SettingsClient 
