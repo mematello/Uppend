@@ -477,6 +477,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     <Field
                       variant="select"
                       tone="chip"
+                      className="min-h-[44px] md:min-h-0 py-2 md:py-1"
                       value={app.status}
                       onClick={(e) => e.stopPropagation()}
                       onChange={(e) => handleStatusChange(app.id, e.target.value, e)}
