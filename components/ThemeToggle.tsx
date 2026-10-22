@@ -24,7 +24,6 @@ export function ThemeToggle({ label, className }: { label?: string; className?: 
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={className || defaultClasses}
       aria-label="Toggle dark mode"
-      title="Toggle theme"
     >
       {theme === "dark" ? (
         <Sun className={label ? "w-5 h-5 sm:hidden" : "w-5 h-5"} />
