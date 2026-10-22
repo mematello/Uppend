@@ -3,13 +3,31 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #f9fafb; /* gray-50 */
-  --foreground: #111827; /* gray-900 */
+  --paper: #F6F3EC;
+  --ink: #121212;
+  --accent: #D4F03C;
+  --hairline: #E5E0D4;
+  --hairline-subtle: #ECE8DE;
+  --muted: #525252;
+  --card: #FAF8F3;
+  --row-hover: #F0EDE4;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
 }
 
 .dark {
-  --background: #09090b; /* zinc-950 */
-  --foreground: #fafafa; /* zinc-50 */
+  --paper: #0E0E0C;
+  --ink: #EDEAE2;
+  --accent: #D4F03C;
+  --hairline: #23221E;
+  --hairline-subtle: #191815;
+  --muted: #A3A3A3;
+  --card: #141311;
+  --row-hover: #1A1916;
+
+  --background: var(--paper);
+  --foreground: var(--ink);
 }
 
 @layer utilities {
@@ -32,6 +50,32 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-white: #FAF8F3;
+
+  --color-gray-50: var(--color-stone-50);
+  --color-gray-100: var(--color-stone-100);
+  --color-gray-200: var(--color-stone-200);
+  --color-gray-300: var(--color-stone-300);
+  --color-gray-400: var(--color-stone-400);
+  --color-gray-500: var(--color-stone-500);
+  --color-gray-600: var(--color-stone-600);
+  --color-gray-700: var(--color-stone-700);
+  --color-gray-800: var(--color-stone-800);
+  --color-gray-900: var(--color-stone-900);
+  --color-gray-950: var(--color-stone-950);
+
+  --color-zinc-50: var(--color-stone-50);
+  --color-zinc-100: var(--color-stone-100);
+  --color-zinc-200: var(--color-stone-200);
+  --color-zinc-300: var(--color-stone-300);
+  --color-zinc-400: var(--color-stone-400);
+  --color-zinc-500: var(--color-stone-500);
+  --color-zinc-600: var(--color-stone-600);
+  --color-zinc-700: var(--color-stone-700);
+  --color-zinc-800: var(--color-stone-800);
+  --color-zinc-900: var(--color-stone-900);
+  --color-zinc-950: var(--color-stone-950);
 }
 
 
