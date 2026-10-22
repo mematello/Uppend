@@ -10,6 +10,7 @@ import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../lib/u
 import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 import { Panel } from '../../../components/ui/Panel';
+import { Field } from '../../../components/ui/Field';
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "chip-draft",
@@ -309,16 +310,14 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 items-start md:items-center justify-between">
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 items-start sm:items-center">
-          <div className="relative w-full sm:w-72">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-[var(--muted)]" />
-            </div>
-            <input
+          <div className="w-full sm:w-72">
+            <Field
+              variant="input"
               type="text"
               placeholder="Search company or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 w-full rounded-md border border-hairline bg-card text-sm text-[var(--ink)] placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-ink transition-colors shadow-sm"
+              icon={<Search className="h-4 w-4" />}
             />
           </div>
         </div>
@@ -328,8 +327,8 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button
               key={status}
               onClick={() => setFilter(status)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                filter === status ? 'btn-primary shadow-sm' : 'btn-secondary'
+              className={`px-4 py-1.5 min-h-[44px] rounded-ledger text-sm font-medium whitespace-nowrap transition-colors ${
+                filter === status ? 'btn-primary' : 'btn-secondary'
               }`}
             >
               {status}
@@ -340,9 +339,9 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button
               type="button"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-              className={`appearance-none pl-4 pr-10 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer focus-ink ${
+              className={`appearance-none pl-4 pr-10 py-1.5 min-h-[44px] rounded-ledger text-sm font-medium whitespace-nowrap transition-colors cursor-pointer focus-ink ${
                 !['Active', 'All'].includes(filter) 
-                  ? 'btn-primary shadow-sm' 
+                  ? 'btn-primary' 
                   : 'btn-secondary'
               }`}
             >
@@ -355,9 +354,9 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             {isStatusDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)}></div>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-top-right transition-all">
+                <div className="absolute top-full right-0 mt-2 w-48 bg-card rounded-ledger border border-hairline z-20 overflow-hidden transform origin-top-right transition-all">
                   <div className="p-2 space-y-1">
-                    <div className="px-3 py-2 text-xs font-label font-semibold text-[var(--muted)] uppercase tracking-wider">
+                    <div className="px-3 py-2 text-xs font-label font-semibold text-muted-ink uppercase tracking-wider">
                       Filter by status
                     </div>
                     {['draft', 'applied', 'screening', 'interview', 'offer', 'rejected', 'withdrawn', 'ghosted'].map(status => (
@@ -368,7 +367,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                           setFilter(status);
                           setIsStatusDropdownOpen(false);
                         }}
-                        className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
+                        className={`w-full text-left flex items-center justify-between px-3 py-2 min-h-[44px] rounded-ledger text-sm transition-colors ${
                           filter === status ? 'bg-[var(--accent)] text-[var(--on-accent)] font-semibold' : 'text-[var(--ink)] hover:bg-[var(--row-hover)]'
                         }`}
                       >
