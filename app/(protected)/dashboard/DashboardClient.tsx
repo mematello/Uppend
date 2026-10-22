@@ -11,14 +11,14 @@ import { formatToLocalDate } from '../../../lib/utils/dates';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
-  applied: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
-  screening: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800",
-  interview: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800",
-  offer: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800",
-  rejected: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",
-  withdrawn: "bg-gray-100 text-gray-500 border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
-  ghosted: "bg-gray-200 text-gray-600 border-gray-300 dark:bg-zinc-700 dark:text-zinc-400 dark:border-zinc-600",
+  draft: "chip-draft",
+  applied: "chip-applied",
+  screening: "chip-screening",
+  interview: "chip-interview",
+  offer: "chip-offer",
+  rejected: "chip-rejected",
+  withdrawn: "chip-withdrawn",
+  ghosted: "chip-ghosted",
 };
 
 export default function DashboardClient({ initialApplications, isLocal, timezone, accountCreatedAt, dailyGoal = 5, quote }: { initialApplications: Application[], isLocal?: boolean, timezone?: string | null, accountCreatedAt?: string | null, dailyGoal?: number, quote?: { text: string; author: string } | null }) {
@@ -137,11 +137,11 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <strong>You are in local mode.</strong> Data is saved to this device only and will be lost if you clear your browser data. <Link href="/signup" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300">Sign up to cloud sync</Link>.
           </div>
         )}
-        <h2 className="text-2xl font-bold mb-4">No applications yet</h2>
+        <h2 className="text-2xl font-bold font-display mb-4">No applications yet</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-8 max-w-md">
           You haven&apos;t tracked any job applications yet. Paste your first job description to get started!
         </p>
-        <Link href="/new" className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-sm">
+        <Link href="/new" className="px-6 py-3 btn-primary rounded-md font-medium shadow-sm">
           Track New Application
         </Link>
       </div>
@@ -237,25 +237,25 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
         )}
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto shrink-0">
           <div 
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700"
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shrink-0 w-full sm:w-auto text-center border border-hairline bg-card text-[var(--muted)]"
           title="Applications created this week (Mon–Sun)"
         >
           📅 {weeklyCount} this week
         </div>
 
         <div 
-          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shrink-0 w-full sm:w-auto text-center border ${
+          className={`relative overflow-hidden inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shrink-0 w-full sm:w-auto text-center border ${
             goalInfo.met
-              ? 'bg-transparent text-green-600 border-green-300 dark:text-green-500 dark:border-green-800/60'
-              : 'bg-transparent text-gray-500 border-gray-300 dark:text-zinc-400 dark:border-zinc-700'
+              ? 'bg-transparent text-green-700 border-green-700 dark:text-green-400 dark:border-green-600'
+              : 'bg-transparent text-[var(--muted)] border-hairline'
           }`}
           title={`${goalInfo.count} of ${goalInfo.goal} applications today`}
         >
           <div 
             className={`absolute inset-y-0 left-0 transition-all duration-500 ease-out ${
               goalInfo.met 
-                ? 'bg-green-100/60 dark:bg-green-900/25' 
-                : 'bg-gray-200/50 dark:bg-zinc-700/40'
+                ? 'bg-green-100/60 dark:bg-green-900/30' 
+                : 'bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]'
             }`} 
             style={{ width: `${progressPct}%` }} 
           />
@@ -268,10 +268,10 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           <div className="relative w-full sm:w-auto flex justify-center sm:block">
             <button 
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
+              className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full font-label text-xs tracking-wider shadow-sm shrink-0 w-full sm:w-auto text-center hover:opacity-90 transition-opacity ${
                 streakInfo.status === 'active'
                   ? 'bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800'
-                  : 'bg-gray-100 text-gray-600 border border-gray-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
+                  : 'bg-card text-[var(--muted)] border border-hairline'
               }`}
             >
               {streakInfo.status === 'active' 
@@ -282,7 +282,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             {isHeatmapOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsHeatmapOpen(false)}></div>
-                <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-700 z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
+                <div className="absolute top-full right-0 sm:right-auto sm:left-0 mt-2 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-top-right sm:origin-top-left transition-all">
                   <ActivityHeatmapDropdown
                     applications={applications}
                     accountCreatedAt={accountCreatedAt || null}
@@ -301,14 +301,14 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
         <div className="flex flex-col sm:flex-row w-full md:w-auto gap-4 items-start sm:items-center">
           <div className="relative w-full sm:w-72">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+              <Search className="h-4 w-4 text-[var(--muted)]" />
             </div>
             <input
               type="text"
               placeholder="Search company or role..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 w-full rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none transition-colors shadow-sm"
+              className="pl-9 pr-4 py-2 w-full rounded-md border border-hairline bg-card text-sm text-[var(--ink)] placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-ink transition-colors shadow-sm"
             />
           </div>
         </div>
@@ -319,7 +319,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               key={status}
               onClick={() => setFilter(status)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                filter === status ? 'bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm' : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
+                filter === status ? 'btn-primary shadow-sm' : 'btn-secondary'
               }`}
             >
               {status}
@@ -330,24 +330,24 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button
               type="button"
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-              className={`appearance-none pl-4 pr-10 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 ${
+              className={`appearance-none pl-4 pr-10 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 cursor-pointer focus-ink ${
                 !['Active', 'All'].includes(filter) 
-                  ? 'bg-gray-900 text-white border border-transparent dark:bg-zinc-100 dark:text-zinc-900 shadow-sm' 
-                  : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 border border-gray-200 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
+                  ? 'btn-primary shadow-sm' 
+                  : 'btn-secondary'
               }`}
             >
               {['Active', 'All'].includes(filter) ? "Filter by status" : filter.charAt(0).toUpperCase() + filter.slice(1)}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <ChevronDown className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''} ${!['Active', 'All'].includes(filter) ? 'text-gray-300 dark:text-zinc-600' : 'text-gray-400 dark:text-zinc-500'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''} ${!['Active', 'All'].includes(filter) ? 'text-[var(--on-accent)]' : 'text-[var(--muted)]'}`} />
               </div>
             </button>
             
             {isStatusDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsStatusDropdownOpen(false)}></div>
-                <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-700 z-20 overflow-hidden transform origin-top-right transition-all">
+                <div className="absolute top-full right-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-top-right transition-all">
                   <div className="p-2 space-y-1">
-                    <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <div className="px-3 py-2 text-xs font-label font-semibold text-[var(--muted)] uppercase tracking-wider">
                       Filter by status
                     </div>
                     {['draft', 'applied', 'screening', 'interview', 'offer', 'rejected', 'withdrawn', 'ghosted'].map(status => (
@@ -359,7 +359,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                           setIsStatusDropdownOpen(false);
                         }}
                         className={`w-full text-left flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${
-                          filter === status ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-700/50'
+                          filter === status ? 'bg-[var(--accent)] text-[var(--on-accent)] font-semibold' : 'text-[var(--ink)] hover:bg-[var(--row-hover)]'
                         }`}
                       >
                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -374,44 +374,44 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       </div>
 
       {/* Table Container */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm md:overflow-x-auto">
+      <div className="bg-card rounded-xl border border-hairline overflow-hidden shadow-sm md:overflow-x-auto">
         <table className="w-full text-left border-collapse block md:table min-w-full md:min-w-[800px]">
-          <thead className="bg-gray-50 dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800 hidden md:table-header-group">
+          <thead className="bg-[var(--paper)] border-b border-hairline hidden md:table-header-group">
             <tr>
               <th 
-                className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 cursor-pointer hover:text-gray-900 dark:hover:text-zinc-200 select-none transition-colors group whitespace-nowrap"
+                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
                 onClick={() => handleSort('company_name')}
               >
                 <div className="flex items-center gap-1">Company <SortIcon field="company_name" /></div>
               </th>
               <th 
-                className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 cursor-pointer hover:text-gray-900 dark:hover:text-zinc-200 select-none transition-colors group whitespace-nowrap"
+                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
                 onClick={() => handleSort('role')}
               >
                 <div className="flex items-center gap-1">Role <SortIcon field="role" /></div>
               </th>
-              <th className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 whitespace-nowrap">Status</th>
+              <th className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] whitespace-nowrap">Status</th>
               <th 
-                className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 cursor-pointer hover:text-gray-900 dark:hover:text-zinc-200 select-none transition-colors group whitespace-nowrap"
+                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
                 onClick={() => handleSort('date_applied')}
               >
                 <div className="flex items-center gap-1">Date Applied <SortIcon field="date_applied" /></div>
               </th>
               <th 
-                className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 cursor-pointer hover:text-gray-900 dark:hover:text-zinc-200 select-none transition-colors group whitespace-nowrap"
+                className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] cursor-pointer hover:text-[var(--ink)] select-none transition-colors group whitespace-nowrap"
                 onClick={() => handleSort('priority')}
               >
                 <div className="flex items-center gap-1">Priority <SortIcon field="priority" /></div>
               </th>
-              <th className="p-4 text-sm font-medium text-gray-500 dark:text-zinc-400 whitespace-nowrap">Next Action Date</th>
+              <th className="p-4 font-label uppercase text-xs tracking-wider text-[var(--muted)] whitespace-nowrap">Next Action Date</th>
             </tr>
           </thead>
-          <tbody className="block md:table-row-group divide-y divide-gray-100 dark:divide-zinc-800">
+          <tbody className="block md:table-row-group divide-y divide-hairline">
             {paginatedApps.map(app => (
               <tr 
                 key={app.id} 
                 onClick={() => handleRowClick(app.id)}
-                className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all duration-150 cursor-pointer group animate-in fade-in flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-gray-100 dark:border-zinc-800 last:border-0"
+                className="hover:bg-[var(--row-hover)] transition-all duration-150 cursor-pointer group animate-in fade-in flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
               >
                 <td className="md:p-4 font-medium text-gray-900 dark:text-zinc-100 text-lg md:text-base block md:table-cell mb-1 md:mb-0">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -424,7 +424,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                         target="_blank" 
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-gray-400 hover:text-blue-600 dark:text-zinc-500 dark:hover:text-blue-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex-shrink-0"
+                        className="text-[var(--muted)] hover:text-[var(--ink)] opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex-shrink-0"
                         title="View job posting"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -437,12 +437,12 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                 </td>
                 <td className="md:p-4 block md:table-cell mb-3 md:mb-0">
                   {/* Status Dropdown masquerading as a colored badge */}
-                  <div className={`inline-flex items-center rounded-full text-xs font-semibold select-none border ${STATUS_COLORS[app.status]}`}>
+                  <div className={`inline-flex items-center rounded-full text-xs font-semibold select-none ${STATUS_COLORS[app.status]}`}>
                     <select
                       value={app.status}
                       onClick={(e) => e.stopPropagation()} // Prevent row click
                       onChange={(e) => handleStatusChange(app.id, e.target.value, e)}
-                      className="bg-transparent appearance-none border-none outline-none cursor-pointer pl-3 pr-8 py-1.5 focus:ring-0 font-medium"
+                      className="bg-transparent appearance-none border-none outline-none cursor-pointer pl-3 pr-8 py-1.5 focus:ring-0 font-label uppercase text-xs tracking-wider"
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
                         backgroundPosition: 'right 0.5rem center',
@@ -472,7 +472,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                       <span className={`text-xs px-2.5 py-1 rounded-md font-medium border ${
                         app.priority === 'high' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' :
                         app.priority === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800' :
-                        'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+                        'bg-card text-[var(--muted)] border-hairline'
                       }`}>
                         {app.priority.toUpperCase()}
                       </span>
@@ -496,13 +496,13 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
           </tbody>
         </table>
         {sortedApps.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-hairline bg-card">
             <div className="flex items-center gap-2 mb-4 sm:mb-0">
               <span className="text-sm text-gray-600 dark:text-zinc-400">Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={handlePageSizeChange}
-                className="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"
+                className="bg-card border border-hairline text-gray-900 dark:text-zinc-100 text-sm rounded-md focus-ink block p-1.5"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -520,7 +520,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     return newPage;
                   })}
                   disabled={safeCurrentPage === 1}
-                  className="px-3 py-1 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 rounded btn-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
@@ -531,7 +531,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     return newPage;
                   })}
                   disabled={safeCurrentPage === totalPages}
-                  className="px-3 py-1 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 rounded btn-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>

@@ -93,7 +93,7 @@ export default function MigratePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
       <div className="mb-8">
-        <Sparkles className="w-12 h-12 text-blue-500 animate-pulse mx-auto" />
+        <Sparkles className="w-12 h-12 text-[var(--muted)] animate-pulse mx-auto" />
       </div>
       <h1 className="text-2xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">
         Setting up your account
