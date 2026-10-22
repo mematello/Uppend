@@ -171,11 +171,42 @@ for (const filePath of args) {
           });
         }
       }
-    } else {
+    } else if (match[2] || match[3]) {
       // Plain static string
-      const rawString = match[2] || match[3] || match[4] || '';
+      const rawString = match[2] || match[3];
       for (const token of rawString.split(/\s+/).filter(Boolean)) {
         checkToken(token, filePath, lineNo);
+      }
+    } else if (match[4]) {
+      // Expression inside { ... }
+      const expr = match[4].trim();
+      const quotedMatch = /^['"]([\s\S]*)['"]$/.exec(expr);
+      if (quotedMatch) {
+        for (const token of quotedMatch[1].split(/\s+/).filter(Boolean)) {
+          checkToken(token, filePath, lineNo);
+        }
+      } else {
+        const branchStringRegex = /(?:\?|:|\&\&|\|\|)\s*['"]([^'"]*)['"]/g;
+        const branchTokens = [];
+        let bsm;
+        while ((bsm = branchStringRegex.exec(expr)) !== null) {
+          if (bsm[1]) {
+            branchTokens.push(...bsm[1].split(/\s+/).filter(Boolean));
+          }
+        }
+
+        if (branchTokens.length > 0) {
+          for (const token of branchTokens) {
+            checkToken(token, filePath, lineNo);
+          }
+        } else {
+          // Bare identifier or unresolved expression (e.g. mergedClassName, resolvedWrapper, x.trim())
+          unresolvedDynamic.push({
+            file: filePath,
+            line: lineNo,
+            expression: expr.replace(/\s+/g, ' ')
+          });
+        }
       }
     }
   }
