@@ -230,6 +230,14 @@
   --color-gray-900: var(--color-stone-900);
   --color-gray-950: var(--color-stone-950);
 
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+  --color-hairline: var(--hairline);
+  --color-row-hover: var(--row-hover);
+  --color-muted-ink: var(--muted);
+
   --color-zinc-50: var(--color-stone-50);
   --color-zinc-100: var(--color-stone-100);
   --color-zinc-200: var(--color-stone-200);
@@ -241,6 +249,12 @@
   --color-zinc-800: var(--color-stone-800);
   --color-zinc-900: var(--color-stone-900);
   --color-zinc-950: var(--color-stone-950);
+}
+
+@layer base {
+  *, ::before, ::after {
+    border-color: var(--hairline);
+  }
 }
 
 

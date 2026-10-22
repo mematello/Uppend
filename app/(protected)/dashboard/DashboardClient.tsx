@@ -338,7 +338,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             >
               {['Active', 'All'].includes(filter) ? "Filter by status" : filter.charAt(0).toUpperCase() + filter.slice(1)}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                <ChevronDown className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''} ${!['Active', 'All'].includes(filter) ? 'text-[var(--on-accent)]' : 'text-[var(--muted)]'}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''} ${!['Active', 'All'].includes(filter) ? 'text-[var(--paper)]' : 'text-[var(--muted)]'}`} />
               </div>
             </button>
             
