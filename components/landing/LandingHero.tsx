@@ -42,7 +42,9 @@ export function LandingHero() {
               href="/dashboard"
               className={`min-h-[44px] py-2.5 px-2 flex items-center text-sm underline underline-offset-4 text-[var(--landing-muted)] hover:text-[var(--landing-ink)] transition-colors`}
             >
-              or try tracking-only mode, no account
+              <span>
+                or try tracking-only mode, <span className="whitespace-nowrap">no account</span>
+              </span>
             </Link>
           </div>
 

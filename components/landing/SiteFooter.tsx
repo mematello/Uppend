@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import styles from "./landing.module.css";
 
 export function SiteFooter() {
@@ -36,7 +37,7 @@ export function SiteFooter() {
               04 // COLOPHON
             </span>
             <p className="text-base text-[var(--landing-ink)] font-medium leading-relaxed mb-1">
-              Built by Marcus Kent Oliver.
+              Built by Marcus Oliver.
             </p>
             <p className="text-sm text-[var(--landing-muted)] leading-relaxed">
               Uppend started as a fix for my own job search.
@@ -56,9 +57,10 @@ export function SiteFooter() {
                   href="https://github.com/mematello"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
                 >
-                  GitHub @mematello &rarr;
+                  <span>GitHub @mematello</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 </a>
               </li>
               <li>
@@ -66,9 +68,10 @@ export function SiteFooter() {
                   href="https://github.com/mematello/Uppend"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
                 >
-                  Uppend repository &rarr;
+                  <span>Uppend repository</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 </a>
               </li>
               <li>
@@ -76,17 +79,19 @@ export function SiteFooter() {
                   href="https://marcusoliver.is-a.dev"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
                 >
-                  Portfolio marcusoliver.is-a.dev &rarr;
+                  <span>Portfolio marcusoliver.is-a.dev</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 </a>
               </li>
               <li>
                 <a
                   href="mailto:marcusoliver.dev@gmail.com"
-                  className="min-h-[44px] inline-flex items-center text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
                 >
-                  marcusoliver.dev@gmail.com &rarr;
+                  <span>marcusoliver.dev@gmail.com</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                 </a>
               </li>
             </ul>
