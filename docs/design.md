@@ -94,6 +94,7 @@ Fonts defined in `lib/fonts.ts` and loaded globally in `app/layout.tsx:33`.
 | **Label Font** | `.font-label` | `globals.css:108` | Status chips, headers, metadata | JetBrains Mono monospace typeface. |
 | **AI Suggested** | `.ai-suggested` | `globals.css:205` | Form inputs in `new/page.tsx:781,797,804,859` | 25% accent tint fill with dark ink border and text. |
 | **Ledger Card** | `.ledgerCard` | `landing.module.css:48` | `FlowDemo.tsx`, `DemoPanels.tsx` | Background `var(--card)`, border 1px `var(--hairline)`, radius `rounded-sm`. |
+| **Outbound Link** | `.group` + `<ArrowUpRight />` | `SiteFooter.tsx` | Footer, external references | Desktop: arrow revealed on hover with subtle offset slide. Mobile: full-width 44px tap area with always-visible arrow. |
 
 ### Status Chips (`app/globals.css:112-203`, `DashboardClient.tsx:14-21`)
 

@@ -57,10 +57,13 @@ export function SiteFooter() {
                   href="https://github.com/mematello"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="group w-full min-h-[44px] flex items-center gap-1.5 py-2 px-2 -mx-2 rounded-sm active:bg-[var(--landing-row-hover)] text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)] sm:w-auto sm:inline-flex sm:p-0 sm:m-0 sm:active:bg-transparent"
                 >
                   <span>GitHub @mematello</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <ArrowUpRight
+                    className="w-3.5 h-3.5 shrink-0 opacity-100 translate-x-0 translate-y-0 sm:opacity-0 sm:-translate-x-1 sm:translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-150 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                 </a>
               </li>
               <li>
@@ -68,10 +71,13 @@ export function SiteFooter() {
                   href="https://github.com/mematello/Uppend"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="group w-full min-h-[44px] flex items-center gap-1.5 py-2 px-2 -mx-2 rounded-sm active:bg-[var(--landing-row-hover)] text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)] sm:w-auto sm:inline-flex sm:p-0 sm:m-0 sm:active:bg-transparent"
                 >
                   <span>Uppend repository</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <ArrowUpRight
+                    className="w-3.5 h-3.5 shrink-0 opacity-100 translate-x-0 translate-y-0 sm:opacity-0 sm:-translate-x-1 sm:translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-150 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                 </a>
               </li>
               <li>
@@ -79,19 +85,25 @@ export function SiteFooter() {
                   href="https://marcusoliver.is-a.dev"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="group w-full min-h-[44px] flex items-center gap-1.5 py-2 px-2 -mx-2 rounded-sm active:bg-[var(--landing-row-hover)] text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)] sm:w-auto sm:inline-flex sm:p-0 sm:m-0 sm:active:bg-transparent"
                 >
                   <span>Portfolio marcusoliver.is-a.dev</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <ArrowUpRight
+                    className="w-3.5 h-3.5 shrink-0 opacity-100 translate-x-0 translate-y-0 sm:opacity-0 sm:-translate-x-1 sm:translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-150 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                 </a>
               </li>
               <li>
                 <a
                   href="mailto:marcusoliver.dev@gmail.com"
-                  className="min-h-[44px] inline-flex items-center gap-1 text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)]"
+                  className="group w-full min-h-[44px] flex items-center gap-1.5 py-2 px-2 -mx-2 rounded-sm active:bg-[var(--landing-row-hover)] text-[var(--landing-ink)] hover:text-[var(--landing-muted)] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--landing-accent)] sm:w-auto sm:inline-flex sm:p-0 sm:m-0 sm:active:bg-transparent"
                 >
                   <span>marcusoliver.dev@gmail.com</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                  <ArrowUpRight
+                    className="w-3.5 h-3.5 shrink-0 opacity-100 translate-x-0 translate-y-0 sm:opacity-0 sm:-translate-x-1 sm:translate-y-1 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 transition-all duration-150 motion-reduce:transition-none"
+                    aria-hidden="true"
+                  />
                 </a>
               </li>
             </ul>
