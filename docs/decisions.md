@@ -1,5 +1,40 @@
 # Uppend — Decisions Log
 
+## [2026-10-22] Landing identity and palette
+- Context: Redesigning the marketing landing page (Session 28) to give Uppend a tactile, trustworthy, and distinct visual identity.
+- Decision: Adopted an editorial "ledger/terminal" aesthetic built on warm paper (`#F6F3EC` in light mode, `#0E0E0C` in dark mode), crisp ink (`#121212` in light mode, `#EDEAE2` in dark mode), vibrant chartreuse accent (`#D4F03C`), muted tones, and subtle hairline borders (`rgba(18, 18, 18, 0.12)` light / `rgba(237, 234, 226, 0.14)` dark). Typography pairs Google Fonts Fraunces for display headings (`--font-landing-fraunces`) with JetBrains Mono (`--font-landing-mono`) for metadata and code elements, loaded via `next/font/google` in `lib/fonts.ts`. The interactive flow demo uses a fixed-height card layout with 4 distinct beats.
+
+## [2026-10-22] Local Mode copy and CTA separation (No AI in Local Mode)
+- Context: Clarifying product capabilities and calls to action across landing page hero and feature sections.
+- Decision: Local Mode operates purely client-side via IndexedDB with zero cloud storage and no AI extraction or resume matching capabilities. Landing page hero copy and CTAs explicitly separate Local Mode from AI features: "Try locally without an account" directs users to local offline tracking, while AI extraction and fit analysis copy explicitly clarifies that an account or custom API key (BYOK) is required. This avoids misleading users into thinking AI features can run offline or without API credentials.
+
+## [2026-10-22] Privacy copy rules (zero-transmission and BYOK claims)
+- Context: Drafting the landing page Privacy Notice section and security disclosures.
+- Decision:
+  - Do NOT claim "zero-data transmission": when AI extraction or matching is invoked, job description text and resume content are transmitted to the active provider (Google or Groq).
+  - Do NOT make blanket assertions regarding BYOK terms (e.g. claiming user-provided keys never train models): data handling depends strictly on the user's direct agreement and pricing tier with Google or Groq (e.g., Google free-tier terms permit human review and training, paid tiers do not).
+  - Clearly state that Local Mode keeps all data in the visitor's browser, while AI usage transmits data to the selected AI provider.
+
+## [2026-10-22] Feedback channels and donation deferral
+- Context: Configuring SiteFooter contact, feedback, bug reporting, and project support links.
+- Decision: User feedback and bug reporting are directed to GitHub Issues and direct email (`support@uppend.com`). Third-party donation platform integrations (e.g., Buy Me a Coffee, GitHub Sponsors, Ko-fi) are deferred until a dedicated legal entity or payment processing workflow is established.
+
+## [2026-10-22] Neutral ramp tuning for contrast (gray=light, zinc=dark)
+- Context: Overriding Tailwind v4's default neutral ramps across the application to align with the warm paper/ink palette without breaking hundreds of legacy color classes.
+- Decision: In `app/globals.css`, aliased `gray-*` and `zinc-*` color channels directly to the warm stone scale under `@theme`. Verified the application mode-split: `gray-*` is used exclusively in light mode and `zinc-*` in dark mode. Tuned oklch lightness values for `gray-400` / `gray-500` and `zinc-400` / `zinc-500` against `var(--paper)` and `var(--card)` backgrounds to guarantee >= 4.5:1 WCAG AA contrast ratio for body and secondary text.
+
+## [2026-10-22] Status chip scheme
+- Context: Restyling application status badges across the dashboard and application detail pages.
+- Decision: Standardized on hairline status chips (`.status-*`) defined in `app/globals.css`. Chips use a 1px hairline border, subtle background tint derived from semantic CSS variables (`--color-success`, `--color-warning`, `--color-danger`, `--color-info`, `--color-muted`), and matching foreground text, replacing hardcoded Tailwind v3 pill classes.
+
+## [2026-10-22] Class-only app retheme with standing dead-class scan gate
+- Context: Retheming the authenticated application to match the landing page palette.
+- Decision: Retheme changes were strictly limited to CSS class strings, token definitions, and utility classes in `globals.css`. Never altered layout, DOM hierarchy, component props, state, event handlers, or data-fetching logic. Established a dead-class scan (checking markup class references against compiled Tailwind utilities) as a standing verification gate to ensure no uncompiled, dead, or typo classes enter the codebase.
+
+## [2026-10-22] Two --no-ff merges into main and single push policy
+- Context: Merging the landing redesign (`feature/landing-redesign`) and app retheme (`feature/app-retheme`) into `main`.
+- Decision: Merged both branches into `main` using `--no-ff` merge commits (`1208c60` and `eb96472`) executed directly in the owner's terminal to preserve distinct branch topology and commit history. Changes are pushed to origin in a single push only after full verification and documentation closeout.
+
 ## [2026-10-12] Provider timeout mechanism
 - Context: Adding per-call timeouts for Google and Groq providers (Session 27).
 - Decision: own AbortController + setTimeout, not AbortSignal.timeout (not driven by vitest fake timers) and not httpOptions.timeout (the SDK raises the global undici dispatcher timeouts with Math.max at index.mjs ~13783). PROVIDER_TIMEOUT_MS = 45000 is a ceiling-safe starting value, NOT measured: 5 calls x 45s = 225s plus DB overhead under the 300s Default Max Duration (owner-reported dashboard value; Fluid compute toggle unconfirmed). Revisit with real call durations. Supersedes the 2026-10-04 "maxDuration fix as its own cycle" entry: no maxDuration config change was needed or made.

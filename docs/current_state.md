@@ -2,55 +2,62 @@
 
 *This file is the single source of truth for "what's true right now." It is rewritten in place at the close of every session — not appended to. Resolved items are removed here and folded into changelog.md / decisions.md instead. See architecture.md / decisions.md / schema.md / changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-10-12 (Session 27 close)*
+*Last updated: 2026-10-22 (Session 28 close)*
 
-## 1. Confirmed working / shipped (Main branch, fully pushed)
-- **Per-Call Provider Timeouts (merge de8f0ce)**: Per-call provider timeouts implemented in `lib/ai/provider.ts` (PROVIDER_TIMEOUT_MS = 45000 via AbortController + setTimeout cleared in finally) and error classification in `parseProviderError` in `lib/ai/models.ts` (AbortError, TimeoutError, TypeError 'fetch failed', and network causes classified as TEMPORARY_PROVIDER with isUnavailableError=true, isQuotaError=false, retryAfterSeconds=30 when statusCode is null). Fallback loop advances to next model on timeout/network failure without retrying attempt 2 on the same model. Merged and pushed (origin/main = de8f0ce, owner terminal 2026-10-12). Production smoke test: [SMOKE TEST: PENDING].
-- **DB Privilege Lockdown**: merge 0752ba9, pushed to origin. DB privilege lockdown is shipped. Production smoke test after the manual revokes passed (extraction and analysis worked); cron-job.org reminder runs return 200 (owner report). Supabase advisor (scan 2026-10-09 01:27 UTC) confirms `auth_users_exposed` is gone without restructuring the view.
-- **BYOK Stage 1 Multi-Provider Backend**: Fallback chain supports custom keys for multiple providers (Google, Groq) restricted strictly to their respective models. Outages properly return provider details in a 429.
-- **Model-Name Exclusion Fix**: Exclusion logic strictly blocks by `modelName` and not the shared `trackingName`, preventing cross-provider routing bleed.
-- **Vitest Harness**: The test harness (`vitest@2`) natively tests the AI provider routing and fallback logic natively with mocks. Run via `npm test`.
-- **Privacy Policy**: Explicitly names Google and Groq as processors, links their terms, and discloses Google's free-tier data usage (training/human review) for the shared pool.
-- **Re-Engagement Email & At-Risk States**: Production rules handle streak at-risk and loss properly; automated email flow enables snooze, found_job, or still_looking status toggling.
-- **BYOK Stage 2 UI (merge commit b7a9677)**: Multi-provider key list, try-first selector, `/api/models` gating (BYOK users see only their providers' models), validateKey classification (401/403 rejected; 429/5xx/timeout/network unavailable; 400/404 config error; Google check via models endpoint with x-goog-api-key header), `lib/ai/providers.ts`, `byok.ts` message uses display names, 57 Vitest tests, UI polish (select arrow spacing, single BYOK note, Sparkles replaced by Check in the `/new` model dropdown). Live checks passed (user-reported). main pushed to origin: yes (b7a9677). Production check with a throwaway key: passed.
+## 1. Confirmed working / shipped (Main branch)
+- **Landing Page Redesign (merge 1208c60)**: Marketing landing page rebuilt with an editorial ledger/terminal identity. Includes `LandingHeader`, `LandingHero`, `FlowDemo`, `DemoPanels`, `HowItWorks`, `PrivacyNotice`, `OriginStory`, and `SiteFooter` using paper (`#F6F3EC` / dark `#0E0E0C`), ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Typography utilizes Google Fonts Fraunces and JetBrains Mono via `lib/fonts.ts`. Hero copy and CTAs explicitly separate Local Mode (offline tracking) from AI features (requires account/BYOK). Merged into `main`. Production smoke test: [SMOKE TEST: PENDING].
+- **App-Wide Retheme (merge eb96472)**: Authenticated app surfaces rethemed to match the landing identity without modifying layout, markup, props, or data fetching. Gray and zinc neutral ramps aliased directly to warm stone under `@theme inline` with calibrated oklch lightness values (guaranteeing >= 4.5:1 text contrast). App body font upgraded to Geist (`--font-geist-sans`). Standardized `@layer utilities` classes (`.btn-primary`, `.btn-secondary`, `.link-ink`, `.focus-ink`, `.font-display`, `.font-label`, `.status-*`, `.ai-suggested`). Base border reset configured for hairline borders. Merged into `main`. Production smoke test: [SMOKE TEST: PENDING].
+- **Per-Call Provider Timeouts (merge de8f0ce)**: Per-call provider timeouts in `lib/ai/provider.ts` (45s timeout via AbortController + setTimeout) and error classification in `parseProviderError` in `lib/ai/models.ts`. Fallback loop advances on timeout/network error without retrying the same model. Pushed to `origin/main` in Session 27.
+- **DB Privilege Lockdown (merge 0752ba9)**: Sensitive RPC functions restricted to `service_role`, `v_reengagement_candidates` view secured from anon/authenticated access. Supabase advisor scan confirmed `auth_users_exposed` resolved.
+- **BYOK Stage 1 & 2 Multi-Provider Support**: Fallback chain supports custom keys for Google and Groq; Settings allows managing keys per provider; `/api/models` restricts available models to configured providers; BYOK failures do not exhaust shared pool or trigger operator alerts.
+- **Vitest Test Suite**: 81 tests passing (`npm test`), validating provider routing, error classification, and fallback mechanisms with mocks.
+- **Privacy Policy**: Discloses Google and Groq as processors, links their terms, and details free-tier data usage for the shared AI pool.
+- **Email & Streak Architecture**: Automated streak tracking, at-risk/loss notifications, 14-day inactivity re-engagement flow via action tokens, and Gmail SMTP delivery.
 
 ## 2. Open / blocking
 
-- **Source-field bug on /new**: Owner report: when a JD is pasted and the source is auto-selected, it is overwritten to blank after extraction and analysis; NOT yet investigated, no cause established.
-- **search_path unpinned**: The 8 flagged public functions (`set_updated_at`, `handle_new_user`, `increment_model_usage`, `protect_free_ai_uses`, `decrement_free_ai_uses`, `record_exhaustion_event`, `redeem_reengagement_token`, `block_model`) currently have unpinned search paths (its own migration cycle, tested per function).
-- **handle_new_user drift**: `handle_new_user` and its trigger exist in the live database but are not present in the `supabase/migrations/` directory. Warning is anon/authenticated EXECUTE on a trigger function. Direct RPC call is expected to error (UNVERIFIED). Needs a read-only check of the live trigger definition first; the trigger is not in migrations.
-- **redeem_reengagement_token validation review**: Stays executable by anon and authenticated (needed by `/api/reengagement`). Open item: review its validation (expiry, single use, action check).
-- **Leaked password protection / password signups check**: The app uses magic-link auth (decision 2026-08-16). Open item: check whether password signups are enabled in Supabase Auth settings; whether the feature exists on the current plan is UNVERIFIED.
-- **interview_stages dormant table**: Read-only by the settings export, nothing inserts or updates it (app stores interview info in `applications.interview_stage` and `interview_notes`). Presumed empty (UNVERIFIED). Decision pending: keep dormant or drop in a migration.
-- **Re-engagement migration apply date**: The date the re-engagement migration was applied to the live DB is not recorded.
-- **default-privileges migration**: Decide how to stop Supabase's default grants (EXECUTE/SELECT to anon and authenticated on new public-schema functions and views) from exposing future objects. Postgres default privileges apply to functions and to tables/views separately, and there is no views-only default; revoking default table grants would affect future tables. Options to evaluate: a functions-only default-privileges migration plus a rule that every migration creating a view or function states its grants explicitly. Needs approval before any migration is drafted.
-- **Google model deprecation / availability**: Google email (owner-received, UNVERIFIED against a Google source): gemini-3.5-flash deprecated and auto-redirected to gemini-3.6-flash; AI_MODELS (lib/ai/models.ts) still lists 3.5; availability of gemini-3-flash-preview and gemini-3.1-flash-lite-preview UNVERIFIED (a search result suggested 3.1-flash-lite-preview may be shut down); needs its own check, no AI_MODELS change yet.
-- **Timeout test gap**: Test gap: route tests appear to run in BYOK mode, so the shared-pool 30s block and checkAndRecordExhaustion on timeout are untested.
-- **Provider timeout duration**: 45s timeout is unmeasured; gather real durations.
-- **Aborted call billing and telemetry**: Aborted Google calls may still be billed and are not counted in ai_model_usage.
-- **Test mock cleanup**: New tests overwrite global.fetch without restoring it (nit).
-- **README documentation**: README.md still describes a Gemini-only chain.
-- **5xx Shared Bucket Blocking**: Should a 5xx error on `120b` block the shared bucket entirely, or still try `20b`? (unchanged)
-- **Billing Tier Decision**: Decide between keeping the unpaid tier and disclosing training data usage vs. enabling billing for Google AI Studio. (unchanged)
-- **Legal Counsel Review**: Review free-tier data use disclosure (paste/upload notice?), Groq DPA coverage, retention durations, EEA/UK handling (SCCs/cookie banners, and Google's paid-terms exception), Vercel hosting/analytics disclosure, and the DB privilege exposure window (from when the 20260920212200 migration was applied (apply date: date not recorded; no earlier than 2026-09-20 (migration file date)) until 2026-10-09).
-- **zod-to-json-schema is still in package.json** with no imports in app/ or lib/ (only a comment at lib/ai/provider.ts:121); removal touches the lockfile, so its own task.
-- **Corrupted Currency Symbols**: probably a PowerShell display issue (Get-Content without -Encoding UTF8 showed "âœ¨" for "✨"); verify with -Encoding UTF8 or git diff before treating it as a bug.
-- **Remaining sparkle icons**: "Analyzing fit..." line and the "✨ Extract Data" button text were left in place; decision pending.
-- **Minor follow-ups, non-blocking**: updatePreferredProvider returns "You must save an API key" on any DB error (not only "no row"); `any` types for the `updates` objects in actions.ts; deleteApiKey does a no-op update when preferred_model is already null.
-- **UI & Flow Backlog**: Timezone dropdown picker; Mobile layout issues (stacked progress rows, left-aligned dashboard header); Source auto-detect missing on application edit page (decided /new-only on 2026-09-15; confirm whether this is a reversal request).
-- **AGENTS.md Outdated Context**: Project description still claims "solo-developer personal tool" (unchanged).
-- **SaaS Architecture Review**: Review query performance in `/dashboard` (slimming projection instead of `select('*')`), confirm `revalidateTag` usage across mutations, and note future needs for server-side pagination if users exceed hundreds of applications.
+- **Deeper full redesign of app pages**: The owner wants a deeper redesign of the core authenticated app pages (dashboard, application detail, settings, new application) scheduled for a later session. The current retheme is class/token-level only with preserved legacy layouts.
+- **Remove `seed_and_test.js`**: Legacy root script `seed_and_test.js` needs to be safely removed on its own dedicated branch.
+- **Repo-wide lint cleanup**: Several ESLint warnings and non-blocking lint errors remain across the codebase; needs a focused cleanup pass.
+- **Dead classes from missing Tailwind plugins**: Classes expecting `@tailwindcss/typography` (`prose`, `prose-stone`, etc.) or `tailwindcss-animate` (`animate-in`, `fade-in`, etc.) exist in components/pages but the packages are not installed in `package.json`.
+- **`metadataBase` warning & OG image**: Next.js build logs a warning that `metadataBase` is missing for social graph metadata. Open Graph (OG) image generation/assets need to be created and linked.
+- **Donation platform**: Evaluation and setup of a project donation channel (Buy Me a Coffee, GitHub Sponsors, or Ko-fi) deferred to a future session.
+- **Unused hero video in `public/videos/`**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) is unused after the landing redesign replaced the video player with the interactive `FlowDemo` component. Should be removed to reduce repository/bundle weight.
+- **Landing tokens duplicated across CSS files**: Color tokens and CSS variables are partially duplicated between `components/landing/landing.module.css` and `app/globals.css`. Should be unified into a single source of truth in `globals.css`.
+- **Settings checkbox/radio accent color**: Checkbox and radio input accents in `SettingsClient.tsx` need verification to ensure no default browser blue accents remain.
+- **Cookie banner footer padding on mobile**: On small mobile viewports, the fixed cookie consent banner can overlap the site footer or action buttons if bottom padding is insufficient.
+- **README documentation still Gemini-only**: `README.md` still describes a Gemini-only AI pipeline and has not been updated for the Groq fallback provider or BYOK multi-provider support.
+- **Source-field bug on `/new`**: Owner report: when a JD is pasted and the source is auto-selected, it is overwritten to blank after extraction and analysis; not yet investigated, no root cause established.
+- **`search_path` unpinned on public functions**: 8 public functions (`set_updated_at`, `handle_new_user`, `increment_model_usage`, `protect_free_ai_uses`, `decrement_free_ai_uses`, `record_exhaustion_event`, `redeem_reengagement_token`, `block_model`) have mutable search paths flagged by Supabase advisor; needs a dedicated migration cycle.
+- **`handle_new_user` trigger drift**: `handle_new_user` and its trigger exist in the live database but are missing from `supabase/migrations/`.
+- **`redeem_reengagement_token` validation review**: Executable by `anon` and `authenticated` for `/api/reengagement`; needs review of expiry, single-use, and action validation.
+- **Leaked password protection / password signups check**: Check whether password signups are enabled in Supabase Auth settings given that magic link is the intended authentication method.
+- **`interview_stages` dormant table**: Read-only in settings export, nothing inserts or updates it; decide whether to drop in a migration.
+- **Re-engagement migration apply date**: Exact date migration was run on the live DB is unrecorded.
+- **Default-privileges migration**: Decide policy to stop Supabase default grants on future views/functions.
+- **Google model deprecation / availability**: gemini-3.5-flash deprecation/redirect notice needs confirmation against Google docs before updating `AI_MODELS`.
+- **Timeout test gap**: Shared-pool 30s block and `checkAndRecordExhaustion` on timeout remain untested in route-level integration tests.
+- **Provider timeout duration**: 45s timeout is unmeasured; gather real production call durations.
+- **Aborted call billing & telemetry**: Aborted Google calls may incur billing and are not recorded in `ai_model_usage`.
+- **`zod-to-json-schema` dependency cleanup**: Still in `package.json` with no active imports; removal requires lockfile modification.
 
 ## 3. Next steps, priority order
 
-**Backlog:**
-1. **Open items in Section 2**, starting with the source-field bug.
-2. **JD URL-fetching**: Large feature, touches a Protected AI Route, needs its own full plan cycle.
-3. **Visual Identity Pass**: A visual-identity pass on the app's uniform rounded-full pill treatment is needed.
-4. **Non-tech-job-seeker generalization idea**: An idea to broaden the platform for non-tech job seekers (touches `applications.tech_stack` schema + both Protected AI Route prompts).
-5. **Archive as snapshot**: Allow users to archive all/selected applications rather than deleting them when starting fresh.
-6. **Application sharing**: First multi-user/social feature — let a user share an application for others to apply.
+1. **Verify production deployment**: Run smoke tests against production once Session 28 changes are deployed by the owner.
+2. **Source-field bug on `/new`**: Investigate and fix the source field being cleared post-extraction.
+3. **Open maintenance items**:
+   - Remove `seed_and_test.js` on its own branch.
+   - Remove unused `public/videos/uppend-vid-demo.mp4`.
+   - Add `metadataBase` to root metadata and create default OG image.
+   - Clean up dead classes / install missing Tailwind plugins or replace with standard utilities.
+   - Unify landing tokens into `globals.css`.
+   - Update `README.md` to reflect multi-provider fallback and BYOK.
+4. **Database security items**: Pin `search_path` on 8 public functions and document `handle_new_user` trigger in migrations.
+5. **Deeper app redesign**: Plan and execute the full layout and UX redesign of authenticated pages.
 
 ## 4. Future plans (not yet scoped)
 
-*(No current vague future plans; concrete features moved to Open / blocking)*
+- **JD URL-fetching**: Large feature to fetch job descriptions directly from posting URLs (touches Protected AI Routes).
+- **Non-tech job seeker generalization**: Broaden platform scope for non-tech job seekers (touches `applications.tech_stack` schema and AI prompts).
+- **Application archiving & snapshotting**: Archive past applications rather than hard-deleting.
+- **Application sharing**: Share application details or postings with other users.
