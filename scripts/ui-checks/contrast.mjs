@@ -136,13 +136,16 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   const muted = theme.vars.get('--muted');
   const accent = theme.vars.get('--accent');
   const onAccent = theme.vars.get('--on-accent');
+  const rowHover = theme.vars.get('--row-hover');
 
   checkPair('Text', 'Ink on Paper', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--paper', p, theme.rawSources.get('--paper'), 4.5);
   checkPair('Text', 'Ink on Card', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 4.5);
+  checkPair('Text', 'Ink on Row-Hover', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--row-hover', rowHover, theme.rawSources.get('--row-hover'), 4.5);
   checkPair('Text', 'Muted on Paper', themeName, '--muted', muted, theme.rawSources.get('--muted'), '--paper', p, theme.rawSources.get('--paper'), 4.5);
   checkPair('Text', 'Muted on Card', themeName, '--muted', muted, theme.rawSources.get('--muted'), '--card', c, theme.rawSources.get('--card'), 4.5);
+  checkPair('Text', 'Muted on Row-Hover', themeName, '--muted', muted, theme.rawSources.get('--muted'), '--row-hover', rowHover, theme.rawSources.get('--row-hover'), 4.5);
   checkPair('Text', 'Paper on Ink (Primary Button)', themeName, '--paper', p, theme.rawSources.get('--paper'), '--ink', ink, theme.rawSources.get('--ink'), 4.5);
-  checkPair('Text', 'On-Accent on Accent', themeName, '--on-accent', onAccent, theme.rawSources.get('--on-accent'), '--accent', accent, theme.rawSources.get('--accent'), 4.5);
+  checkPair('Text', 'On-Accent on Accent (for text and icons)', themeName, '--on-accent', onAccent, theme.rawSources.get('--on-accent'), '--accent', accent, theme.rawSources.get('--accent'), 4.5);
 
   // Placeholder and Muted Icons
   checkPair('Text', 'Placeholder Text (Muted on Card)', themeName, '--muted', muted, theme.rawSources.get('--muted'), '--card', c, theme.rawSources.get('--card'), 4.5);
@@ -179,6 +182,7 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   checkPair('Border', 'Field Border vs Card', themeName, '--field-border', fb, theme.rawSources.get('--field-border'), '--card', c, theme.rawSources.get('--card'), 3.0);
   checkPair('Border', 'Focus Ring Ink vs Paper', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--paper', p, theme.rawSources.get('--paper'), 3.0);
   checkPair('Border', 'Focus Ring Ink vs Card', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 3.0);
+  checkPair('Border', 'Chip Focus Outline (Ink on Card)', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 3.0);
 
   // Chip Outlines
   checkPair('Border', 'Draft Chip Outline vs Card', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 3.0);
