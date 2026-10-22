@@ -9,6 +9,7 @@ export interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElem
 export interface SelectFieldProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   variant: 'select';
   tone?: 'default' | 'chip';
+  wrapperClassName?: string;
 }
 
 export type FieldProps = InputFieldProps | SelectFieldProps;
@@ -45,16 +46,18 @@ export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement, Fiel
     }
 
     // variant === 'select'
-    const { tone = 'default', className = '', children, ...rest } = props;
+    const { tone = 'default', wrapperClassName = '', className = '', children, ...rest } = props;
     const selectProps = { ...rest };
     delete (selectProps as Record<string, unknown>).variant;
+    delete (selectProps as Record<string, unknown>).wrapperClassName;
 
     if (tone === 'chip') {
+      const resolvedWrapper = wrapperClassName || 'inline-flex';
       return (
-        <div className="relative inline-flex items-center">
+        <div className={`relative items-center focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${resolvedWrapper}`.trim()}>
           <select
             ref={ref as React.ForwardedRef<HTMLSelectElement>}
-            className={`bg-transparent appearance-none border-none outline-none cursor-pointer pl-2.5 pr-7 py-1 text-inherit focus:ring-0 font-label uppercase text-base sm:text-xs tracking-wider ${className}`.trim()}
+            className={`bg-transparent appearance-none border-none cursor-pointer pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider [&>option]:bg-card [&>option]:text-ink ${className}`.trim()}
             {...selectProps}
           >
             {children}
@@ -64,8 +67,9 @@ export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement, Fiel
       );
     }
 
+    const resolvedWrapper = wrapperClassName || 'w-full';
     return (
-      <div className="relative inline-block w-full">
+      <div className={`relative inline-block ${resolvedWrapper}`.trim()}>
         <select
           ref={ref as React.ForwardedRef<HTMLSelectElement>}
           className={`appearance-none pr-8 pl-3 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink focus-ink transition-colors cursor-pointer ${className}`.trim()}
