@@ -209,7 +209,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
     if (sortField !== field) return <span className="w-4 h-4 inline-block opacity-0 group-hover:opacity-30 transition-opacity"><ChevronDown className="w-4 h-4" /></span>;
     return (
       <span className="w-4 h-4 inline-block text-gray-900 dark:text-zinc-200">
-        {sortAsc ? <ChevronUp className="w-4 h-4 animate-in fade-in zoom-in duration-200" /> : <ChevronDown className="w-4 h-4 animate-in fade-in zoom-in duration-200" />}
+        {sortAsc ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </span>
     );
   };
@@ -411,7 +411,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               <tr 
                 key={app.id} 
                 onClick={() => handleRowClick(app.id)}
-                className="hover:bg-[var(--row-hover)] transition-all duration-150 cursor-pointer group animate-in fade-in flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
+                className="hover:bg-[var(--row-hover)] transition-all duration-150 cursor-pointer group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
               >
                 <td className="md:p-4 font-medium text-gray-900 dark:text-zinc-100 text-lg md:text-base block md:table-cell mb-1 md:mb-0">
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -487,7 +487,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               </tr>
             ))}
             {sortedApps.length === 0 && (
-              <tr className="animate-in fade-in block md:table-row">
+              <tr className="block md:table-row">
                 <td colSpan={6} className="p-12 text-center text-gray-500 dark:text-zinc-400 block md:table-cell">
                   {searchQuery ? "No applications found matching your search and filter." : "No applications match the current filter."}
                 </td>
