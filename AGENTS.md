@@ -3,6 +3,7 @@ Uppend is an AI-powered job application tracker built as a solo-developer person
 
 ## Before Starting Any Task
 - **Read `docs/schema.md` and `docs/prompts.md`** to understand the current state of the database and AI prompts. Do not assume prior session context is still accurate.
+- **For any UI/visual task also read `docs/design.md` and follow it; changes to the visual language must update `docs/design.md` in the same task.**
 
 ## Standing Rules
 - **No Direct SQL Execution**: Never execute SQL migrations directly against the live Supabase project. Generate the migration file and stop; the human runs it manually in the Supabase SQL editor.

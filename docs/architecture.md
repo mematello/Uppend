@@ -34,6 +34,7 @@ lib/
   data-source.ts        → Data abstraction layer routing between Supabase and IndexedDB
 docs/
   schema.md             → Database schema reference
+  design.md             → Single source of truth for visual language, design tokens, and UI rules
 ```
 
 ## Data model
