@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type PanelProps = React.HTMLAttributes<HTMLDivElement>;
 
 export const Panel = React.forwardRef<HTMLDivElement, PanelProps>(function Panel(
   { className = '', children, ...props },

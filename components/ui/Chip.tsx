@@ -1,6 +1,6 @@
 import React from 'react';
 
-export interface ChipProps extends React.HTMLAttributes<HTMLDivElement> {}
+export type ChipProps = React.HTMLAttributes<HTMLDivElement>;
 
 /**
  * Chip component renders status and metadata tags.

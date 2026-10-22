@@ -1,6 +1,5 @@
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import path from 'node:path';
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -20,7 +19,7 @@ function extractClassTokens(content) {
   return tokens;
 }
 
-function findRawColors(content, filePath) {
+function findRawColors(content) {
   const violations = [];
   // Exclude comments
   const lines = content.split('\n');

@@ -16,7 +16,11 @@ export type FieldProps = InputFieldProps | SelectFieldProps;
 export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement, FieldProps>(
   function Field(props, ref) {
     if (props.variant === 'input') {
-      const { variant: _v, icon, className = '', ...inputProps } = props;
+      const { icon, className = '', ...rest } = props;
+      // Exclude custom variant prop from native input
+      const inputProps = { ...rest };
+      delete (inputProps as Record<string, unknown>).variant;
+
       if (icon) {
         return (
           <div className="relative w-full">
@@ -41,7 +45,9 @@ export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement, Fiel
     }
 
     // variant === 'select'
-    const { variant: _v, tone = 'default', className = '', children, ...selectProps } = props;
+    const { tone = 'default', className = '', children, ...rest } = props;
+    const selectProps = { ...rest };
+    delete (selectProps as Record<string, unknown>).variant;
 
     if (tone === 'chip') {
       return (
