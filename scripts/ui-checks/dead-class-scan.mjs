@@ -35,16 +35,20 @@ for (const file of args) {
 }
 
 let newestCssTime = 0;
-let combinedCss = '';
+let rawCss = '';
 for (const file of cssFiles) {
   const stat = fs.statSync(file);
   if (stat.mtimeMs > newestCssTime) newestCssTime = stat.mtimeMs;
-  combinedCss += fs.readFileSync(file, 'utf8') + '\n';
+  rawCss += fs.readFileSync(file, 'utf8') + '\n';
 }
 
 if (newestCssTime < newestSourceTime) {
-  console.warn('WARNING: Compiled .next CSS is older than newest source file. For strictly accurate results, run "npm run build".');
+  console.error('ERROR: Compiled .next CSS is older than newest source file. Please run "npm run build" first.');
+  process.exit(1);
 }
+
+// Unescape compiled CSS selectors to match arbitrary values and variants cleanly
+const unescapedCss = rawCss.replace(/\\(.)/g, '$1');
 
 // Known pre-existing dead classes outside dashboard
 const KNOWN_PRE_EXISTING_DEAD = new Set([
@@ -62,13 +66,15 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Match selector in compiled CSS (accounts for CSS escaping of colons, brackets, slashes, etc.)
-function isClassInCss(className, css) {
-  // Built-in CSS selectors escape special characters
-  // e.g., sm:flex-row -> sm\:flex-row
-  // min-h-[44px] -> min-h-\[44px\]
-  // dark:bg-amber-900/20 -> dark\:bg-amber-900\/20
-  const escaped = className
+// Match selector in compiled CSS (accounts for Tailwind arbitrary values, variants, and custom utilities)
+function isClassInCss(className) {
+  // 1. Try matching against unescaped CSS (matches Tailwind arbitrary values, variants, etc.)
+  const escaped = escapeRegex(className);
+  const pattern = new RegExp(`\\.${escaped}(?=[\\s,.:>~+*#\\[\\](){}|\\^$="'` + '`' + `]|$)`);
+  if (pattern.test(unescapedCss)) return true;
+
+  // 2. Also check standard CSS-escaped selector in rawCss
+  const cssEscaped = className
     .replace(/\\/g, '\\\\')
     .replace(/:/g, '\\:')
     .replace(/\[/g, '\\[')
@@ -78,19 +84,26 @@ function isClassInCss(className, css) {
     .replace(/%/g, '\\%')
     .replace(/\(/g, '\\(')
     .replace(/\)/g, '\\)');
-
-  // Look for .escapedClass in selector position
-  const pattern = new RegExp(`\\.${escapeRegex(escaped)}(?=[\\s,.:>~+*#\\[\\](){}|\\^$="'` + '`' + `]|$)`);
-  if (pattern.test(css)) return true;
-
-  // Also check unescaped literal for custom utility classes
-  const rawPattern = new RegExp(`\\.${escapeRegex(className)}(?=[\\s,.:>~+*#\\[\\](){}|\\^$="'` + '`' + `]|$)`);
-  return rawPattern.test(css);
+  const rawPattern = new RegExp(`\\.${escapeRegex(cssEscaped)}(?=[\\s,.:>~+*#\\[\\](){}|\\^$="'` + '`' + `]|$)`);
+  return rawPattern.test(rawCss);
 }
 
 const verifiedClasses = new Set();
 const deadClasses = [];
 const unresolvedDynamic = [];
+
+function checkToken(token, filePath, lineNo) {
+  if (!token || token.includes('${') || token.startsWith(':') || token === 'true' || token === 'false') {
+    return;
+  }
+  if (verifiedClasses.has(token)) return;
+
+  if (isClassInCss(token)) {
+    verifiedClasses.add(token);
+  } else {
+    deadClasses.push({ file: filePath, line: lineNo, className: token });
+  }
+}
 
 for (const filePath of args) {
   if (!fs.existsSync(filePath)) {
@@ -99,35 +112,70 @@ for (const filePath of args) {
   }
   const content = fs.readFileSync(filePath, 'utf8');
 
-  // 1. Check template literal expressions that create dynamic tokens
-  const dynamicTemplateMatches = content.match(/className=\{`([^`]+)`\}/g) || [];
-  for (const block of dynamicTemplateMatches) {
-    const exprMatches = block.match(/\$\{[^}]+\}/g) || [];
-    for (const expr of exprMatches) {
-      unresolvedDynamic.push({ file: filePath, expression: expr });
+  // 1. Check lookup tables (e.g. const STATUS_COLORS: Record<string, string> = { ... })
+  const lookupTableRegex = /(?:const|let|var)\s+([A-Z0-9_]+)(?:\s*:\s*[^=]+)?\s*=\s*\{([\s\S]*?)\};/g;
+  let ltm;
+  while ((ltm = lookupTableRegex.exec(content)) !== null) {
+    const tableBody = ltm[2];
+    const stringRegex = /:\s*['"]([^'"]+)['"]/g;
+    let sm;
+    while ((sm = stringRegex.exec(tableBody)) !== null) {
+      const lineNo = content.slice(0, ltm.index + sm.index).split('\n').length;
+      for (const token of sm[1].split(/\s+/).filter(Boolean)) {
+        checkToken(token, filePath, lineNo);
+      }
     }
   }
 
-  // 2. Extract static class tokens
-  // Match className="..." and className={'...'} and static parts of className={`...`}
-  const classAttrRegex = /className=(?:["']([^"']+)["']|\{`([^`]+)`\}|\{["']([^"']+)["']\})/g;
+  // 2. Check className and class attributes
+  const classAttrRegex = /(?:className|class)=(?:\{`([\s\S]*?)`\}|"([^"]+)"|'([^']+)'|\{([^}]+)\})/g;
   let match;
   while ((match = classAttrRegex.exec(content)) !== null) {
-    const rawString = match[1] || match[2] || match[3] || '';
-    // Strip ${...} from template string to get static tokens
-    const cleanedString = rawString.replace(/\$\{[^}]+\}/g, ' ');
-    const tokens = cleanedString.trim().split(/\s+/).filter(Boolean);
+    const lineNo = content.slice(0, match.index).split('\n').length;
 
-    for (const token of tokens) {
-      if (!token || token.includes('${') || token.startsWith(':') || token === 'true' || token === 'false') {
-        continue;
+    if (match[1]) {
+      // Template literal with potential ${...}
+      // 2a. Static tokens outside ${...}
+      const staticParts = match[1].replace(/\$\{[\s\S]*?\}/g, ' ');
+      for (const token of staticParts.split(/\s+/).filter(Boolean)) {
+        checkToken(token, filePath, lineNo);
       }
-      if (verifiedClasses.has(token)) continue;
 
-      if (isClassInCss(token, combinedCss)) {
-        verifiedClasses.add(token);
-      } else {
-        deadClasses.push({ file: filePath, className: token });
+      // 2b. Dynamic expressions inside ${...}
+      const exprRegex = /\$\{([\s\S]*?)\}/g;
+      let em;
+      while ((em = exprRegex.exec(match[1])) !== null) {
+        const expr = em[1].trim();
+        const exprLine = content.slice(0, match.index + em.index).split('\n').length;
+
+        // Extract branch string literals (after ?, :, &&, ||)
+        const branchStringRegex = /(?:\?|:|\&\&|\|\|)\s*['"]([^'"]*)['"]/g;
+        const branchTokens = [];
+        let bsm;
+        while ((bsm = branchStringRegex.exec(expr)) !== null) {
+          if (bsm[1]) {
+            branchTokens.push(...bsm[1].split(/\s+/).filter(Boolean));
+          }
+        }
+
+        if (branchTokens.length > 0) {
+          for (const token of branchTokens) {
+            checkToken(token, filePath, exprLine);
+          }
+        } else {
+          // Unresolved dynamic expression (e.g. variable lookup STATUS_COLORS[app.status])
+          unresolvedDynamic.push({
+            file: filePath,
+            line: exprLine,
+            expression: expr.replace(/\s+/g, ' ')
+          });
+        }
+      }
+    } else {
+      // Plain static string
+      const rawString = match[2] || match[3] || match[4] || '';
+      for (const token of rawString.split(/\s+/).filter(Boolean)) {
+        checkToken(token, filePath, lineNo);
       }
     }
   }
@@ -137,9 +185,10 @@ for (const filePath of args) {
 console.log('=== Dead Class Verification Report ===\n');
 console.log(`Files scanned: ${args.length}`);
 console.log(`Verified CSS classes: ${verifiedClasses.size}`);
+
 console.log(`Unresolved dynamic expressions: ${unresolvedDynamic.length}`);
 for (const item of unresolvedDynamic) {
-  console.log(`  [DYNAMIC] ${path.basename(item.file)} -> ${item.expression}`);
+  console.log(`  [UNRESOLVED] ${item.file}:${item.line}: ${item.expression}`);
 }
 
 const unexpectedDead = deadClasses.filter(item => !KNOWN_PRE_EXISTING_DEAD.has(item.className));
@@ -147,18 +196,18 @@ const preExistingDead = deadClasses.filter(item => KNOWN_PRE_EXISTING_DEAD.has(i
 
 console.log(`\nKnown pre-existing dead classes (excluded from gate): ${preExistingDead.length}`);
 for (const item of preExistingDead) {
-  console.log(`  [KNOWN PRE-EXISTING] ${path.basename(item.file)}: ${item.className}`);
+  console.log(`  [KNOWN PRE-EXISTING] ${item.file}:${item.line}: ${item.className}`);
 }
 
 console.log(`\nUnexpected dead classes: ${unexpectedDead.length}`);
 for (const item of unexpectedDead) {
-  console.log(`  [DEAD CLASS] ${item.file}: ${item.className}`);
+  console.log(`  [DEAD CLASS] ${item.file}:${item.line}: ${item.className}`);
 }
 
 if (unexpectedDead.length > 0) {
   console.error(`\nFAIL: ${unexpectedDead.length} unexpected dead class(es) found in scanned files.\n`);
   process.exit(1);
 } else {
-  console.log('\nSUCCESS: 0 unexpected dead classes found.\n');
+  console.log(`\nSUCCESS: 0 unexpected dead classes found.\n`);
   process.exit(0);
 }
