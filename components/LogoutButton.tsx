@@ -42,15 +42,15 @@ export default function LogoutButton() {
       onClick={closeModal}
     >
       <div 
-        className={`bg-white dark:bg-zinc-900 rounded-xl shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
+        className={`bg-card rounded-xl border border-hairline shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Log Out</h3>
+        <h3 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-2">Log Out</h3>
         <p className="text-gray-600 dark:text-zinc-400 mb-6">Are you sure you want to log out of your account?</p>
         <div className="flex justify-end gap-3">
           <button 
             onClick={closeModal}
-            className="px-4 py-2 text-gray-700 dark:text-zinc-300 font-medium hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+            className="px-4 py-2 btn-secondary font-medium rounded-md"
           >
             Cancel
           </button>

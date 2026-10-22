@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         </p>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+      <h1 className="text-3xl font-bold font-display mb-6">Privacy Policy</h1>
       <p className="text-sm text-gray-500 mb-8">Last Updated: October 3, 2026</p>
 
       <section className="mb-8">
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
         <h2 className="text-xl font-semibold mb-4">3. Third-Party Processors</h2>
         <p>Uppend relies on the following third-party services to function:</p>
         <ul className="list-disc pl-5 space-y-2">
-          <li><strong>AI Processors (Google and Groq):</strong> To generate structured data and fit scores, we send the job description text you provide and the text extracted from your resume to an AI provider. We do not send your account ID or login email, but your resume text may contain your name and contact details. The shared AI pool uses Google Gemini and may use Groq when Gemini is unavailable. If you use the &apos;Bring Your Own Key&apos; (BYOK) feature, your text goes only to the provider(s) whose key(s) you have saved. Each provider handles this data under its own terms, including how long it keeps it and whether it uses it to improve its products (see the <a href="https://ai.google.dev/terms" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Gemini API terms</a> and the <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Groq data documentation</a>). 
+          <li><strong>AI Processors (Google and Groq):</strong> To generate structured data and fit scores, we send the job description text you provide and the text extracted from your resume to an AI provider. We do not send your account ID or login email, but your resume text may contain your name and contact details. The shared AI pool uses Google Gemini and may use Groq when Gemini is unavailable. If you use the &apos;Bring Your Own Key&apos; (BYOK) feature, your text goes only to the provider(s) whose key(s) you have saved. Each provider handles this data under its own terms, including how long it keeps it and whether it uses it to improve its products (see the <a href="https://ai.google.dev/terms" target="_blank" rel="noreferrer" className="link-ink">Gemini API terms</a> and the <a href="https://console.groq.com/docs/your-data" target="_blank" rel="noreferrer" className="link-ink">Groq data documentation</a>). 
           Because the shared AI pool currently uses Google&apos;s free (unpaid) Gemini API tier, Google may use the job description and resume text sent through it to improve its products and machine learning technologies, and human reviewers may read it. If you use your own API key (BYOK), your text is handled under the terms that apply to your own key&apos;s plan.</li>
           <li><strong>Supabase:</strong> Our backend provider. For authenticated users, Supabase handles database storage, authentication, and secure file hosting for resumes (Supabase Storage).</li>
           <li><strong>Gmail SMTP:</strong> Used to deliver authentication magic links and optional follow-up reminder emails regarding your applications.</li>

@@ -93,9 +93,9 @@ export default function MigratePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
       <div className="mb-8">
-        <Sparkles className="w-12 h-12 text-blue-500 animate-pulse mx-auto" />
+        <Sparkles className="w-12 h-12 text-[var(--muted)] animate-pulse mx-auto" />
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-100 mb-4">
+      <h1 className="text-2xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">
         Setting up your account
       </h1>
       
@@ -109,13 +109,13 @@ export default function MigratePage() {
           <div className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl justify-center">
             <button 
               onClick={handleMerge}
-              className={`px-4 py-2 rounded-md transition-colors ${intent === 'signup' ? 'bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm' : 'bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-zinc-100 border border-gray-200 dark:border-zinc-700 font-medium'}`}
+              className={`px-4 py-2 rounded-md ${intent === 'signup' ? 'btn-primary font-semibold shadow-sm' : 'btn-secondary font-medium'}`}
             >
               Yes, add them
             </button>
             <button 
               onClick={handleSkip}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-md font-medium transition-colors"
+              className="px-4 py-2 btn-secondary rounded-md font-medium"
             >
               Skip for now
             </button>

@@ -46,7 +46,7 @@ export default function UnsavedChangesModal({ isOpen, onConfirm, onCancel }: Uns
         <div className="bg-gray-50 dark:bg-zinc-950 px-6 py-4 flex justify-end gap-3 border-t border-gray-100 dark:border-zinc-800">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+            className="btn-secondary px-4 py-2 text-sm font-medium rounded-md transition-colors"
           >
             Stay on Page
           </button>

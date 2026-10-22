@@ -66,7 +66,7 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
 
   return (
     <form onSubmit={handleUploadResume} className="w-full bg-gray-50 dark:bg-zinc-950 p-4 rounded-md border border-gray-200 dark:border-zinc-800">
-      <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-4">Upload New Resume</h3>
+      <h3 className="text-sm font-medium font-display text-gray-900 dark:text-zinc-100 mb-4">Upload New Resume</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
@@ -76,7 +76,7 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
             accept=".pdf,.docx"
             onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
             required
-            className="w-full text-sm text-gray-500 dark:text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/30 dark:file:text-blue-400 dark:hover:file:bg-blue-900/50"
+            className="w-full text-sm text-gray-500 dark:text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-hairline file:text-sm file:font-medium file:bg-card file:text-ink hover:file:bg-row-hover file:cursor-pointer"
           />
         </div>
         <div>
@@ -87,7 +87,7 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
             value={versionLabel}
             onChange={(e) => setVersionLabel(e.target.value)}
             required
-            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
           />
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
             id="is_current_resume"
             checked={isCurrentResume}
             onChange={(e) => setIsCurrentResume(e.target.checked)}
-            className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500"
+            className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]"
           />
           <label htmlFor="is_current_resume" className="text-sm text-gray-700 dark:text-zinc-300">Set as current default</label>
         </div>
@@ -108,7 +108,7 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
       <button
         type="submit"
         disabled={isUploading || !resumeFile || !versionLabel}
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors"
+        className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors"
       >
         {isUploading ? "Uploading..." : "Upload Resume"}
       </button>

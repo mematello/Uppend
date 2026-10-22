@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Fraunces, JetBrains_Mono } from "next/font/google";
+import { fraunces, jetbrainsMono } from "../lib/fonts";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingHero } from "../components/landing/LandingHero";
 import { HowItWorks } from "../components/landing/HowItWorks";
@@ -7,20 +7,6 @@ import { PrivacyNotice } from "../components/landing/PrivacyNotice";
 import { OriginStory } from "../components/landing/OriginStory";
 import { SiteFooter } from "../components/landing/SiteFooter";
 import styles from "../components/landing/landing.module.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  display: "swap",
-  variable: "--font-landing-fraunces",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-  variable: "--font-landing-mono",
-});
 
 export const metadata: Metadata = {
   title: "Uppend — AI-Powered Job Application Tracker",

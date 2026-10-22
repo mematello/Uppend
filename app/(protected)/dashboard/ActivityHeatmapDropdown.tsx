@@ -79,19 +79,19 @@ export default function ActivityHeatmapDropdown({
         <button
           onClick={handlePrev}
           disabled={isAtEarliestBound}
-          className={`p-1 rounded transition-colors ${isAtEarliestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-500 dark:text-zinc-400'}`}
+          className={`p-1 rounded transition-colors ${isAtEarliestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-[var(--row-hover)] text-[var(--muted)] hover:text-[var(--ink)]'}`}
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
+        <span className="text-sm font-semibold font-display text-[var(--ink)]">
           {monthName} {viewYear}
         </span>
 
         <button
           onClick={handleNext}
           disabled={isAtLatestBound}
-          className={`p-1 rounded transition-colors ${isAtLatestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-500 dark:text-zinc-400'}`}
+          className={`p-1 rounded transition-colors ${isAtLatestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-[var(--row-hover)] text-[var(--muted)] hover:text-[var(--ink)]'}`}
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -99,7 +99,7 @@ export default function ActivityHeatmapDropdown({
 
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DAYS_OF_WEEK.map(day => (
-          <div key={day} className="text-center text-[10px] font-medium text-gray-400 dark:text-zinc-500">
+          <div key={day} className="text-center text-[10px] font-label font-medium text-[var(--muted)]">
             {day.charAt(0)}
           </div>
         ))}

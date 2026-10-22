@@ -12,13 +12,13 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   if (!mounted) {
-    return <div className="w-9 h-9" />; // Placeholder with same dimensions
+    return <div className="min-h-[44px] min-w-[44px]" />; // Placeholder with same dimensions
   }
 
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 transition-colors"
+      className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-md text-[var(--muted)] hover:text-[var(--ink)] hover:bg-[var(--row-hover)] transition-colors"
       aria-label="Toggle dark mode"
     >
       {theme === "dark" ? (

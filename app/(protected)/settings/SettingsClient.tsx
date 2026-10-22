@@ -505,7 +505,7 @@ export default function SettingsClient({
     <div className="space-y-6 pb-24">
       {/* Profile Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Profile</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Profile</h2>
         <form onSubmit={handleSaveProfile} className="w-full">
           <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Full Name</label>
           <input
@@ -513,12 +513,12 @@ export default function SettingsClient({
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
-            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none mb-4"
+            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink mb-4"
           />
           <button
             type="submit"
             disabled={isSavingProfile || fullName === initialProfile.full_name}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors"
+            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors"
           >
             {isSavingProfile ? "Saving..." : "Save Profile"}
           </button>
@@ -528,7 +528,7 @@ export default function SettingsClient({
 
       {/* Reminders Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm mt-6">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Reminders</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Reminders</h2>
         <form onSubmit={handleSaveReminders} className="w-full space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -538,12 +538,12 @@ export default function SettingsClient({
                   type="text"
                   value={reminderTimezone}
                   onChange={(e) => setReminderTimezone(e.target.value)}
-                  className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
                 />
                 <button
                   type="button"
                   onClick={() => setReminderTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)}
-                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
+                  className="btn-secondary px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
                 >
                   Auto-Detect
                 </button>
@@ -555,14 +555,14 @@ export default function SettingsClient({
                 type="time"
                 value={reminderSendTime}
                 onChange={(e) => setReminderSendTime(e.target.value)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={isSavingReminders || (reminderTimezone === initialProfile.reminder_timezone && reminderSendTime === (initialProfile.reminder_send_time || "09:00").substring(0, 5))}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
+            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
           >
             {isSavingReminders ? "Saving..." : "Save Preferences"}
           </button>
@@ -572,7 +572,7 @@ export default function SettingsClient({
 
       {/* Goals Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm mt-6">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Goals</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Goals</h2>
         <form onSubmit={handleSaveGoal} className="w-full space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -583,7 +583,7 @@ export default function SettingsClient({
                 max="50"
                 value={dailyGoal}
                 onChange={(e) => setDailyGoal(parseInt(e.target.value) || 1)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
               />
             </div>
             <div className="flex items-center mt-6">
@@ -592,7 +592,7 @@ export default function SettingsClient({
                 type="checkbox"
                 checked={dailySummaryEnabled}
                 onChange={(e) => setDailySummaryEnabled(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-zinc-700 dark:bg-zinc-800"
+                className="h-4 w-4 text-[var(--ink)] focus:ring-[var(--ink)] border-gray-300 rounded dark:border-zinc-700 dark:bg-zinc-800"
               />
               <label htmlFor="daily-summary-toggle" className="ml-2 block text-sm text-gray-700 dark:text-zinc-300">
                 Receive daily streak & goal summary email (around 8:00 PM)
@@ -602,7 +602,7 @@ export default function SettingsClient({
           <button
             type="submit"
             disabled={isSavingGoal || (dailyGoal === (initialProfile.daily_goal ?? 5) && dailySummaryEnabled === (initialProfile.daily_summary_enabled ?? false))}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
+            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
           >
             {isSavingGoal ? "Saving..." : "Save Goal"}
           </button>
@@ -612,12 +612,12 @@ export default function SettingsClient({
 
       {/* AI Provider Settings */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Custom API Keys (BYOK)</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Custom API Keys (BYOK)</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-2 text-sm">
           Securely provide your own API keys to bypass global usage limits.
         </p>
         <p className="text-gray-500 dark:text-zinc-500 mb-6 text-xs">
-          Don&apos;t have an API key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Google AI Studio</a> or <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">Groq Console</a>.
+          Don&apos;t have an API key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="link-ink">Google AI Studio</a> or <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="link-ink">Groq Console</a>.
         </p>
         
         {/* Preferred Provider Selection */}
@@ -629,7 +629,7 @@ export default function SettingsClient({
               <select
                 value={preferredProvider || ''}
                 onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
-                className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus-ink"
               >
                 {apiKeys.map(k => (
                   <option key={k.provider} value={k.provider}>
@@ -690,7 +690,7 @@ export default function SettingsClient({
                   <select
                     value={newKeyProvider}
                     onChange={(e) => setNewKeyProvider(e.target.value)}
-                    className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus-ink"
                   >
                     {BYOK_PROVIDERS.map(p => (
                       <option key={p} value={p}>{PROVIDER_DISPLAY_NAMES[p] || p}</option>
@@ -707,13 +707,13 @@ export default function SettingsClient({
                 placeholder="Enter your API key..."
                 value={newApiKeyValue}
                 onChange={(e) => setNewApiKeyValue(e.target.value)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-sm text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-sm text-gray-900 dark:text-zinc-100 focus-ink"
               />
             </div>
             <button
               type="submit"
               disabled={isSavingKey || !newApiKeyValue.trim()}
-              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors"
+              className="btn-primary px-4 py-2 text-sm rounded-md font-medium disabled:opacity-50 transition-colors"
             >
               {isSavingKey ? "Verifying & Saving..." : "Save API Key"}
             </button>
@@ -728,7 +728,7 @@ export default function SettingsClient({
 
       {/* AI Model Selection Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">AI Model Selection</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">AI Model Selection</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-6 text-sm">Select your preferred model for resume extraction and matching. If your preferred model is exhausted, the system will automatically fall back to the next available one.</p>
         
         {isLoadingModels ? (
@@ -736,7 +736,7 @@ export default function SettingsClient({
         ) : (
           <div className="space-y-4">
             {apiKeys.length > 0 && (
-              <div className="p-3 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800/50 dark:text-blue-400">
+              <div className="p-3 text-sm font-medium text-ink bg-card border border-hairline rounded-md">
                 BYOK Active — your own quota, not shared limits
               </div>
             )}
@@ -777,7 +777,7 @@ export default function SettingsClient({
               return (
                 <div 
                   key={model.name} 
-                  className={`p-4 rounded-md border ${isPreferred ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10' : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'} ${unavailable ? 'opacity-70' : ''}`}
+                  className={`p-4 rounded-md border ${isPreferred ? 'border-[var(--ink)] bg-[color-mix(in_srgb,var(--accent)_25%,transparent)] text-ink' : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'} ${unavailable ? 'opacity-70' : ''}`}
                 >
                   <div className="flex items-start gap-3">
                     <input 
@@ -786,12 +786,12 @@ export default function SettingsClient({
                       name="ai_model"
                       checked={isPreferred}
                       onChange={() => handleModelChange(model.name)}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      className="mt-1 w-4 h-4 text-[var(--ink)] border-gray-300 focus:ring-[var(--ink)]"
                     />
                     <div className="flex-1">
                       <label htmlFor={`model-${model.name}`} className="block font-medium text-gray-900 dark:text-zinc-100 cursor-pointer">
                         {model.name}
-                        {isPreferred && <span className="ml-2 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-0.5 rounded-full">Preferred</span>}
+                        {isPreferred && <span className="ml-2 text-xs bg-card border border-hairline text-ink font-label uppercase tracking-wider px-2 py-0.5 rounded-full">Preferred</span>}
                         {unavailable && <span className="ml-2 text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-0.5 rounded-full">Unavailable</span>}
                       </label>
                       <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">{model.description}</p>
@@ -800,7 +800,7 @@ export default function SettingsClient({
                         <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                           <div className="flex-1 max-w-xs h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                             <div 
-                              className={`h-full ${unavailable ? 'bg-red-500' : 'bg-blue-500'}`} 
+                              className={`h-full ${unavailable ? 'bg-red-500' : 'bg-[var(--ink)]'}`} 
                               style={{ width: `${Math.min(100, (model.request_count / model.dailyLimit) * 100)}%` }}
                             />
                           </div>
@@ -826,7 +826,7 @@ export default function SettingsClient({
 
       {/* Appearance Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Appearance</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Appearance</h2>
         <div className="flex gap-4">
           {mounted && ['light', 'dark', 'system'].map((t) => (
             <button
@@ -846,7 +846,7 @@ export default function SettingsClient({
 
       {/* Resumes Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Resumes</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Resumes</h2>
         
         <div className="mb-8">
           <ResumeUploader onSuccess={handleUploadSuccess} />
@@ -865,7 +865,7 @@ export default function SettingsClient({
                     <button 
                       type="button"
                       onClick={() => setPreviewResumeId(r.id)}
-                      className="font-medium text-blue-600 hover:underline dark:text-blue-400 text-left"
+                      className="font-medium link-ink text-left"
                     >
                       {r.version_label}
                     </button>
@@ -882,7 +882,7 @@ export default function SettingsClient({
                   {!r.is_current && (
                     <button 
                       onClick={() => handleSetCurrentResume(r.id)}
-                      className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                      className="text-sm link-ink font-medium transition-colors"
                     >
                       Set as current
                     </button>
@@ -902,24 +902,24 @@ export default function SettingsClient({
 
       {/* Data Export */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Data Export</h2>
+        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Data Export</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-4">Download a complete copy of all your tracked applications.</p>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => handleExportData('csv')}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 border border-gray-300 dark:border-zinc-700 rounded-md font-medium transition-colors"
+            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
           >
             Export as CSV
           </button>
           <button
             onClick={() => handleExportData('json')}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 border border-gray-300 dark:border-zinc-700 rounded-md font-medium transition-colors"
+            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
           >
             Export as JSON
           </button>
           <button
             onClick={() => handleExportData('xlsx')}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-800 dark:text-zinc-200 border border-gray-300 dark:border-zinc-700 rounded-md font-medium transition-colors"
+            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
           >
             Export as XLSX
           </button>
@@ -928,7 +928,7 @@ export default function SettingsClient({
 
       {/* Danger Zone */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-red-200 dark:border-red-900/50 shadow-sm">
-        <h2 className="text-xl font-semibold text-red-600 dark:text-red-500 mb-6 border-b border-red-100 dark:border-red-900/30 pb-4">Danger Zone</h2>
+        <h2 className="text-xl font-semibold font-display text-red-600 dark:text-red-500 mb-6 border-b border-red-100 dark:border-red-900/30 pb-4">Danger Zone</h2>
         <p className="text-gray-600 dark:text-zinc-400 mb-4">
           Permanently delete your account and all associated applications. This action cannot be undone.
         </p>
@@ -956,7 +956,7 @@ export default function SettingsClient({
             <div className="flex gap-4">
               <button
                 onClick={() => setDeleteStep(0)}
-                className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700 rounded-md font-medium transition-colors"
+                className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
               >
                 Cancel
               </button>
@@ -984,7 +984,7 @@ export default function SettingsClient({
             <div className="flex gap-4">
               <button
                 onClick={() => { setDeleteStep(0); setDeleteEmail(""); setDeleteError(""); }}
-                className="px-4 py-2 bg-white hover:bg-gray-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 border border-gray-300 dark:border-zinc-700 rounded-md font-medium transition-colors"
+                className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
               >
                 Cancel
               </button>

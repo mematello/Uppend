@@ -29,20 +29,20 @@ export function CookieConsentBanner() {
           <p className="hidden sm:block">
             We only use essential cookies to keep you logged in and local storage to save your UI preferences. 
             We do not use tracking or marketing cookies. Learn more in our{' '}
-            <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+            <Link href="/privacy" className="link-ink">
               Privacy Policy
             </Link>.
           </p>
           <p className="sm:hidden">
             We use essential cookies for auth and preferences. No tracking. See our{' '}
-            <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+            <Link href="/privacy" className="link-ink">
               Privacy Policy
             </Link>.
           </p>
         </div>
         <button
           onClick={handleDismiss}
-          className="w-full sm:w-auto min-h-[44px] min-w-[44px] px-6 py-2 bg-gray-900 hover:bg-gray-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-gray-900 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0"
+          className="w-full sm:w-auto min-h-[44px] min-w-[44px] px-6 py-2 btn-primary rounded-lg text-sm font-medium whitespace-nowrap shrink-0"
         >
           Understood
         </button>

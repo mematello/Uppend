@@ -265,15 +265,15 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
       onClick={closeDeleteModal}
     >
       <div 
-        className={`bg-white dark:bg-zinc-900 rounded-xl shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
+        className={`bg-card rounded-xl border border-hairline shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-2">Delete Application</h3>
+        <h3 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-2">Delete Application</h3>
         <p className="text-gray-600 dark:text-zinc-400 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
         <div className="flex justify-end gap-3">
           <button 
             onClick={closeDeleteModal}
-            className="px-4 py-2 text-gray-700 dark:text-zinc-300 font-medium hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-colors"
+            className="btn-secondary px-4 py-2 font-medium rounded-md transition-colors"
           >
             Cancel
           </button>
@@ -295,8 +295,8 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
   if (!applicationData) {
     return (
       <div className="max-w-5xl mx-auto p-4 md:p-8 text-center py-20">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-100 mb-4">Application Not Found</h2>
-        <Link href="/dashboard" className="text-blue-600 hover:underline">Return to Dashboard</Link>
+        <h2 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">Application Not Found</h2>
+        <Link href="/dashboard" className="link-ink">Return to Dashboard</Link>
       </div>
     );
   }
@@ -309,7 +309,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 mb-2 flex items-center gap-2 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
           </Link>
-          <h1 className="text-3xl font-bold">{formData.role} at {formData.company_name}</h1>
+          <h1 className="text-3xl font-bold font-display">{formData.role} at {formData.company_name}</h1>
         </div>
         <button
           type="button"
@@ -331,16 +331,16 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
       <form onSubmit={handleSave} className="space-y-8">
         
         {/* Extracted Fields */}
-        <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Extracted Details</h2>
+        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
+          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Extracted Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Company Name</label><input required type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role</label><input required type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Company Name</label><input required type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role</label><input required type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Salary Range</label>
               <div className="flex gap-2">
                 <div className="relative">
-<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
+<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
                   <option value="PHP">PHP</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -354,20 +354,20 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 </select>
 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
 </div>
-                <input type="text" name="salary_range" value={formData.salary_range || ''} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
+                <input type="text" name="salary_range" value={formData.salary_range || ''} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
               </div>
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Location</label><input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Location</label><input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm text-gray-600 dark:text-zinc-400">Job Link</label>
                 {formData.job_link && (
-                  <a href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                  <a href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`} target="_blank" rel="noopener noreferrer" className="text-xs link-ink flex items-center gap-1">
                     Open <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                   </a>
                 )}
               </div>
-              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
+              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
             </div>
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
@@ -385,7 +385,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100"
+                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100"
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
@@ -401,16 +401,16 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                   value={formData.source} 
                   onChange={handleInputChange} 
                   placeholder="Please specify"
-                  className="w-full p-2 mt-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" 
+                  className="w-full p-2 mt-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" 
                 />
               ) : null}
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Recruiter Name</label><input type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Contact Info</label><input type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Recruiter Name</label><input type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Contact Info</label><input type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
           </div>
           <div className="mt-6">
             <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Tech Stack</label>
-            <div className="p-2 min-h-[42px] rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-blue-500">
+            <div className="p-2 min-h-[42px] rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
               {formData.tech_stack.map((tech: string, idx: number) => (
                 <span key={idx} className="bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-800 text-sm px-2 py-1 rounded flex items-center gap-1">
                   {tech} <button type="button" onClick={() => removeTech(tech)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:text-zinc-100">&times;</button>
@@ -422,13 +422,13 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
         </section>
 
         {/* Tracking Fields */}
-        <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Tracking Details</h2>
+        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
+          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Tracking Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
               <div className="relative">
-<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
+<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
                 <option value="draft">Draft</option><option value="applied">Applied</option><option value="screening">Screening</option>
                 <option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option><option value="ghosted">Ghosted</option>
               </select>
@@ -438,20 +438,20 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Priority</label>
               <div className="relative">
-<select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100">
+<select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
                 <option value="">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
               </select>
 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
 </div>
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label><input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action</label><input type="text" name="next_action" value={formData.next_action} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label><input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action</label><input type="text" name="next_action" value={formData.next_action} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action Date</label>
               <div className="flex flex-col gap-3">
-                <input type="date" name="next_action_date" value={formData.next_action_date} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
+                <input type="date" name="next_action_date" value={formData.next_action_date} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="reminder_enabled" name="reminder_enabled" checked={formData.reminder_enabled} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500" />
+                  <input type="checkbox" id="reminder_enabled" name="reminder_enabled" checked={formData.reminder_enabled} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
                   <label htmlFor="reminder_enabled" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Enable Email Reminder</label>
                 </div>
               </div>
@@ -459,7 +459,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Resume Version</label>
               <div className="flex gap-2">
-                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" />
+                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
                   <button type="button" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-3 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded border border-gray-300 dark:border-zinc-700 text-sm font-medium transition-colors">
                     Preview
@@ -469,28 +469,28 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             </div>
           </div>
           <div className="flex items-center gap-2 mt-6">
-            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-blue-600 focus:ring-blue-500" />
+            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
             <label htmlFor="cover_letter_sent" className="text-sm text-gray-700 dark:text-zinc-300">Cover Letter Sent</label>
           </div>
         </section>
 
         {/* Evaluation Fields */}
-        <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-          <h2 className="text-xl font-semibold mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Evaluation & Interviews</h2>
+        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
+          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Evaluation & Interviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Stage</label><input type="text" name="interview_stage" value={formData.interview_stage} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" placeholder="e.g. Phone Screen, Technical, Final" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Rejection Reason</label><input type="text" name="rejection_reason" value={formData.rejection_reason} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role Fit (1-5)</label><input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Culture Fit (1-5)</label><input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Stage</label><input type="text" name="interview_stage" value={formData.interview_stage} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" placeholder="e.g. Phone Screen, Technical, Final" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Rejection Reason</label><input type="text" name="rejection_reason" value={formData.rejection_reason} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role Fit (1-5)</label><input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Culture Fit (1-5)</label><input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
           </div>
           <div className="mt-6 space-y-6">
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Notes</label>
-              <textarea name="interview_notes" value={formData.interview_notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <textarea name="interview_notes" value={formData.interview_notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
             </div>
             <div>
               <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">General Notes</label>
-              <textarea name="notes" value={formData.notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus:ring-2 focus:ring-blue-500 outline-none min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <textarea name="notes" value={formData.notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
             </div>
           </div>
         </section>
@@ -504,7 +504,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           <button
             type="submit"
             disabled={isSaving}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium disabled:opacity-50 transition-colors shadow-lg pointer-events-auto"
+            className="btn-primary px-8 py-3 rounded-md font-medium shadow-lg pointer-events-auto"
           >
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
