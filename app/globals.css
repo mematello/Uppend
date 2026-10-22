@@ -201,6 +201,12 @@
     font-size: 0.75rem;
     letter-spacing: 0.05em;
   }
+
+  .ai-suggested {
+    background-color: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+  }
 }
 
 @keyframes pageFadeIn {
