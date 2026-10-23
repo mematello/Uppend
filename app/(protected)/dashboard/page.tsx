@@ -44,7 +44,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 text-ink">
-      <nav aria-label="App" className="flex items-center justify-between pb-3 mb-6 border-b border-hairline">
+      <nav aria-label="App" className="sticky top-0 z-30 -mx-4 -mt-4 px-4 pt-4 bg-paper sm:static sm:z-auto sm:mx-0 sm:mt-0 sm:px-0 sm:pt-0 sm:bg-transparent flex items-center justify-between pb-3 mb-6 border-b border-hairline">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 min-h-[44px] shrink-0"
