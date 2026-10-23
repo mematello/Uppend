@@ -290,17 +290,17 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button 
               type="button"
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className="w-full h-full flex flex-row flex-wrap items-baseline gap-3 lg:flex-col lg:gap-3 text-left min-h-[44px]"
+              className="w-full h-full flex flex-row flex-wrap items-center content-center gap-x-3 gap-y-1 lg:items-baseline lg:flex-col lg:gap-3 text-left min-h-[44px]"
             >
               <div className={`font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
                 Streak
               </div>
-              <div className="flex items-end min-h-0 lg:min-h-[2.5rem]">
+              <div className="flex items-center lg:items-end min-h-0 lg:min-h-[2.5rem]">
                 <span className={`font-display text-2xl lg:text-3xl leading-none tabular-nums ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
                   {streakInfo.count} {streakInfo.count === 1 ? 'day' : 'days'}
                 </span>
               </div>
-              <div className="min-h-0 lg:min-h-[1rem] flex items-center">
+              <div className="basis-full lg:basis-auto min-h-0 lg:min-h-[1rem] flex items-center">
                 {streakInfo.status === 'at_risk' && (
                   <span className="font-label text-xs normal-case tracking-normal text-ink">
                     apply today to keep it!
