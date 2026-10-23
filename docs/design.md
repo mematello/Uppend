@@ -1,6 +1,6 @@
 # Uppend — Design Language & Visual System
 
-*Single source of truth for Uppend's visual language established in Session 28. Future UI development—including the full redesign of application pages—must follow these tokens, components, and rules.*
+*Single source of truth for Uppend's visual language established in Session 28 and extended in Session 29. Future UI development—including the full redesign of application pages—must follow these tokens, components, and rules.*
 
 ---
 
@@ -32,12 +32,14 @@ Values extracted from `app/globals.css:6-33` and `components/landing/landing.mod
 | `--muted` / `--landing-muted` | `#525252` | `#A3A3A3` | Secondary text, captions | `text-muted-ink` |
 | `--card` / `--landing-card` | `#FAF8F3` | `#141311` | Container surfaces | `bg-card` |
 | `--row-hover` / `--landing-row-hover` | `#F0EDE4` | `#1A1916` | Interactive hover | `bg-row-hover` |
+| `--scrim` | `rgba(0,0,0,0.45)` | `rgba(0,0,0,0.60)` | Modal backdrop overlay | `bg-scrim` |
 
 ### Tailwind `@theme inline` Aliases (`app/globals.css:218-261`)
 
-- Classes: `bg-paper`, `text-ink`, `bg-accent`, `bg-card`, `border-hairline`, `bg-row-hover`, `text-muted-ink`.
+- Classes: `bg-paper`, `text-ink`, `bg-accent`, `bg-card`, `border-hairline`, `bg-row-hover`, `text-muted-ink`, `bg-scrim`, `rounded-ledger`.
 - Base border reset: `@layer base { *, ::before, ::after { border-color: var(--hairline); } }`
 - `--color-white`: aliased to `#FAF8F3`.
+- `rounded-ledger`: bound to `--radius-ledger` (used for popover panels and modal cards).
 - **Stone Ramp Remap (Contrast Tuned)**:
   - `gray-*` (light mode) and `zinc-*` (dark mode) alias to Tailwind v4 stone scales.
   - Tuned stops for >= 4.5:1 contrast: `gray-400` $\rightarrow$ `stone-500` (line 233), `gray-500` $\rightarrow$ `stone-600` (line 234), `zinc-400` $\rightarrow$ `stone-400` (line 252), `zinc-500` $\rightarrow$ `stone-400` (line 253).
@@ -95,6 +97,9 @@ Fonts defined in `lib/fonts.ts` and loaded globally in `app/layout.tsx:33`.
 | **AI Suggested** | `.ai-suggested` | `globals.css:205` | Form inputs in `new/page.tsx:781,797,804,859` | 25% accent tint fill with dark ink border and text. |
 | **Ledger Card** | `.ledgerCard` | `landing.module.css:48` | `FlowDemo.tsx`, `DemoPanels.tsx` | Background `var(--card)`, border 1px `var(--hairline)`, radius `rounded-sm`. |
 | **Outbound Link** | `.group` + `<ArrowUpRight />` | `SiteFooter.tsx` | Footer, external references | Desktop: arrow revealed on hover with subtle offset slide. Mobile: full-width 44px tap area with always-visible arrow. |
+| **Heatmap Popover** | `rounded-ledger border-hairline bg-card` | `ActivityHeatmapDropdown.tsx` | Dashboard streak cell | Token-based anchored dropdown panel; tile ramp via `color-mix(in srgb, var(--ink) N%, transparent)` at five opacity levels; nav buttons use `.btn-secondary`; month label in `.font-label`. |
+| **Logout Modal** | `bg-scrim` / `rounded-ledger` | `LogoutButton.tsx` | Dashboard nav | Full-screen `bg-scrim` backdrop (portal to `document.body`); inner card `bg-card rounded-ledger border-hairline`; confirm button `.btn-primary`, cancel `.btn-secondary`; 44px min-height touch targets. |
+| **Dashboard Loading Skeleton** | `animate-pulse bg-row-hover` | `app/(protected)/dashboard/loading.tsx` | Dashboard page route | Server component; mirrors final layout structure (nav bar, stats grid, toolbar, ledger rows, pagination) with `animate-pulse` placeholder blocks using `bg-row-hover` on `bg-card` cells. |
 
 ### Status Chips (`app/globals.css:112-203`, `DashboardClient.tsx:14-21`)
 
@@ -160,9 +165,10 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 4. **Sticky Save Bar**: Application detail sticky footer uses `sticky bottom-4 z-10 pointer-events-none` with children `pointer-events-auto` (`ApplicationDetailClient.tsx:498-505`).
 5. **Status Badges**: Must be `inline-flex` without `w-full` (`DashboardClient.tsx:440`).
 6. **Stacked Mobile Dashboard**: Tables transition to stacked cards on mobile (`thead hidden md:table-header-group`, `tbody block md:table-row-group`, `tr block md:table-row` in `DashboardClient.tsx:379,409,490`).
-7. **Portal Modals**: Modals mount to `document.body` via `createPortal` with fixed positioning (`ApplicationDetailClient.tsx:520`, `ResumePreviewModal.tsx:80`, `UnsavedChangesModal.tsx:64`).
-8. **Touch Targets**: Minimum 44px tap targets (`min-h-[44px]` in `LandingHeader.tsx:31`, `ThemeToggle.tsx:37`, `DashboardClient.tsx:247`).
+7. **Portal Modals**: Modals mount to `document.body` via `createPortal` with fixed positioning (`ApplicationDetailClient.tsx:520`, `ResumePreviewModal.tsx:80`, `UnsavedChangesModal.tsx:64`, `LogoutButton.tsx`).
+8. **Touch Targets**: Minimum 44px tap targets (`min-h-[44px]` in `LandingHeader.tsx:31`, `ThemeToggle.tsx:37`, `DashboardClient.tsx:247`, logout modal action buttons).
 9. **Presentational Scope**: UI tasks must never touch data fetching, API routes, or RLS (`AGENTS.md:13`).
+10. **Z-Index Stack**: Sticky nav (`z-30`), popovers / anchored dropdowns (`z-20`), overlay helpers (`z-10`), modal portals (`z-[100]`). Never assign an ad-hoc z-value outside this ladder.
 
 ---
 
@@ -205,10 +211,11 @@ Every UI task must execute and report the following verification gates:
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
 - **Cookie Banner Mobile Clearance**: Fixed CookieConsentBanner mobile clearance above footer is estimated and unmeasured on small viewports.
-- **App Radii Inconsistency**: Authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`, while landing uses `rounded-sm`.
+- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages pending.
 - **Dead Plugin Classes**: References to `animate-in`, `fade-in`, and `prose` exist in code while `tailwindcss-animate` and `@tailwindcss/typography` are not in `package.json`.
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
+- **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.
 
 ---
 
@@ -231,6 +238,18 @@ All paths verified via `git ls-files`:
   - `components/landing/PrivacyNotice.tsx`
   - `components/landing/OriginStory.tsx`
   - `components/landing/SiteFooter.tsx`
+- **Dashboard (redesign/dashboard branch)**:
+  - `app/(protected)/dashboard/DashboardClient.tsx` (stats strip, ledger table, mobile card layout, toolbar, pagination)
+  - `app/(protected)/dashboard/ActivityHeatmapDropdown.tsx` (token-based heatmap popover with 5-level tile ramp)
+  - `app/(protected)/dashboard/loading.tsx` (static token-based loading skeleton server component)
+  - `app/(protected)/dashboard/page.tsx` (server component; auth, data fetch, layout shell)
+  - `components/LogoutButton.tsx` (logout trigger + scrim modal portal)
+  - `components/ThemeToggle.tsx` (icon-only theme toggle, no title attribute)
+  - `components/Button.tsx`, `components/Chip.tsx`, `components/Panel.tsx`, `components/PageHeader.tsx`, `components/Field.tsx` (shared UI primitives)
+- **Tooling**:
+  - `scripts/ui-checks/contrast.mjs` (WCAG contrast checker for all token pairs including heatmap tile ramp Groups A–D)
+  - `scripts/ui-checks/dead-class-scan.mjs` (scans TSX class strings against compiled CSS chunks)
+  - `scripts/ui-checks/token-delta.mjs` (diffs token usage across a commit range)
 - **Documentation**:
   - `docs/design.md` (this file; single source of truth for visual language)
   - `docs/architecture.md` (system architecture and conventions)

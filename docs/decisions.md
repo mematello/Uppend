@@ -1,5 +1,30 @@
 # Uppend — Decisions Log
 
+## [2026-10-23] Dashboard redesign (Session 29) — scrim token and modal portal pattern
+- Context: Restyling the logout confirmation modal (`components/LogoutButton.tsx`) as part of the dashboard redesign (Group 3, commit 29).
+- Decision: Introduced `--scrim` as a dedicated CSS variable (`rgba(0,0,0,0.45)` light / `rgba(0,0,0,0.60)` dark) aliased to `bg-scrim` under `@theme inline`, rather than using a raw inline opacity or an arbitrary Tailwind class. The modal backdrop is full-screen fixed via `createPortal` to `document.body` (`z-[100]`); the inner card uses `bg-card rounded-ledger border-hairline`; action buttons use `.btn-primary` / `.btn-secondary`; all tap targets are `min-h-[44px]`.
+- Reasoning: A named token (`--scrim`) makes the modal overlay semantically distinct from surface colors, keeps the backdrop value in one place, and prevents raw RGBA literals from appearing in TSX, which is prohibited by the standing color rules.
+
+## [2026-10-23] Dashboard redesign (Session 29) — heatmap popover token migration
+- Context: Restyling `ActivityHeatmapDropdown.tsx` (Group 3, commit 28) to use design tokens instead of arbitrary Tailwind values.
+- Decision: Replaced all arbitrary color classes with token primitives: panel uses `bg-card rounded-ledger border-hairline`; tile color ramp uses `color-mix(in srgb, var(--ink) N%, transparent)` at five opacity levels (4 %, 12 %, 24 %, 40 %, 60 %); today-ring uses `ring-1 ring-[var(--ink)]`; navigation buttons use `.btn-secondary`; month/year label uses `.font-label tabular-nums`.
+- Reasoning: Keeps all color decisions inside the token system so a theme change (e.g., adopting a different ink value) propagates automatically to the heatmap without hunting down arbitrary hex values.
+
+## [2026-10-23] Dashboard redesign (Session 29) — loading skeleton as server component with token primitives
+- Context: Replacing the previous stub `loading.tsx` with a real layout-mirroring skeleton (Group 3, commit 30).
+- Decision: `app/(protected)/dashboard/loading.tsx` is implemented as a plain server component (no `'use client'`, no React state or effects). It mirrors the final dashboard layout structure (nav bar, stats grid, toolbar, ledger rows, pagination) using `animate-pulse` with `bg-row-hover` blocks on `bg-card` / `bg-paper` backgrounds. No skeleton-specific component abstraction was introduced.
+- Reasoning: A server component skeleton renders immediately from the server without a JS hydration round-trip, which is optimal for a loading placeholder. Keeping it as a flat file (not an abstracted component) avoids over-engineering a component that is only ever rendered once, by the Next.js App Router's built-in Suspense boundary for the route segment.
+
+## [2026-10-23] Dashboard redesign (Session 29) — z-index ladder codified
+- Context: Multiple layers of overlapping elements on the dashboard (sticky nav, anchored dropdowns, modal portals) required a consistent stacking policy.
+- Decision: Codified the z-index ladder in `docs/design.md §9`: sticky nav = `z-30`; popovers and anchored dropdowns = `z-20`; overlay helpers = `z-10`; modal portals = `z-[100]`. No ad-hoc z-values are permitted outside this set.
+- Reasoning: An explicit, documented ladder prevents accidental stacking conflicts when new layers are introduced and makes the intended rendering order reviewable without inspecting component code.
+
+## [2026-10-23] Dashboard redesign (Session 29) — streak cell mobile alignment restructure
+- Context: The streak stat cell in the stats strip was misaligned on mobile viewports because the title and value were in separate flex children that didn't share a common horizontal axis (Group 3, commit 26).
+- Decision: Restructured the streak cell's inner markup classes to place the title and value on a single shared horizontal flex axis (`flex items-baseline gap-1`), with the status indicator rendered below as a separate line. No state, handlers, or data calculations were modified.
+- Reasoning: The baseline-aligned flex row is the same pattern used for all other stat cells, achieving visual consistency without introducing new component abstractions.
+
 ## [2026-10-22] Landing identity and palette
 - Context: Redesigning the marketing landing page (Session 28) to give Uppend a tactile, trustworthy, and distinct visual identity.
 - Decision: Adopted an editorial "ledger/terminal" aesthetic built on warm paper (`#F6F3EC` in light mode, `#0E0E0C` in dark mode), crisp ink (`#121212` in light mode, `#EDEAE2` in dark mode), vibrant chartreuse accent (`#D4F03C`), muted tones, and subtle hairline borders (`rgba(18, 18, 18, 0.12)` light / `rgba(237, 234, 226, 0.14)` dark). Typography pairs Google Fonts Fraunces for display headings (`--font-landing-fraunces`) with JetBrains Mono (`--font-landing-mono`) for metadata and code elements, loaded via `next/font/google` in `lib/fonts.ts`. The interactive flow demo uses a fixed-height card layout with 4 distinct beats.
