@@ -290,7 +290,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button 
               type="button"
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className="w-full h-full flex flex-row flex-wrap items-center content-center gap-x-3 gap-y-1 lg:items-baseline lg:flex-col lg:gap-3 text-left min-h-[44px]"
+              className="w-full h-full flex flex-row flex-wrap items-center content-start justify-start gap-x-3 gap-y-1 lg:flex-col lg:flex-nowrap lg:items-start lg:content-start lg:gap-3 text-left min-h-[44px]"
             >
               <div className={`font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
                 Streak
