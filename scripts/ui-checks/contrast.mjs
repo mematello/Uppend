@@ -210,6 +210,76 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   checkPair('Decorative', 'Hairline Subtle vs Paper', themeName, '--hairline-subtle', hs, theme.rawSources.get('--hairline-subtle'), '--paper', p, theme.rawSources.get('--paper'), 3.0, false);
 }
 
+// Helper: blend fg over bg with proportion p (0..1) in sRGB
+function blendHex(fgHex, bgHex, p) {
+  const fg = fgHex.replace('#', '');
+  const bg = bgHex.replace('#', '');
+  const r1 = parseInt(fg.slice(0, 2), 16);
+  const g1 = parseInt(fg.slice(2, 4), 16);
+  const b1 = parseInt(fg.slice(4, 6), 16);
+  const r2 = parseInt(bg.slice(0, 2), 16);
+  const g2 = parseInt(bg.slice(2, 4), 16);
+  const b2 = parseInt(bg.slice(4, 6), 16);
+
+  const r = Math.round(r1 * p + r2 * (1 - p));
+  const g = Math.round(g1 * p + g2 * (1 - p));
+  const b = Math.round(b1 * p + b2 * (1 - p));
+
+  const toHex = (n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0').toUpperCase();
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+// 4. Group D: Heatmap tiles (graphical objects)
+console.log('--- Group (d): Heatmap tiles (graphical objects) ---');
+for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
+  const c = theme.vars.get('--card');
+  const ink = theme.vars.get('--ink');
+  const cSrc = theme.rawSources.get('--card');
+  const inkSrc = theme.rawSources.get('--ink');
+
+  const levels = [
+    { level: 0, p: 0.08, name: 'Level 0 (8% ink on card)', isGated: false },
+    { level: 1, p: 0.25, name: 'Level 1 (25% ink on card)', isGated: false },
+    { level: 2, p: 0.45, name: 'Level 2 (45% ink on card)', isGated: false },
+    { level: 3, p: 0.70, name: 'Level 3 (70% ink on card)', isGated: false },
+    { level: 4, p: 1.00, name: 'Level 4 (solid ink on card)', isGated: true },
+  ];
+
+  for (const lvl of levels) {
+    const blended = blendHex(ink, c, lvl.p);
+    const tokenName = lvl.level === 4 ? '--ink' : `heat-level-${lvl.level} (${Math.round(lvl.p * 100)}%)`;
+    const tokenSrc = lvl.level === 4 ? inkSrc : `color-mix ${Math.round(lvl.p * 100)}% ink over card`;
+    checkPair(
+      'Heatmap tiles',
+      lvl.name,
+      themeName,
+      tokenName,
+      blended,
+      tokenSrc,
+      '--card',
+      c,
+      cSrc,
+      3.0,
+      lvl.isGated
+    );
+  }
+
+  // Today-ring (--ink) vs card (INFO)
+  checkPair(
+    'Heatmap tiles',
+    'Today Ring (--ink on card)',
+    themeName,
+    '--ink',
+    ink,
+    inkSrc,
+    '--card',
+    c,
+    cSrc,
+    3.0,
+    false
+  );
+}
+
 if (hasFailure) {
   console.error('\nFAIL: One or more gated contrast pairs did not meet WCAG AA requirements.\n');
   process.exit(1);
