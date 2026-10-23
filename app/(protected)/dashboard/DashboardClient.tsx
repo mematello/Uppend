@@ -8,6 +8,7 @@ import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
 import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../lib/utils/streaks';
 import { formatToLocalDate } from '../../../lib/utils/dates';
+import { averageFit, formatMonthDay } from '../../../lib/utils/ledger-format';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 import { Panel } from '../../../components/ui/Panel';
 import { Field } from '../../../components/ui/Field';
@@ -430,15 +431,15 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                 className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('date_applied')}
               >
-                <div className="flex items-center gap-1">Date Applied <SortIcon field="date_applied" /></div>
+                <div className="flex items-center gap-1">Applied <SortIcon field="date_applied" /></div>
               </th>
+              <th className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink whitespace-nowrap border-b border-hairline">Fit</th>
               <th 
                 className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('priority')}
               >
                 <div className="flex items-center gap-1">Priority <SortIcon field="priority" /></div>
               </th>
-              <th className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink whitespace-nowrap border-b border-hairline">Next Action Date</th>
             </tr>
           </thead>
           <tbody className="block md:table-row-group divide-y divide-hairline">
@@ -446,9 +447,9 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               <tr 
                 key={app.id} 
                 onClick={() => handleRowClick(app.id)}
-                className="hover:bg-row-hover transition-colors duration-150 cursor-pointer group flex flex-col md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0"
+                className="grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-1 md:table-row p-4 md:p-0 border-b md:border-b-0 border-hairline last:border-0 hover:bg-row-hover transition-colors duration-150 cursor-pointer group"
               >
-                <td className="md:p-4 font-medium text-ink text-base md:text-sm block md:table-cell mb-1 md:mb-0">
+                <td className="col-span-2 col-start-1 row-start-1 font-display text-lg leading-tight text-ink md:font-sans md:text-sm md:font-medium md:p-4 md:table-cell">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="min-w-0 md:max-w-[12rem] md:truncate" title={app.company_name}>
                       {app.company_name}
@@ -459,7 +460,7 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                         target="_blank" 
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-muted-ink hover:text-ink opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 shrink-0"
+                        className="-my-2 md:my-0 text-muted-ink hover:text-ink opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 shrink-0"
                         title="View job posting"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -467,11 +468,11 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     )}
                   </div>
                 </td>
-                <td className="md:p-4 text-muted-ink text-base md:text-sm block md:table-cell mb-3 md:mb-0">
+                <td className="col-span-3 row-start-2 text-sm text-muted-ink md:p-4 md:table-cell">
                   {app.role}
                 </td>
-                <td className="md:p-4 block md:table-cell mb-3 md:mb-0">
-                  <Chip className={`${STATUS_COLORS[app.status]} px-0 py-0`}>
+                <td className="col-start-3 row-start-1 justify-self-end md:p-4 md:table-cell">
+                  <Chip className={`${STATUS_COLORS[app.status]} -my-2 md:my-0 px-0 py-0`}>
                     <Field
                       variant="select"
                       tone="chip"
@@ -491,13 +492,19 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                     </Field>
                   </Chip>
                 </td>
-                <td className="md:p-4 text-muted-ink font-mono tabular-nums block md:table-cell text-sm md:text-sm mb-1 md:mb-0">
-                  <span className="md:hidden font-sans font-medium text-ink mr-2">Applied:</span>
-                  {app.date_applied || "—"}
+                <td 
+                  className="col-start-1 row-start-3 text-muted-ink font-mono tabular-nums uppercase text-sm md:text-sm md:p-4 md:table-cell"
+                  title={app.date_applied ?? undefined}
+                >
+                  <span className="md:hidden font-label text-xs uppercase tracking-wider text-muted-ink mr-2">Applied</span>
+                  {formatMonthDay(app.date_applied)}
                 </td>
-                <td className="md:p-4 block md:table-cell mb-2 md:mb-0">
+                <td className="col-start-3 row-start-3 justify-self-end text-muted-ink font-mono tabular-nums text-sm md:text-sm md:p-4 md:table-cell">
+                  <span className="md:hidden font-label text-xs uppercase tracking-wider text-muted-ink mr-2">Fit</span>
+                  {averageFit(app.role_fit, app.culture_fit)}
+                </td>
+                <td className="col-start-2 row-start-3 md:p-4 md:table-cell">
                   <div className="flex items-center">
-                    <span className="md:hidden font-sans font-medium text-ink mr-2 text-sm">Priority:</span>
                     {app.priority ? (
                       <span className={`bg-transparent font-label text-xs uppercase tracking-wider px-2 py-0.5 rounded-ledger inline-flex ${
                         app.priority === 'high' ? 'border border-ink text-ink font-semibold' :
@@ -506,13 +513,10 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
                       }`}>
                         {app.priority.toUpperCase()}
                       </span>
-                    ) : <span className="text-muted-ink md:hidden">—</span>}
-                    {!app.priority && <span className="hidden md:inline text-muted-ink">—</span>}
+                    ) : (
+                      <span className="hidden md:inline text-muted-ink">—</span>
+                    )}
                   </div>
-                </td>
-                <td className="md:p-4 text-muted-ink font-mono tabular-nums block md:table-cell text-sm md:text-sm">
-                  <span className="md:hidden font-sans font-medium text-ink mr-2">Next Action:</span>
-                  {app.next_action_date || "—"}
                 </td>
               </tr>
             ))}
