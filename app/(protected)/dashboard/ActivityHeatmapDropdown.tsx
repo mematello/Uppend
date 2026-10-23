@@ -34,11 +34,11 @@ export default function ActivityHeatmapDropdown({
   const { weeks } = generateMonthGrid(applications, viewYear, viewMonth, timezone);
 
   const getHeatmapColor = (count: number) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-white/2';
-    if (count === 1) return 'bg-green-200 dark:bg-green-900/40';
-    if (count === 2) return 'bg-green-400 dark:bg-green-700/60';
-    if (count === 3) return 'bg-green-600 dark:bg-green-600';
-    return 'bg-green-800 dark:bg-green-500';
+    if (count === 0) return 'bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]';
+    if (count === 1) return 'bg-[color-mix(in_srgb,var(--ink)_25%,transparent)]';
+    if (count === 2) return 'bg-[color-mix(in_srgb,var(--ink)_45%,transparent)]';
+    if (count === 3) return 'bg-[color-mix(in_srgb,var(--ink)_70%,transparent)]';
+    return 'bg-ink';
   };
 
   const isAtEarliestBound = viewYear === startBound.year && viewMonth === startBound.month;
@@ -79,19 +79,19 @@ export default function ActivityHeatmapDropdown({
         <button
           onClick={handlePrev}
           disabled={isAtEarliestBound}
-          className={`p-1 rounded transition-colors ${isAtEarliestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-[var(--row-hover)] text-[var(--muted)] hover:text-[var(--ink)]'}`}
+          className={`min-h-[44px] min-w-[44px] inline-flex items-center justify-center border border-hairline rounded-ledger text-ink hover:bg-row-hover disabled:opacity-40 disabled:cursor-not-allowed focus-ink transition-colors ${isAtEarliestBound ? 'opacity-0 cursor-default pointer-events-none' : ''}`}
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
 
-        <span className="text-sm font-semibold font-display text-[var(--ink)]">
-          {monthName} {viewYear}
+        <span className="text-sm font-semibold font-label uppercase tracking-wider text-ink">
+          {monthName} <span className="font-mono tabular-nums">{viewYear}</span>
         </span>
 
         <button
           onClick={handleNext}
           disabled={isAtLatestBound}
-          className={`p-1 rounded transition-colors ${isAtLatestBound ? 'opacity-0 cursor-default pointer-events-none' : 'hover:bg-[var(--row-hover)] text-[var(--muted)] hover:text-[var(--ink)]'}`}
+          className={`min-h-[44px] min-w-[44px] inline-flex items-center justify-center border border-hairline rounded-ledger text-ink hover:bg-row-hover disabled:opacity-40 disabled:cursor-not-allowed focus-ink transition-colors ${isAtLatestBound ? 'opacity-0 cursor-default pointer-events-none' : ''}`}
         >
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -99,7 +99,7 @@ export default function ActivityHeatmapDropdown({
 
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DAYS_OF_WEEK.map(day => (
-          <div key={day} className="text-center text-[10px] font-label font-medium text-[var(--muted)]">
+          <div key={day} className="text-center font-label text-xs text-muted-ink">
             {day.charAt(0)}
           </div>
         ))}
@@ -112,7 +112,7 @@ export default function ActivityHeatmapDropdown({
               {day ? (
                 <div
                   title={day.tooltip}
-                  className={`w-full h-full rounded-sm transition-colors cursor-default ${getHeatmapColor(day.count)}`}
+                  className={`w-full h-full rounded-ledger transition-colors cursor-default ${getHeatmapColor(day.count)}`}
                 />
               ) : (
                 <div className="w-full h-full bg-transparent" />

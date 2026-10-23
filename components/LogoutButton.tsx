@@ -6,7 +6,7 @@ import { LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function LogoutButton() {
+export default function LogoutButton({ menuItem = false }: { menuItem?: boolean } = {}) {
   const router = useRouter();
   const supabase = createClient();
   const [isMounted, setIsMounted] = useState(false);
@@ -38,19 +38,19 @@ export default function LogoutButton() {
 
   const modalContent = isMounted ? (
     <div 
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`} 
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-scrim transition-opacity duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'}`} 
       onClick={closeModal}
     >
       <div 
-        className={`bg-card rounded-xl border border-hairline shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
+        className={`bg-card rounded-ledger border border-hairline w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-2">Log Out</h3>
-        <p className="text-gray-600 dark:text-zinc-400 mb-6">Are you sure you want to log out of your account?</p>
+        <h3 className="text-xl font-bold font-display text-ink mb-2">Log Out</h3>
+        <p className="text-muted-ink mb-6">Are you sure you want to log out of your account?</p>
         <div className="flex justify-end gap-3">
           <button 
             onClick={closeModal}
-            className="px-4 py-2 btn-secondary font-medium rounded-md"
+            className="px-4 py-2 min-h-[44px] btn-secondary font-medium rounded-ledger"
           >
             Cancel
           </button>
@@ -59,7 +59,7 @@ export default function LogoutButton() {
               closeModal();
               handleLogout();
             }}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
+            className="px-4 py-2 min-h-[44px] bg-red-700 dark:bg-red-800 hover:bg-red-800 dark:hover:bg-red-700 text-white font-medium rounded-ledger transition-colors focus-ink"
           >
             Log Out
           </button>
@@ -70,13 +70,26 @@ export default function LogoutButton() {
 
   return (
     <>
-      <button
-        onClick={openModal}
-        className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
-        title="Log Out"
-      >
-        <LogOut className="w-5 h-5" />
-      </button>
+      {menuItem ? (
+        <button
+          onClick={openModal}
+          className="w-full min-h-[44px] px-4 flex items-center justify-start font-label text-xs uppercase tracking-wider text-ink hover:bg-row-hover transition-colors focus-ink"
+          title="Log Out"
+          aria-label="Log Out"
+        >
+          Log Out
+        </button>
+      ) : (
+        <button
+          onClick={openModal}
+          className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
+          title="Log Out"
+          aria-label="Log Out"
+        >
+          <LogOut className="w-5 h-5 sm:hidden" />
+          <span className="hidden sm:inline">Log Out</span>
+        </button>
+      )}
       {typeof document !== "undefined" && createPortal(modalContent, document.body)}
     </>
   );

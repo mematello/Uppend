@@ -6,8 +6,11 @@ import DashboardClient from './DashboardClient';
 import Link from 'next/link';
 import LogoutButton from '../../../components/LogoutButton';
 import { ThemeToggle } from '../../../components/ThemeToggle';
-import { Settings } from 'lucide-react';
+import { Settings, Plus } from 'lucide-react';
 import { Application } from '../../../lib/types';
+import Image from 'next/image';
+import { PageHeader } from '../../../components/ui/PageHeader';
+import MobileNavMenu from '../../../components/MobileNavMenu';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -40,28 +43,78 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 text-gray-900 dark:text-zinc-100">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 sm:gap-4 mb-8">
-        <h1 className="text-3xl font-bold font-display">Welcome, {firstName}!</h1>
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <ThemeToggle />
+    <div className="max-w-6xl mx-auto p-4 md:p-8 text-ink">
+      <nav aria-label="App" className="sticky top-0 z-30 -mx-4 -mt-4 px-4 pt-4 bg-paper sm:static sm:z-auto sm:mx-0 sm:mt-0 sm:px-0 sm:pt-0 sm:bg-transparent flex items-center justify-between pb-3 mb-6 border-b border-hairline">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2.5 min-h-[44px] shrink-0"
+          aria-label="Uppend Home"
+        >
+          <Image
+            src="/images/uppend-logo.jpg"
+            alt="Uppend Logo"
+            width={28}
+            height={28}
+            className="rounded-sm object-contain"
+            priority
+          />
+          <span className="text-lg font-semibold tracking-tight text-ink font-label">
+            Uppend
+          </span>
+        </Link>
+
+        <div className="hidden sm:flex items-center gap-1 sm:gap-2">
+          <ThemeToggle label="Theme" />
           {user && (
-            <Link href="/settings" className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors" title="Settings">
-              <Settings className="w-5 h-5" />
+            <Link
+              href="/settings"
+              className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
+              title="Settings"
+              aria-label="Settings"
+            >
+              <Settings className="w-5 h-5 sm:hidden" />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
           )}
           {user ? (
             <LogoutButton />
           ) : (
-            <Link href="/login" className="px-4 py-2 min-h-[44px] flex items-center justify-center btn-secondary rounded-md font-medium">
+            <Link
+              href="/login"
+              className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
+              title="Log in"
+              aria-label="Log in"
+            >
               Log in
             </Link>
           )}
-          <Link href="/new" className="px-4 py-2 min-h-[44px] flex items-center justify-center btn-primary rounded-md font-medium shadow-sm">
+        </div>
+
+        <div className="flex items-center gap-2 sm:hidden">
+          <Link
+            href="/new"
+            aria-label="New application"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-accent text-on-accent border border-ink rounded-ledger transition-colors focus-ink"
+          >
+            <Plus className="w-5 h-5" strokeWidth={1.75} />
+          </Link>
+          <MobileNavMenu isLoggedIn={!!user} />
+        </div>
+      </nav>
+
+      <PageHeader
+        eyebrow="01 / DASHBOARD"
+        title={`Welcome, ${firstName}!`}
+        hideActionsOnMobile
+        actions={
+          <Link
+            href="/new"
+            className="px-4 py-2 min-h-[44px] flex items-center justify-center btn-primary rounded-ledger font-medium"
+          >
             + New Application
           </Link>
-        </div>
-      </div>
+        }
+      />
       
       {/* Pass the loaded data down to the interactive client component */}
       <DashboardClient initialApplications={applications} isLocal={!user} timezone={user ? profile?.reminder_timezone : null} accountCreatedAt={user ? profile?.created_at : null} dailyGoal={user ? profile?.daily_goal : 5} quote={quote} />

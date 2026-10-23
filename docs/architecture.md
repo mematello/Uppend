@@ -16,6 +16,8 @@ app/
   migrate/              → Interstitial page for local-to-cloud migration
 components/
   landing/              → Modular marketing landing page sections (LandingHeader, LandingHero, FlowDemo, DemoPanels, HowItWorks, PrivacyNotice, SiteFooter, OriginStory, landing.module.css)
+  ui/                     Presentational primitives (Button.tsx, Chip.tsx, Panel.tsx, PageHeader.tsx, Field.tsx)
+  MobileNavMenu.tsx       Disclosure navigation menu on mobile screens
   ThemeToggle.tsx       → Dark/light mode toggle
   ResumeUploader.tsx    → Shared component for resume uploads (used in Settings and Onboarding)
   ResumePreviewModal.tsx→ Portal-based modal for previewing uploaded resumes
@@ -25,6 +27,7 @@ lib/
   fonts.ts              → Display (Fraunces) and label (JetBrains Mono) Google Fonts loader with CSS variables
   utils/
     email.ts            → Shared Nodemailer transporter (lazy-verified) for all system emails
+    ledger-format.ts      Formatting and sorting utilities (averageFit, formatMonthDay, fitValue, compareNullsLast)
   ai/providers.ts       → Source of truth for AI providers, display names, and client-safe helpers
   ai/models.ts          → Model selection, fallback, and error-parsing logic
   ai/guard.ts           → Pre-filter heuristic scanning for AI prompt injection defense
@@ -35,6 +38,8 @@ lib/
 docs/
   schema.md             → Database schema reference
   design.md             → Single source of truth for visual language, design tokens, and UI rules
+scripts/
+  ui-checks/              Local verification scripts (contrast.mjs, dead-class-scan.mjs, token-delta.mjs)
 ```
 
 ## Data model
@@ -61,7 +66,7 @@ docs/
 - **Billing Relationship**: The `/api/match` route depends entirely on `/api/extract` for billing enforcement and free-tier decrementing. Since they fire in parallel, `/api/extract` acts as the billing gatekeeper; `/api/match` checks quota but does not deduct from it.
 - **Operator Alerting**: The system actively pages operators via email (using Nodemailer/Gmail SMTP via `lib/utils/email.ts`) on critical AI failures. Alerts are triggered on model deprecation (`PERMANENT_PROVIDER`) and fallback chain exhaustion. Exhaustion alerts are deduplicated via a 1-hour sliding window suppressing duplicates, governed by a `record_exhaustion_event` RPC that locks a state row and trips at a >= 3 event threshold. The SMTP connection is "lazy-verified" (no handshake on import) to ensure `/api/extract` and `/api/match` don't pick up an implicit network dependency just by importing `alerting.ts`.
 - **Settings & BYOK**: The `app/(protected)/settings/` page includes a "Custom API Keys (BYOK)" section supporting multiple providers (e.g., Google, Groq). Users can securely override global limits and only see models for the providers they have keys for, driven by the `/api/models` endpoint.
-- **Design System & Semantic Tokens**: A unified warm paper/ink design language spans marketing and application surfaces. Semantic tokens (`--paper`, `--ink`, `--accent`, `--card`, `--hairline`, `--row-hover`, `--muted-ink`, `--on-accent`) are declared in `app/globals.css` and bound to Tailwind v4 via `@theme inline`. Tailwind's neutral gray and zinc utility ramps are mapped directly to a stone palette with calibrated oklch lightness values for guaranteed text contrast (>= 4.5:1). A base border color reset in `@layer base { *, ::before, ::after { border-color: var(--hairline); } }` ensures bare `border` utilities render subtle hairline borders.
+- **Design System & Semantic Tokens**: A unified warm paper/ink design language spans marketing and application surfaces. Semantic tokens (`--paper`, `--ink`, `--accent`, `--card`, `--hairline`, `--row-hover`, `--muted-ink`, `--on-accent`, `--scrim`, `--field-border`, `--radius-ledger`) are declared in `app/globals.css` and bound to Tailwind v4 via `@theme inline` (`--scrim: rgba(18, 18, 18, 0.6)`, `--field-border: #8E887E` light / `#6E685D` dark, `--on-accent: #121212` both themes, `--radius-ledger: 0.125rem`). Design tokens in `components/landing/landing.module.css` alias these global tokens. Tailwind's neutral gray and zinc utility ramps are mapped directly to a stone palette with calibrated oklch lightness values for guaranteed text contrast (>= 4.5:1). A base border color reset in `@layer base { *, ::before, ::after { border-color: var(--hairline); } }` ensures bare `border` utilities render subtle hairline borders.
 - **Global Typography**: Fonts are mounted at the root layout (`app/layout.tsx`): Geist (`--font-geist-sans`) provides the app body font, Fraunces (`--font-landing-fraunces` via `lib/fonts.ts` / `.font-display`) provides editorial display headings, and JetBrains Mono (`--font-landing-mono` via `lib/fonts.ts` / `.font-label`) provides label and monospace typography.
 - **Shared Component Classes**: Reusable UI classes in `@layer utilities` in `app/globals.css`:
   - `.btn-primary`: Ink-filled pill/rounded buttons with light text in light mode and dark text in dark mode.
@@ -69,7 +74,7 @@ docs/
   - `.link-ink`: Underlined links with ink text transitioning on hover.
   - `.focus-ink`: Focus rings matching `var(--ink)`.
   - `.ai-suggested`: 25% accent tint background with ink border and text for AI-suggested form values.
-  - Status chips (`.status-applied`, `.status-screening`, `.status-interviewing`, `.status-offer`, `.status-rejected`, `.status-ghosted`, `.status-withdrawn`): Standardized hairline status badges.
+  - Status chips (`.chip-draft`, `.chip-applied`, `.chip-screening`, `.chip-interview`, `.chip-offer`, `.chip-rejected`, `.chip-withdrawn`, `.chip-ghosted`): Standardized hairline status badges.
 - **Theme**: Dark mode is implemented via `next-themes` (system default + manual toggle in `ThemeToggle.tsx`).
 - **Data Export & Privacy Controls**: Settings exposes a CSV/JSON/XLSX export and a 'Clear Local Data' IndexedDB wipe.
 - **Auth & System Email Delivery**: Authentication emails, scheduled follow-up reminders (`/api/cron/reminders`), and operator alerts are all delivered via Gmail SMTP (`uppend.noreply@gmail.com`). The `/api/cron/reminders` endpoint is triggered every minute by an external scheduler (cron-job.org) using a Bearer token with `CRON_SECRET`.

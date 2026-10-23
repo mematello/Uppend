@@ -1,8 +1,72 @@
 # Uppend — Decisions Log
 
+## [2026-10-23] Status chip class names are .chip-*
+- Context: Standardizing status badge utility classes in `app/globals.css`.
+- Decision: Standardized status chip utility classes in `app/globals.css` use `.chip-*` naming (`.chip-draft`, `.chip-applied`, `.chip-screening`, `.chip-interview`, `.chip-offer`, `.chip-rejected`, `.chip-withdrawn`, `.chip-ghosted`), superseding the earlier `.status-*` naming mentioned in the 2026-10-22 entry.
+- Reasoning: Matches the presentational `.chip-*` classes defined in `app/globals.css` and aligns with `components/ui/Chip.tsx`.
+
+## [2026-10-23] Dashboard redesign (Session 29) — streak cell single-row-on-mobile layout
+- Context: In Group 3c (commit 33), aligning the streak cell with the rest of the stats strip on mobile and desktop.
+- Decision: Configured Cell 3's toggle `<button>` as `flex flex-row flex-nowrap items-center justify-start gap-x-3` below `lg`, transitioning to `lg:flex-col lg:items-start lg:justify-start lg:gap-3` on desktop. Label and numeral wrappers use `shrink-0` with `whitespace-nowrap` on the count. The tail wrapper (`min-w-0 flex-1 flex items-center lg:flex-none lg:min-h-[1rem]` when at_risk, `hidden lg:block lg:min-h-[1rem]` otherwise) allows the warning copy ("apply today to keep it!") to wrap inside its own box without shifting the label or numeral position.
+- Reasoning: Ensures a single compact horizontal row on mobile with vertical centering while maintaining the exact three-row numeral/label/footer structure shared across all stat cells on desktop.
+
+## [2026-10-23] Dashboard redesign (Session 29) — verification tooling decisions
+- Context: Establishing deterministic, reproducible automated gates for UI verification across the dashboard redesign.
+- Decision:
+  - Added `scripts/ui-checks/contrast.mjs` validating text (>= 4.5:1), functional borders (>= 3.0:1), and heatmap tiles (`blendHex` helper against `--card`).
+  - Added `scripts/ui-checks/dead-class-scan.mjs` checking parsed JSX class tokens against compiled CSS in `.next/static/chunks/*.css` and `.next/static/css/*.css`. Added bare identifier resolution (`const <ident> = ...`) so local constant class variables (such as `skel` in `loading.tsx`) are verified as static classes.
+  - Added `scripts/ui-checks/token-delta.mjs` reporting token additions/removals and preventing unauthorized raw hex/rgba literals in component TSX.
+  - Standardized on the `git show "main:$f" | npx eslint --stdin --stdin-filename $f` stdin method for net-zero ESLint baseline verification without modifying working tree files.
+  - Stripped ANSI color codes from `npm test` summaries for reliable CLI parsing and logs.
+- Reasoning: Automated local tooling eliminates manual inspection gaps, enforces token discipline, prevents silent regressions, and works cleanly across webpack and Turbopack builds.
+
+## [2026-10-23] Dashboard redesign (Session 29) — mobile nav disclosure menu and sticky nav (z-index stack)
+- Context: Designing mobile navigation for the authenticated dashboard (Group 2d / 3).
+- Decision: Created `components/MobileNavMenu.tsx` providing a tap-friendly disclosure dropdown menu with quick action and links (`Dashboard`, `New Application`, `Settings`, `LogoutButton` via `menuItem` prop). The app nav bar is pinned sticky on mobile (`sticky top-0 z-30 bg-paper sm:static sm:z-auto sm:bg-transparent`). Z-index stack is codified as: overlay backdrops = `z-10`, anchored popovers/dropdowns = `z-20`, sticky app nav = `z-30`, modal portals = `z-[100]`.
+- Reasoning: Solves mobile navigation without crowding the header, ensures the app bar stays visible while scrolling long application tables, and prevents layering bugs across popovers and modal backdrops.
+
+## [2026-10-23] Dashboard redesign (Session 29) — Fit sort is an owner-approved logic exception
+- Context: Making the "Fit" match score column sortable on the dashboard table (Group 2e, commit 25).
+- Decision: Added `'fit'` to `SortField` and implemented numeric sorting via `compareNullsLast` in `lib/utils/ledger-format.ts`, with dedicated unit tests in `tests/ledger-format.test.ts`. This was explicitly approved by the owner as a permitted logic enhancement on an otherwise presentational branch.
+- Reasoning: Allows users to sort applications by AI match percentage to prioritize follow-ups, treating unextracted/null fit scores cleanly at the bottom of the list.
+
+## [2026-10-23] Dashboard redesign (Session 29) — Next Action Date removed from the dashboard table only
+- Context: Redesigning table columns into a streamlined ledger sheet (Group 2e, commit 24).
+- Decision: The dashboard table columns are standardized to: Company, Role, Status, Applied, Fit, and Priority. Next Action Date was removed from the dashboard table view to avoid visual clutter and maintain legible columnar alignment. Next Action Date remains intact in the underlying database schema and on the application detail page.
+- Reasoning: Focuses the primary dashboard view on core ledger tracking metrics while reserving scheduling details for the dedicated detail view.
+
+## [2026-10-23] Dashboard redesign (Session 29) — scrim token and --field-border (3:1 form borders)
+- Context: Meeting WCAG AA 3.0:1 contrast requirements for interactive form borders and providing a standardized backdrop for modal overlays.
+- Decision:
+  - Added `--scrim` (`rgba(18, 18, 18, 0.6)` in :root and .dark) mapped to `bg-scrim` under `@theme inline` for `document.body` modal portals (`z-[100]`).
+  - Added `--field-border` (`#8E887E` light / `#6E685D` dark) mapped to `--color-field-border: var(--field-border)` under `@theme inline` for form inputs and selects in `components/ui/Field.tsx`, guaranteeing >= 3.0:1 contrast against both `--paper` and `--card` backgrounds.
+  - Bound `--color-on-accent` to `var(--on-accent)` (`#121212` in both light and dark themes).
+- Reasoning: Fulfills accessibility contrast standards for functional input boundaries while removing arbitrary opacity literals from component markup.
+
+## [2026-10-23] Dashboard redesign (Session 29) — radius-ledger namespaced instead of overriding rounded-sm
+- Context: Standardizing border radii across dashboard panels, popovers, and ledger components.
+- Decision: Defined `--radius-ledger: 0.125rem` (2px) and mapped it to utility class `rounded-ledger` under `@theme inline`. Avoided overriding Tailwind's default `rounded-sm` utility.
+- Reasoning: Namespacing prevents unintended side effects across third-party components or pages that rely on Tailwind's default radius scales, while giving ledger elements a distinct, disciplined 2px corner.
+
+## [2026-10-23] Dashboard redesign (Session 29) — direction A and primitives (components/ui/*)
+- Context: Establishing presentational UI primitives for the dashboard redesign.
+- Decision: Created lightweight, presentational UI primitives in `components/ui/`: `Button` (variants `'primary'` | `'secondary'`, `isTouchTarget`), `Chip` (hairline badge wrapper forwarding ref/props), `Panel` (container surface with `bg-card border-hairline rounded-ledger`), `PageHeader` (`eyebrow`, `title`, `actions`, `hideActionsOnMobile`), and `Field` (variants `'input'` | `'select'`, `tone="chip"`, `wrapperClassName`, ref/props forwarding). All primitives use `React.forwardRef` and avoid internal data-fetching or state logic.
+- Reasoning: Eliminates duplicated className chains across dashboard views while keeping components focused purely on presentation.
+
+## [2026-10-23] Dashboard redesign (Session 29) — heatmap popover token migration
+- Context: Restyling `ActivityHeatmapDropdown.tsx` (Group 3, commit 28) to use design tokens instead of arbitrary Tailwind values.
+- Decision: Replaced all arbitrary color classes with token primitives: panel uses `bg-card rounded-ledger border-hairline`; tile color ramp uses `color-mix(in srgb, var(--ink) N%, transparent)` at five opacity levels (8%, 25%, 45%, 70%, 100% ink); today-ring uses `ring-1 ring-[var(--ink)]`; navigation buttons use `.btn-secondary` touch targets with `disabled:opacity-40 disabled:cursor-not-allowed` (faded rather than hidden); month/year label uses `.font-label text-sm uppercase tracking-wider` with `.font-mono tabular-nums`.
+- Reasoning: Keeps all color decisions inside the token system so a theme change propagates automatically to the heatmap without hunting down arbitrary hex values.
+
+## [2026-10-23] Dashboard redesign (Session 29) — loading skeleton as server component with token primitives
+- Context: Replacing the previous stub `loading.tsx` with a real layout-mirroring skeleton (Group 3, commit 30).
+- Decision: `app/(protected)/dashboard/loading.tsx` is implemented as a plain server component (no `'use client'`, no React state or effects). It mirrors the final dashboard layout structure (nav bar, stats grid, toolbar, ledger rows, pagination) using `animate-pulse` with `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger` blocks. No skeleton-specific component abstraction was introduced.
+- Reasoning: A server component skeleton renders immediately from the server without a JS hydration round-trip, which is optimal for a loading placeholder. Keeping it as a flat file avoids over-engineering.
+
 ## [2026-10-22] Landing identity and palette
 - Context: Redesigning the marketing landing page (Session 28) to give Uppend a tactile, trustworthy, and distinct visual identity.
 - Decision: Adopted an editorial "ledger/terminal" aesthetic built on warm paper (`#F6F3EC` in light mode, `#0E0E0C` in dark mode), crisp ink (`#121212` in light mode, `#EDEAE2` in dark mode), vibrant chartreuse accent (`#D4F03C`), muted tones, and subtle hairline borders (`rgba(18, 18, 18, 0.12)` light / `rgba(237, 234, 226, 0.14)` dark). Typography pairs Google Fonts Fraunces for display headings (`--font-landing-fraunces`) with JetBrains Mono (`--font-landing-mono`) for metadata and code elements, loaded via `next/font/google` in `lib/fonts.ts`. The interactive flow demo uses a fixed-height card layout with 4 distinct beats.
+- CORRECTION: The landing hairline values recorded above as rgba(...) are wrong. The code uses `#E5E0D4` (light) / `#23221E` (dark) and subtle `#ECE8DE` / `#191815`, as verified by `git show main:components/landing/landing.module.css`.
 
 ## [2026-10-22] Local Mode copy and CTA separation (No AI in Local Mode)
 - Context: Clarifying product capabilities and calls to action across landing page hero and feature sections.

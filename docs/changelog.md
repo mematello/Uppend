@@ -1,5 +1,62 @@
 # Uppend — Changelog
 
+## [2026-10-23] (Session 29)
+- Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits on top of `main` at `c8ae62a`):
+  - (this commit) docs(dashboard): Session 29 documentation corrections 3 (docs/changelog.md, docs/architecture.md, docs/current_state.md, docs/manifest.md ONLY)
+  - `3d3a8f6` docs(dashboard): Session 29 documentation corrections 2
+  - `0294679` docs(dashboard): Session 29 documentation corrections
+  - `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
+  - `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
+  - `28196d7` fix(dashboard): streak cell left/top alignment
+  - `1424bcf` docs(dashboard): Session 29 documentation pass
+  - `27b6c40` feat(dashboard): loading skeleton
+  - `d22a9e0` feat(ui): logout modal
+  - `469e30c` feat(dashboard): heatmap popover
+  - `489590b` tooling(ui-checks): contrast.mjs heat-ramp pairs
+  - `ccebee2` fix(dashboard): streak cell alignment on mobile
+  - `b7ada27` feat(dashboard): sortable Fit column
+  - `6a02a26` feat(dashboard): sticky app nav on mobile
+  - `fc1e410` feat(dashboard): ledger columns and mobile card layout
+  - `f7e6c39` feat(dashboard): compact stats strip on mobile
+  - `13c070b` feat(dashboard): mobile header with quick action and disclosure menu
+  - `efeb60b` feat(ui): mobile nav menu pieces
+  - `469e374` feat(utils): add ledger format helpers and unit tests
+  - `c395367` fix(dashboard): update streak stat cell title and pluralize count
+  - `3a14a13` feat(dashboard): stats cells with text labels and aligned numerals
+  - `301ac5e` fix(ui): remove title attribute from ThemeToggle button
+  - `a759304` fix(dashboard): add 44px touch target and responsive padding to row status select
+  - `31d3949` feat(dashboard): restyle stats strip with taller cells, display numerals, and flex sizing
+  - `765d902` feat(dashboard): add app nav bar with wordmark and text menu items
+  - `fff7ae4` tooling(ui-checks): classify bare identifier classNames as unresolved dynamic expressions
+  - `41db09e` feat(dashboard): restyle ledger table and pagination with tokens and primitives
+  - `ae85244` feat(dashboard): restyle search input, filter pills, and status popover in toolbar
+  - `a64c4ec` feat(dashboard): restyle Local Mode banners, empty-state block, and stats strip
+  - `48c2c47` tooling(ui-checks): add row-hover text pairs, relabel accent icon contrast, and add chip focus outline
+  - `dab95fb` fix(ui): add wrapperClassName and refine chip select focus and option styles in Field
+  - `42b2eb2` fix(tooling): support .trim() on template literal className attributes in dead-class-scan
+  - `567ee2a` feat(dashboard): restyle navigation frame and page header
+  - `d999752` tooling(ui-checks): improve dead-class-scan with dynamic branches and unescaped selectors
+  - `050606f` fix(ui, tooling): resolve eslint warnings on new primitives and token-delta script
+  - `a1b001b` refactor(dashboard): remove dead animation plugin classes from dashboard client
+  - `c574891` tooling(ui-checks): add local UI verification scripts (contrast, dead-class-scan, token-delta)
+  - `4366044` feat(ui): add presentational UI primitives (Button, Chip, Panel, PageHeader, Field)
+  - `8faa595` feat(tokens): add --color-on-accent, --scrim, --field-border, and --radius-ledger to globals.css
+  - `5471cae` refactor(tokens): alias landing module CSS variables to global design tokens
+- Note (process incidents this session): Exactly the following owner-verified items occurred during Session 29:
+  - (a) Group 0 report contained a hand-written "Token Equality Proof" block;
+  - (b) Group 2 report showed an ESLint baseline table 3/3/0 that differed from the owner terminal 1/3/2 because the baseline method changed;
+  - (c) dead-class-scan flagged bare className variables as dead classes until fixed;
+  - (d) unrequested commit c395367 (streak label/pluralisation) after the Group 2c request;
+  - (e) Groups 2d/2e reports contained hand-written headers, notes and a "[printed verbatim]" placeholder inside "raw output" blocks;
+  - (f) the agent's Group 0 pre-flight text listed commit 8bbf188, which does not exist in the repository (git cat-file -t 8bbf188 fails: Not a valid object name); that text was not raw terminal output. A planning-chat note that the owner's terminal had listed it was wrong.
+  - (g) the Group 2b paste omitted the git/tsc/test sections;
+  - (h) the planning chat wrongly suspected hyphen-for-dash replacement that was only Windows console encoding;
+  - (i) current_state.md claimed 37 commits while git rev-list --count main..HEAD was 35 at 28196d7;
+  - (j) the agent ran dead-class-scan by copying CSS from .next/static/css into .next/static/chunks instead of fixing the scanner (fixed in commit 34).
+  - (k) After commit 0294679, decisions.md and design.md still recorded --scrim as rgba(0,0,0,0.45)/0.60 while app/globals.css has rgba(18, 18, 18, 0.6); found by an owner grep and fixed in the next docs commit.
+  - (l) Group 3c's Step A printed a streak-cell excerpt (bg-ink, an isOpen/onClose heatmap, 'Cell 4: Applications this week') and a loading.tsx excerpt (space-y-6, border-[var(--border)]) that do not match the repository, and its pre-flight said the branch was 'ahead of origin/redesign/dashboard by 4 commits' although git branch -vv shows no upstream; those blocks were not raw output.
+  - (m) A planning-chat review inferred from that pre-flight line that the branch had been pushed; wrong.
+
 ## [2026-10-22] (Session 28)
 - Implemented: Landing page redesign (merge 1208c60; commits 204e5db, a4b9e89, ef7eb4c, 08dae6a, 43fa228, 667229c). Established ledger/terminal identity with warm paper (`#F6F3EC` / dark `#0E0E0C`), crisp ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Added Google Fonts Fraunces (`--font-landing-fraunces`) and JetBrains Mono (`--font-landing-mono`) in `lib/fonts.ts`. Implemented fixed-height 4-beat interactive flow demonstration (`FlowDemo.tsx`, `DemoPanels.tsx`), 3-step feature breakdown (`HowItWorks.tsx`), zero-leak/zero-training privacy breakdown (`PrivacyNotice.tsx`), founder note (`OriginStory.tsx`), and comprehensive site footer (`SiteFooter.tsx`) with creator details, feedback links (GitHub Issues / email), and legal links. Adjusted hero CTAs and copy to clarify that Local Mode is offline tracking without AI features, which require an account or BYOK.
 - Implemented: App-wide retheme matching the landing identity (merge eb96472; commits d0ffe87, a5c972b, ce16935, 9e2d976, e903efe, 88be739, ba71814, e95fe69, 6accd71, 6d4d377, 35db026, 996c88c, f5d7d2b). Aliased Tailwind v4 neutral gray and zinc utility ramps directly to warm stone values with fine-tuned oklch lightness scales for guaranteed >= 4.5:1 text contrast. Replaced system/Arial body font with Geist (`--font-geist-sans`). Defined shared utility classes in `@layer utilities` (`.btn-primary`, `.btn-secondary`, `.link-ink`, `.focus-ink`, `.font-display`, `.font-label`), standardized hairline status chips across dashboard, and restyled AI-suggested form inputs with `.ai-suggested` (25% accent tint with ink border and text). Rethemed all app pages (auth, onboarding, migrate, legal, dashboard, new application, application detail, settings, modals, uploader) with zero layout, markup, props, or data-fetching changes.
