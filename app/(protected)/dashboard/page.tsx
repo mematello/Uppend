@@ -6,10 +6,11 @@ import DashboardClient from './DashboardClient';
 import Link from 'next/link';
 import LogoutButton from '../../../components/LogoutButton';
 import { ThemeToggle } from '../../../components/ThemeToggle';
-import { Settings } from 'lucide-react';
+import { Settings, Plus } from 'lucide-react';
 import { Application } from '../../../lib/types';
 import Image from 'next/image';
 import { PageHeader } from '../../../components/ui/PageHeader';
+import MobileNavMenu from '../../../components/MobileNavMenu';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -62,7 +63,7 @@ export default async function DashboardPage() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="hidden sm:flex items-center gap-1 sm:gap-2">
           <ThemeToggle label="Theme" />
           {user && (
             <Link
@@ -88,11 +89,23 @@ export default async function DashboardPage() {
             </Link>
           )}
         </div>
+
+        <div className="flex items-center gap-2 sm:hidden">
+          <Link
+            href="/new"
+            aria-label="New application"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center bg-accent text-on-accent border border-ink rounded-ledger transition-colors focus-ink"
+          >
+            <Plus className="w-5 h-5" strokeWidth={1.75} />
+          </Link>
+          <MobileNavMenu isLoggedIn={!!user} />
+        </div>
       </nav>
 
       <PageHeader
         eyebrow="01 / DASHBOARD"
         title={`Welcome, ${firstName}!`}
+        hideActionsOnMobile
         actions={
           <Link
             href="/new"
