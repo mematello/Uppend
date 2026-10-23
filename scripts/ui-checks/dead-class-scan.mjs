@@ -7,19 +7,25 @@ if (args.length === 0) {
   process.exit(1);
 }
 
-// Find compiled .next CSS files
-const nextChunksDir = path.resolve('.next/static/chunks');
-if (!fs.existsSync(nextChunksDir)) {
-  console.error('ERROR: .next/static/chunks directory not found. Please run "npm run build" first.');
-  process.exit(1);
+// Find compiled .next CSS files in both .next/static/chunks and .next/static/css
+const searchDirs = [
+  path.resolve('.next/static/chunks'),
+  path.resolve('.next/static/css')
+];
+
+const cssFiles = [];
+for (const dir of searchDirs) {
+  if (fs.existsSync(dir)) {
+    for (const f of fs.readdirSync(dir)) {
+      if (f.endsWith('.css')) {
+        cssFiles.push(path.join(dir, f));
+      }
+    }
+  }
 }
 
-const cssFiles = fs.readdirSync(nextChunksDir)
-  .filter(f => f.endsWith('.css'))
-  .map(f => path.join(nextChunksDir, f));
-
 if (cssFiles.length === 0) {
-  console.error('ERROR: No compiled CSS chunks found under .next/static/chunks. Please run "npm run build" first.');
+  console.error('ERROR: No compiled CSS files found under .next/static/chunks or .next/static/css. Please run "npm run build" first.');
   process.exit(1);
 }
 
@@ -91,6 +97,7 @@ function isClassInCss(className) {
 const verifiedClasses = new Set();
 const deadClasses = [];
 const unresolvedDynamic = [];
+const resolvedViaConst = [];
 
 function checkToken(token, filePath, lineNo) {
   if (!token || token.includes('${') || token.startsWith(':') || token === 'true' || token === 'false') {
@@ -111,6 +118,38 @@ for (const filePath of args) {
     continue;
   }
   const content = fs.readFileSync(filePath, 'utf8');
+
+  // 0. Extract const string declarations: const <ident> = <string literal or template literal without ${}>
+  const constMap = new Map();
+  const constRegex = /(?:^|\n)\s*const\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?::\s*[^=]+)?\s*=\s*(?:(["'])([\s\S]*?)\2|`([^`${}]*)`)\s*;/g;
+  let cm;
+  while ((cm = constRegex.exec(content)) !== null) {
+    const ident = cm[1];
+    const val = cm[3] !== undefined ? cm[3] : cm[4];
+    constMap.set(ident, val);
+  }
+
+  function handleIdentifierOrDynamic(expr, lineNo) {
+    const trimmed = expr.trim();
+    const identMatch = trimmed.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)(?:\.trim\(\))?$/);
+    if (identMatch && constMap.has(identMatch[1])) {
+      const val = constMap.get(identMatch[1]);
+      for (const token of val.split(/\s+/).filter(Boolean)) {
+        checkToken(token, filePath, lineNo);
+      }
+      resolvedViaConst.push({
+        file: filePath,
+        line: lineNo,
+        expression: trimmed
+      });
+    } else {
+      unresolvedDynamic.push({
+        file: filePath,
+        line: lineNo,
+        expression: expr.replace(/\s+/g, ' ')
+      });
+    }
+  }
 
   // 1. Check lookup tables (e.g. const STATUS_COLORS: Record<string, string> = { ... })
   const lookupTableRegex = /(?:const|let|var)\s+([A-Z0-9_]+)(?:\s*:\s*[^=]+)?\s*=\s*\{([\s\S]*?)\};/g;
@@ -163,12 +202,7 @@ for (const filePath of args) {
             checkToken(token, filePath, exprLine);
           }
         } else {
-          // Unresolved dynamic expression (e.g. variable lookup STATUS_COLORS[app.status])
-          unresolvedDynamic.push({
-            file: filePath,
-            line: exprLine,
-            expression: expr.replace(/\s+/g, ' ')
-          });
+          handleIdentifierOrDynamic(expr, exprLine);
         }
       }
     } else if (match[2] || match[3]) {
@@ -200,12 +234,7 @@ for (const filePath of args) {
             checkToken(token, filePath, lineNo);
           }
         } else {
-          // Bare identifier or unresolved expression (e.g. mergedClassName, resolvedWrapper, x.trim())
-          unresolvedDynamic.push({
-            file: filePath,
-            line: lineNo,
-            expression: expr.replace(/\s+/g, ' ')
-          });
+          handleIdentifierOrDynamic(expr, lineNo);
         }
       }
     }
@@ -217,7 +246,12 @@ console.log('=== Dead Class Verification Report ===\n');
 console.log(`Files scanned: ${args.length}`);
 console.log(`Verified CSS classes: ${verifiedClasses.size}`);
 
-console.log(`Unresolved dynamic expressions: ${unresolvedDynamic.length}`);
+console.log(`\nResolved via const: ${resolvedViaConst.length}`);
+for (const item of resolvedViaConst) {
+  console.log(`  [RESOLVED via const] ${item.file}:${item.line}: ${item.expression}`);
+}
+
+console.log(`\nUnresolved dynamic expressions: ${unresolvedDynamic.length}`);
 for (const item of unresolvedDynamic) {
   console.log(`  [UNRESOLVED] ${item.file}:${item.line}: ${item.expression}`);
 }
