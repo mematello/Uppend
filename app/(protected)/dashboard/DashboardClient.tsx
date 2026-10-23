@@ -8,7 +8,7 @@ import { Application } from '../../../lib/types';
 import { fetchApplications, updateApplicationStatus } from '../../../lib/data-source';
 import { getStreakStatus, getGoalProgress, getWeeklyCount } from '../../../lib/utils/streaks';
 import { formatToLocalDate } from '../../../lib/utils/dates';
-import { averageFit, formatMonthDay } from '../../../lib/utils/ledger-format';
+import { averageFit, formatMonthDay, fitValue, compareNullsLast } from '../../../lib/utils/ledger-format';
 import ActivityHeatmapDropdown from './ActivityHeatmapDropdown';
 import { Panel } from '../../../components/ui/Panel';
 import { Field } from '../../../components/ui/Field';
@@ -172,6 +172,15 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
   const sortedApps = [...filteredApps].sort((a, b) => {
     let valA = a[sortField as keyof Application];
     let valB = b[sortField as keyof Application];
+
+    if (sortField === 'fit') {
+      const diff = compareNullsLast(
+        fitValue(a.role_fit, a.culture_fit),
+        fitValue(b.role_fit, b.culture_fit),
+        sortAsc
+      );
+      if (diff !== 0) return diff;
+    }
 
     if (sortField === 'priority') {
       const pmap: Record<string, number> = { 'high': 3, 'medium': 2, 'low': 1, 'null': 0, '': 0 };
@@ -433,7 +442,12 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
               >
                 <div className="flex items-center gap-1">Applied <SortIcon field="date_applied" /></div>
               </th>
-              <th className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink whitespace-nowrap border-b border-hairline">Fit</th>
+              <th 
+                className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
+                onClick={() => handleSort('fit')}
+              >
+                <div className="flex items-center gap-1">Fit <SortIcon field="fit" /></div>
+              </th>
               <th 
                 className="px-4 py-3 font-label uppercase text-xs tracking-wider text-muted-ink cursor-pointer hover:text-ink select-none transition-colors group whitespace-nowrap border-b border-hairline"
                 onClick={() => handleSort('priority')}

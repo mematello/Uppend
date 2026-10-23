@@ -3,10 +3,10 @@ const MONTH_NAMES = [
   'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
 ];
 
-export function averageFit(
+export function fitValue(
   roleFit: number | null | undefined,
   cultureFit: number | null | undefined
-): string {
+): number | null {
   const values: number[] = [];
   if (typeof roleFit === 'number' && !Number.isNaN(roleFit)) {
     values.push(roleFit);
@@ -16,11 +16,34 @@ export function averageFit(
   }
 
   if (values.length === 0) {
-    return '—';
+    return null;
   }
 
   const sum = values.reduce((acc, v) => acc + v, 0);
-  const avg = sum / values.length;
+  return sum / values.length;
+}
+
+export function compareNullsLast(
+  a: number | null,
+  b: number | null,
+  asc: boolean
+): number {
+  if (a === null && b === null) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  if (a === b) return 0;
+  return asc ? a - b : b - a;
+}
+
+export function averageFit(
+  roleFit: number | null | undefined,
+  cultureFit: number | null | undefined
+): string {
+  const avg = fitValue(roleFit, cultureFit);
+  if (avg === null) {
+    return '—';
+  }
+
   const text = Number.isInteger(avg) ? String(avg) : avg.toFixed(1);
   return `${text}/5`;
 }
