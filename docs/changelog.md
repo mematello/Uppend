@@ -2,7 +2,8 @@
 
 ## [2026-10-23] (Session 29)
 - Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits on top of `main` at `c8ae62a`):
-  - (this commit) docs(dashboard): Session 29 documentation corrections 2 (docs/decisions.md, docs/design.md, docs/changelog.md, docs/current_state.md, docs/architecture.md, docs/manifest.md ONLY)
+  - (this commit) docs(dashboard): Session 29 documentation corrections 3 (docs/changelog.md, docs/architecture.md, docs/current_state.md, docs/manifest.md ONLY)
+  - `3d3a8f6` docs(dashboard): Session 29 documentation corrections 2
   - `0294679` docs(dashboard): Session 29 documentation corrections
   - `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
   - `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
@@ -47,11 +48,14 @@
   - (c) dead-class-scan flagged bare className variables as dead classes until fixed;
   - (d) unrequested commit c395367 (streak label/pluralisation) after the Group 2c request;
   - (e) Groups 2d/2e reports contained hand-written headers, notes and a "[printed verbatim]" placeholder inside "raw output" blocks;
-  - (f) the agent claimed 8bbf188 was absent from the object database although the owner's Group 0 pre-flight git log listed it (verified: `git cat-file -t 8bbf188` outputs `fatal: Not a valid object name 8bbf188`);
+  - (f) the agent's Group 0 pre-flight text listed commit 8bbf188, which does not exist in the repository (git cat-file -t 8bbf188 fails: Not a valid object name); that text was not raw terminal output. A planning-chat note that the owner's terminal had listed it was wrong.
   - (g) the Group 2b paste omitted the git/tsc/test sections;
   - (h) the planning chat wrongly suspected hyphen-for-dash replacement that was only Windows console encoding;
   - (i) current_state.md claimed 37 commits while git rev-list --count main..HEAD was 35 at 28196d7;
   - (j) the agent ran dead-class-scan by copying CSS from .next/static/css into .next/static/chunks instead of fixing the scanner (fixed in commit 34).
+  - (k) After commit 0294679, decisions.md and design.md still recorded --scrim as rgba(0,0,0,0.45)/0.60 while app/globals.css has rgba(18, 18, 18, 0.6); found by an owner grep and fixed in the next docs commit.
+  - (l) Group 3c's Step A printed a streak-cell excerpt (bg-ink, an isOpen/onClose heatmap, 'Cell 4: Applications this week') and a loading.tsx excerpt (space-y-6, border-[var(--border)]) that do not match the repository, and its pre-flight said the branch was 'ahead of origin/redesign/dashboard by 4 commits' although git branch -vv shows no upstream; those blocks were not raw output.
+  - (m) A planning-chat review inferred from that pre-flight line that the branch had been pushed; wrong.
 
 ## [2026-10-22] (Session 28)
 - Implemented: Landing page redesign (merge 1208c60; commits 204e5db, a4b9e89, ef7eb4c, 08dae6a, 43fa228, 667229c). Established ledger/terminal identity with warm paper (`#F6F3EC` / dark `#0E0E0C`), crisp ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Added Google Fonts Fraunces (`--font-landing-fraunces`) and JetBrains Mono (`--font-landing-mono`) in `lib/fonts.ts`. Implemented fixed-height 4-beat interactive flow demonstration (`FlowDemo.tsx`, `DemoPanels.tsx`), 3-step feature breakdown (`HowItWorks.tsx`), zero-leak/zero-training privacy breakdown (`PrivacyNotice.tsx`), founder note (`OriginStory.tsx`), and comprehensive site footer (`SiteFooter.tsx`) with creator details, feedback links (GitHub Issues / email), and legal links. Adjusted hero CTAs and copy to clarify that Local Mode is offline tracking without AI features, which require an account or BYOK.

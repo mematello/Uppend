@@ -16,7 +16,7 @@
 
 ## 2. In progress (redesign/dashboard branch — NOT yet on main)
 
-Branch `redesign/dashboard` has 38 commits past `main` (through `0294679` / commit 35, 39 commits including this documentation commit). Branch status from `git branch -vv`: local only, no upstream, not pushed, not merged; pending owner real-device review, then the merge gate; the Session 28 production smoke test remains PENDING. Groups 2b–3c are complete and verified.
+Branch `redesign/dashboard` has 39 commits past `main` at HEAD `3d3a8f6` (40 commits including this documentation commit). Branch status from `git branch -vv`: local only, no upstream, not pushed, not merged; pending owner real-device review, then the merge gate; the Session 28 production smoke test remains PENDING. Groups 2b–3c are complete and verified.
 
 **Group 3 commits (Session 29, complete):**
 - `ccebee2` fix(dashboard): streak cell alignment on mobile
@@ -35,7 +35,10 @@ Branch `redesign/dashboard` has 38 commits past `main` (through `0294679` / comm
 - `0294679` docs(dashboard): Session 29 documentation corrections
 
 **Group 3e commit (Session 29, this commit):**
-- (this commit) docs(dashboard): Session 29 documentation corrections 2
+- `3d3a8f6` docs(dashboard): Session 29 documentation corrections 2
+
+**Group 3f commit (Session 29, this commit):**
+- (this commit) docs(dashboard): Session 29 documentation corrections 3
 
 **Pending owner actions before merge:**
 1. Review the full `redesign/dashboard` diff.
