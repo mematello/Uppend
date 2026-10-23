@@ -231,18 +231,18 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
       <Panel className="grid grid-cols-2 lg:flex mb-6">
         {/* Cell 1: Daily Goal */}
         <div 
-          className="p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col gap-3"
+          className="p-3 lg:p-5 min-h-0 lg:min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 last:border-b-0 lg:flex-1 flex flex-col gap-1 lg:gap-3"
           title={`${goalInfo.count} of ${goalInfo.goal} applications today`}
         >
-          <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+          <div className="font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 text-muted-ink">
             Today&apos;s goal
           </div>
-          <div className="flex items-end min-h-[2.5rem]">
-            <span className="font-display text-3xl leading-none tabular-nums text-ink">
+          <div className="flex items-end min-h-0 lg:min-h-[2.5rem]">
+            <span className="font-display text-2xl lg:text-3xl leading-none tabular-nums text-ink">
               {goalInfo.count}/{goalInfo.goal}
             </span>
           </div>
-          <div className="min-h-[1rem] flex items-center">
+          <div className="hidden lg:flex min-h-[1rem] items-center">
             <div className="h-1.5 w-full rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--ink)_15%,transparent)]">
               <div 
                 className="h-full bg-ink transition-all duration-500 ease-out" 
@@ -254,24 +254,24 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
         {/* Cell 2: Weekly Count */}
         <div 
-          className="p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-1 flex flex-col gap-3"
+          className="p-3 lg:p-5 min-h-0 lg:min-h-[120px] border-hairline border-b lg:border-b-0 border-r-0 lg:border-r lg:last:border-r-0 last:border-b-0 lg:flex-1 flex flex-col gap-1 lg:gap-3"
           title="Applications created this week (Mon–Sun)"
         >
-          <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+          <div className="font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 text-muted-ink">
             This week
           </div>
-          <div className="flex items-end min-h-[2.5rem]">
-            <span className="font-display text-3xl leading-none tabular-nums text-ink">
+          <div className="flex items-end min-h-0 lg:min-h-[2.5rem]">
+            <span className="font-display text-2xl lg:text-3xl leading-none tabular-nums text-ink">
               {weeklyCount}
             </span>
           </div>
-          <div className="min-h-[1rem]" />
+          <div className="hidden lg:block min-h-[1rem]" />
         </div>
 
         {/* Cell 3: Streak */}
         {streakInfo.status !== 'none' && (
           <div 
-            className={`relative col-span-2 lg:col-span-1 p-5 min-h-[120px] border-hairline border-b lg:border-b-0 border-r lg:border-r lg:last:border-r-0 lg:flex-[1.4] transition-colors ${
+            className={`relative col-span-2 lg:col-span-1 p-3 lg:p-5 min-h-0 lg:min-h-[120px] border-hairline border-b lg:border-b-0 border-r-0 lg:border-r lg:last:border-r-0 last:border-b-0 lg:flex-[1.4] transition-colors ${
               streakInfo.status === 'active'
                 ? 'bg-accent text-on-accent'
                 : 'bg-card text-ink'
@@ -280,17 +280,17 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
             <button 
               type="button"
               onClick={() => setIsHeatmapOpen(!isHeatmapOpen)}
-              className="w-full h-full flex flex-col gap-3 text-left min-h-[44px]"
+              className="w-full h-full flex flex-row flex-wrap items-baseline gap-3 lg:flex-col lg:gap-3 text-left min-h-[44px]"
             >
-              <div className={`font-label text-xs uppercase tracking-wider h-4 leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
+              <div className={`font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-muted-ink'}`}>
                 Streak
               </div>
-              <div className="flex items-end min-h-[2.5rem]">
-                <span className={`font-display text-3xl leading-none tabular-nums ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
+              <div className="flex items-end min-h-0 lg:min-h-[2.5rem]">
+                <span className={`font-display text-2xl lg:text-3xl leading-none tabular-nums ${streakInfo.status === 'active' ? 'text-on-accent' : 'text-ink'}`}>
                   {streakInfo.count} {streakInfo.count === 1 ? 'day' : 'days'}
                 </span>
               </div>
-              <div className="min-h-[1rem] flex items-center">
+              <div className="min-h-0 lg:min-h-[1rem] flex items-center">
                 {streakInfo.status === 'at_risk' && (
                   <span className="font-label text-xs normal-case tracking-normal text-ink">
                     apply today to keep it!
@@ -316,19 +316,19 @@ export default function DashboardClient({ initialApplications, isLocal, timezone
 
         {/* Cell 4: Quote of the Day */}
         {quote && (
-          <div className="col-span-2 lg:col-span-1 p-5 min-h-[120px] border-hairline border-b last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-[2] flex flex-col gap-3 min-w-0">
-            <div className="font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink">
+          <div className="col-span-2 lg:col-span-1 p-3 lg:p-5 min-h-0 lg:min-h-[120px] border-hairline border-b last:border-b-0 lg:border-b-0 lg:border-r lg:last:border-r-0 lg:flex-[2] flex flex-col gap-1 lg:gap-3 min-w-0">
+            <div className="font-label text-xs uppercase tracking-wider leading-none lg:h-4 lg:leading-4 text-muted-ink">
               Quote of the day
             </div>
-            <div className="flex items-start min-h-[2.5rem] min-w-0">
+            <div className="flex items-start min-h-0 lg:min-h-[2.5rem] min-w-0">
               <div 
-                className="font-display italic text-base text-ink break-words min-w-0"
+                className="font-display italic text-sm lg:text-base text-ink break-words min-w-0"
                 title={`"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`}
               >
                 &quot;{quote.text}&quot;{quote.author ? ` — ${quote.author}` : ''}
               </div>
             </div>
-            <div className="min-h-[1rem]" />
+            <div className="hidden lg:block min-h-[1rem]" />
           </div>
         )}
       </Panel>
