@@ -5,58 +5,28 @@
 *Last updated: 2026-10-23 (Session 29 close)*
 
 ## 1. Confirmed working / shipped (Main branch)
+- **Dashboard redesign (merge b508cf2, pushed)**: ledger-sheet dashboard with components/ui primitives, tokens --scrim/--field-border/--on-accent/--radius-ledger, mobile nav, stats strip, Fit/Applied columns, sortable Fit, heatmap, logout modal, loading skeleton, scripts/ui-checks.
 - **Landing Page Redesign (merge 1208c60)**: Marketing landing page rebuilt with an editorial ledger/terminal identity. Includes `LandingHeader`, `LandingHero`, `FlowDemo`, `DemoPanels`, `HowItWorks`, `PrivacyNotice`, `OriginStory`, and `SiteFooter` using paper (`#F6F3EC` / dark `#0E0E0C`), ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Typography utilizes Google Fonts Fraunces and JetBrains Mono via `lib/fonts.ts`. Hero copy and CTAs explicitly separate Local Mode (offline tracking) from AI features (requires account/BYOK). Merged into `main`. Production smoke test: [SMOKE TEST: PENDING].
 - **App-Wide Retheme (merge eb96472)**: Authenticated app surfaces rethemed to match the landing identity without modifying layout, markup, props, or data fetching. Gray and zinc neutral ramps aliased directly to warm stone under `@theme inline` with calibrated oklch lightness values (guaranteeing >= 4.5:1 text contrast). App body font upgraded to Geist (`--font-geist-sans`). Standardized `@layer utilities` classes (`.btn-primary`, `.btn-secondary`, `.link-ink`, `.focus-ink`, `.font-display`, `.font-label`, `.chip-*`, `.ai-suggested`). Base border reset configured for hairline borders. Merged into `main`. Production smoke test: [SMOKE TEST: PENDING].
 - **Per-Call Provider Timeouts (merge de8f0ce)**: Per-call provider timeouts in `lib/ai/provider.ts` (45s timeout via AbortController + setTimeout) and error classification in `parseProviderError` in `lib/ai/models.ts`. Fallback loop advances on timeout/network error without retrying the same model. Pushed to `origin/main` in Session 27.
 - **DB Privilege Lockdown (merge 0752ba9)**: Sensitive RPC functions restricted to `service_role`, `v_reengagement_candidates` view secured from anon/authenticated access. Supabase advisor scan confirmed `auth_users_exposed` resolved.
 - **BYOK Stage 1 & 2 Multi-Provider Support**: Fallback chain supports custom keys for Google and Groq; Settings allows managing keys per provider; `/api/models` restricts available models to configured providers; BYOK failures do not exhaust shared pool or trigger operator alerts.
-- **Vitest Test Suite**: 81 tests passing (`npm test`), validating provider routing, error classification, and fallback mechanisms with mocks.
+- **Vitest Test Suite**: 108 tests passing (`npm test`), validating provider routing, error classification, fallback mechanisms with mocks, and ledger formatting/sort helpers.
 - **Privacy Policy**: Discloses Google and Groq as processors, links their terms, and details free-tier data usage for the shared AI pool.
 - **Email & Streak Architecture**: Automated streak tracking, at-risk/loss notifications, 14-day inactivity re-engagement flow via action tokens, and Gmail SMTP delivery.
 
-## 2. In progress (redesign/dashboard branch — NOT yet on main)
-
-Branch `redesign/dashboard` has 39 commits past `main` at HEAD `3d3a8f6` (40 commits including this documentation commit). Branch status from `git branch -vv`: local only, no upstream, not pushed, not merged; pending owner real-device review, then the merge gate; the Session 28 production smoke test remains PENDING. Groups 2b–3c are complete and verified.
-
-**Group 3 commits (Session 29, complete):**
-- `ccebee2` fix(dashboard): streak cell alignment on mobile
-- `489590b` tooling(ui-checks): contrast.mjs heat-ramp pairs
-- `469e30c` feat(dashboard): heatmap popover
-- `d22a9e0` feat(ui): logout modal
-- `27b6c40` feat(dashboard): loading skeleton
-- `1424bcf` docs(dashboard): Session 29 documentation pass
-
-**Group 3b commit (Session 29, complete):**
-- `28196d7` fix(dashboard): streak cell left/top alignment
-
-**Group 3c commits (Session 29, complete):**
-- `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
-- `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
-- `0294679` docs(dashboard): Session 29 documentation corrections
-
-**Group 3e commit (Session 29, this commit):**
-- `3d3a8f6` docs(dashboard): Session 29 documentation corrections 2
-
-**Group 3f commit (Session 29, this commit):**
-- (this commit) docs(dashboard): Session 29 documentation corrections 3
-
-**Pending owner actions before merge:**
-1. Review the full `redesign/dashboard` diff.
-2. Run smoke tests against a local dev build.
-3. Merge `redesign/dashboard` into `main` via `--no-ff` in owner terminal.
-4. Push to `origin/main`.
-5. Confirm production smoke test.
-
-## 3. Open / blocking
-
-- **redesign/dashboard merge gate**: All 38 commits require owner review and a `--no-ff` merge before reaching `main`.
+## 2. Open / blocking
+- **Remaining page redesigns, in order: /new, application detail, settings, auth+onboarding+migrate, terms+privacy, modals+cookie banner+empty/loading/error states**
+- **Pre-existing dead plugin classes outside the dashboard (login/signup/migrate/UnsavedChangesModal animate-in/fade-in/zoom-in; privacy/terms prose) are deleted per page branch, not installed**
+- **Heatmap month nav buttons show faded (not hidden) at the first/last month**
+- **Dashboard is no longer purely presentational: sortable Fit is an owner-approved logic exception, see decisions.md**
+- **Session 28/29 production smoke tests not itemised: owner to run the checklist (both themes, mobile, footer links, sign-up/log-in, Local Mode, account mode) and record the result**
+- **AGENTS.md output-discipline rule added**
 - **Remove `seed_and_test.js`**: Legacy root script needs to be safely removed on its own dedicated branch.
 - **Repo-wide lint cleanup**: Several ESLint warnings and non-blocking lint errors remain across the codebase; needs a focused cleanup pass.
-- **Dead classes from missing Tailwind plugins**: Classes expecting `@tailwindcss/typography` (`prose`, `prose-stone`, etc.) or `tailwindcss-animate` (`animate-in`, `fade-in`, etc.) exist in components/pages but the packages are not installed in `package.json`.
 - **`metadataBase` warning & OG image**: Next.js build logs a warning that `metadataBase` is missing for social graph metadata. Open Graph (OG) image generation/assets need to be created and linked.
 - **Donation platform**: Evaluation and setup of a project donation channel deferred to a future session.
 - **Unused hero video in `public/videos/`**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) is unused after the landing redesign. Should be removed.
-- **Landing tokens duplicated across CSS files**: Color tokens and CSS variables partially duplicated between `components/landing/landing.module.css` and `app/globals.css`. Should be unified into `globals.css`.
 - **Settings checkbox/radio accent color**: Checkbox and radio input accents in `SettingsClient.tsx` need verification to ensure no default browser blue accents remain.
 - **Cookie banner footer padding on mobile**: On small mobile viewports, the fixed cookie consent banner can overlap the site footer or action buttons.
 - **README documentation still Gemini-only**: `README.md` still describes a Gemini-only AI pipeline; not updated for Groq fallback or BYOK multi-provider.
@@ -74,21 +44,18 @@ Branch `redesign/dashboard` has 39 commits past `main` at HEAD `3d3a8f6` (40 com
 - **Aborted call billing & telemetry**: Aborted Google calls may incur billing and are not recorded in `ai_model_usage`.
 - **`zod-to-json-schema` dependency cleanup**: Still in `package.json` with no active imports.
 
-## 4. Next steps, priority order
+## 3. Next steps, priority order
 
-1. **Owner: merge `redesign/dashboard` into `main`** after review (see §2 above).
-2. **Verify production deployment**: Run smoke tests against production once the branch is merged and deployed.
-3. **Source-field bug on `/new`**: Investigate and fix the source field being cleared post-extraction.
-4. **Open maintenance items**:
+1. **Verify production smoke checklist**: Owner to run the checklist (both themes, mobile, footer links, sign-up/log-in, Local Mode, account mode) and record the result.
+2. **Redesign `/new`**: Step 0 -> two static previews -> plan -> implement by groups -> verification -> device review -> merge gate.
+3. **Maintenance list unchanged**:
+   - Source-field bug on `/new`: Investigate and fix the source field being cleared post-extraction.
    - Remove `seed_and_test.js` on its own branch.
    - Remove unused `public/videos/uppend-vid-demo.mp4`.
    - Add `metadataBase` to root metadata and create default OG image.
-   - Clean up dead classes / install missing Tailwind plugins or replace with standard utilities.
-   - Unify landing tokens into `globals.css`.
-   - Update `README.md` to reflect multi-provider fallback and BYOK.
-5. **Database security items**: Pin `search_path` on 8 public functions and document `handle_new_user` trigger in migrations.
+   - Database security items: Pin `search_path` on 8 public functions and document `handle_new_user` trigger in migrations.
 
-## 5. Future plans (not yet scoped)
+## 4. Future plans (not yet scoped)
 
 - **JD URL-fetching**: Large feature to fetch job descriptions directly from posting URLs (touches Protected AI Routes).
 - **Non-tech job seeker generalization**: Broaden platform scope for non-tech job seekers (touches `applications.tech_stack` schema and AI prompts).

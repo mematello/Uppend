@@ -2,7 +2,7 @@
 
 ## [2026-10-23] (Session 29)
 - Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits on top of `main` at `c8ae62a`):
-  - (this commit) docs(dashboard): Session 29 documentation corrections 3 (docs/changelog.md, docs/architecture.md, docs/current_state.md, docs/manifest.md ONLY)
+  - `daf86a8` docs(dashboard): Session 29 documentation corrections 3 (docs/changelog.md, docs/architecture.md, docs/current_state.md, docs/manifest.md ONLY)
   - `3d3a8f6` docs(dashboard): Session 29 documentation corrections 2
   - `0294679` docs(dashboard): Session 29 documentation corrections
   - `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
@@ -42,6 +42,7 @@
   - `4366044` feat(ui): add presentational UI primitives (Button, Chip, Panel, PageHeader, Field)
   - `8faa595` feat(tokens): add --color-on-accent, --scrim, --field-border, and --radius-ledger to globals.css
   - `5471cae` refactor(tokens): alias landing module CSS variables to global design tokens
+- Merged redesign/dashboard into main via --no-ff (merge commit b508cf2; hash from Step A) and pushed (c8ae62a..b508cf2). Owner-terminal merge gate: tsc exit 0, tests 108/108, build exit 0. Owner reports the merged dashboard works in production; the itemised production smoke-test checklist (Session 28 and Session 29) was NOT recorded: UNVERIFIED.
 - Note (process incidents this session): Exactly the following owner-verified items occurred during Session 29:
   - (a) Group 0 report contained a hand-written "Token Equality Proof" block;
   - (b) Group 2 report showed an ESLint baseline table 3/3/0 that differed from the owner terminal 1/3/2 because the baseline method changed;
@@ -56,6 +57,7 @@
   - (k) After commit 0294679, decisions.md and design.md still recorded --scrim as rgba(0,0,0,0.45)/0.60 while app/globals.css has rgba(18, 18, 18, 0.6); found by an owner grep and fixed in the next docs commit.
   - (l) Group 3c's Step A printed a streak-cell excerpt (bg-ink, an isOpen/onClose heatmap, 'Cell 4: Applications this week') and a loading.tsx excerpt (space-y-6, border-[var(--border)]) that do not match the repository, and its pre-flight said the branch was 'ahead of origin/redesign/dashboard by 4 commits' although git branch -vv shows no upstream; those blocks were not raw output.
   - (m) A planning-chat review inferred from that pre-flight line that the branch had been pushed; wrong.
+  - (n) The owner pushed main before the planning-chat sign-off; the gate output was clean, no harm found.
 
 ## [2026-10-22] (Session 28)
 - Implemented: Landing page redesign (merge 1208c60; commits 204e5db, a4b9e89, ef7eb4c, 08dae6a, 43fa228, 667229c). Established ledger/terminal identity with warm paper (`#F6F3EC` / dark `#0E0E0C`), crisp ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Added Google Fonts Fraunces (`--font-landing-fraunces`) and JetBrains Mono (`--font-landing-mono`) in `lib/fonts.ts`. Implemented fixed-height 4-beat interactive flow demonstration (`FlowDemo.tsx`, `DemoPanels.tsx`), 3-step feature breakdown (`HowItWorks.tsx`), zero-leak/zero-training privacy breakdown (`PrivacyNotice.tsx`), founder note (`OriginStory.tsx`), and comprehensive site footer (`SiteFooter.tsx`) with creator details, feedback links (GitHub Issues / email), and legal links. Adjusted hero CTAs and copy to clarify that Local Mode is offline tracking without AI features, which require an account or BYOK.

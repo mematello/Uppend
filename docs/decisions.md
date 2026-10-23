@@ -1,5 +1,24 @@
 # Uppend — Decisions Log
 
+## [2026-10-23] Redesign process rules
+- Context: Establishing standard operating procedures for redesign branches, verification evidence discipline, and handling logic modifications on presentational tasks.
+- Decision:
+  - **Per-page loop**: Every page redesign follows a fixed sequence:
+    1. Step 0 inventory (route, components, tokens, existing classes, tests, lint baseline).
+    2. Two static HTML previews for user review and approval.
+    3. File-level implementation plan approved before code edits.
+    4. Implementation divided into structured commit groups.
+    5. Exactly one batched verification block per group.
+    6. Owner real-device review.
+    7. Owner-terminal merge gate (`tsc --noEmit`, `npm test`, `npm run build`, clean working tree) with `--no-ff` merge into `main`.
+  - **Evidence rules**:
+    - Verification blocks contain raw command output only (no headers, explanations, placeholders, or hand-edited tables inside the block; explanations follow after).
+    - ESLint baseline measured via stdin against `main` (`git show "main:$f" | npx eslint --stdin --stdin-filename $f`) for a net-zero comparison without mutating workspace files.
+    - Test summary parsed with ANSI color escape codes stripped for reliable verification.
+    - Fresh production build (`npm run build`) required before running dead-class scanning (`dead-class-scan.mjs`) to scan compiled CSS chunks.
+  - **Logic exceptions**: Page redesign branches are strictly presentational by default. Any logic exception requires explicit owner approval beforehand, its own dedicated commit, and accompanying unit tests (precedent: sortable Fit column on the dashboard table).
+- Reasoning: Ensures deterministic quality gates, eliminates manual verification discrepancies, protects production stability, and keeps presentational updates decoupled from behavioral logic changes.
+
 ## [2026-10-23] Status chip class names are .chip-*
 - Context: Standardizing status badge utility classes in `app/globals.css`.
 - Decision: Standardized status chip utility classes in `app/globals.css` use `.chip-*` naming (`.chip-draft`, `.chip-applied`, `.chip-screening`, `.chip-interview`, `.chip-offer`, `.chip-rejected`, `.chip-withdrawn`, `.chip-ghosted`), superseding the earlier `.status-*` naming mentioned in the 2026-10-22 entry.
