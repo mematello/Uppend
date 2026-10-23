@@ -1,5 +1,5 @@
 ## Project Context
-Uppend is an AI-powered job application tracker built as a solo-developer personal tool. It uses the Next.js App Router, Supabase (PostgreSQL, Auth, Storage) for the backend and database, and the Gemini API for intelligent data extraction and resume matching.
+Uppend is an AI-powered job application tracker built as a public multi-tenant SaaS by one developer. It uses the Next.js App Router, Supabase (PostgreSQL, Auth, Storage) for the backend and database, and the Gemini API for intelligent data extraction and resume matching.
 
 ## Before Starting Any Task
 - **Read `docs/schema.md` and `docs/prompts.md`** to understand the current state of the database and AI prompts. Do not assume prior session context is still accurate.
@@ -14,6 +14,7 @@ Uppend is an AI-powered job application tracker built as a solo-developer person
 - **UI Tasks**: Purely presentational/UI tasks should not touch data-fetching, API routes, or RLS logic unless explicitly asked.
 - **Verification/Testing**: Verification/testing tasks must use synthetic or seed test data, never real user data pulled via service_role or any RLS-bypassing method, even for validation purposes. Service-role use requires explicit proposal and approval BEFORE the action, not disclosure after. Report raw terminal output verbatim. If output is cut off, write it to a file and show it in chunks. Never reconstruct, summarize or complete command output. Never commit log or output files.
 - **Evidence Verification**: Any code, line number, count or before/after in a report must come from a command run in the same block; otherwise label it UNVERIFIED. Merge evidence comes from the owner's terminal.
+- **Output Discipline**: Verification blocks contain raw command output only. Do not write headers, explanations, placeholders or edited tables inside them; explanations go after the block. UNVERIFIED applies to anything not shown by a command in the same block.
 - **No Merge or Push Without Approval**: Never merge into main or push to any remote without explicit prior approval, even when tests pass. Present the diff and test output first.
 - **No Local History Rewrites After Review**: Don't reset, amend, or rebase commits that have already been shown for review. Add follow-up commits instead.
 - **No Git History Rewrites**: Never perform git rebase, git commit --amend on pushed or unpushed commits, squash-merges that erase commit history, or force-pushes, without explicit prior approval — even to remove commits related to a mistake or incident. Incidents should be documented (via a normal revert or follow-up commit) not erased from history. Fixes go in new commits.
