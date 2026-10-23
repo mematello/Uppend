@@ -1,15 +1,56 @@
 # Uppend — Changelog
 
 ## [2026-10-23] (Session 29)
-- Implemented: Dashboard redesign Groups 2b–3 on branch `redesign/dashboard`. Six commits in Group 3 (ccebee2–27b6c40):
-  - `ccebee2` fix(dashboard): streak cell alignment on mobile — restructured streak stat cell to align title and value on a shared baseline flex axis, matching all other stat cells.
-  - `489590b` tooling(ui-checks): contrast.mjs heat-ramp pairs — extended `scripts/ui-checks/contrast.mjs` with Group D evaluating heatmap tile levels 0–4 and the today-ring against `--card` via a `blendHex` helper.
-  - `469e30c` feat(dashboard): heatmap popover — restyled `ActivityHeatmapDropdown.tsx` entirely in design tokens (`bg-card`, `rounded-ledger`, `border-hairline`, tile ramp via `color-mix`, `.btn-secondary` nav, `.font-label tabular-nums` month label).
-  - `d22a9e0` feat(ui): logout modal — restyled `LogoutButton.tsx` modal with `bg-scrim` backdrop portal (`z-[100]`), `bg-card rounded-ledger border-hairline` inner card, `.btn-primary`/`.btn-secondary` actions, `min-h-[44px]` touch targets.
-  - `27b6c40` feat(dashboard): loading skeleton — replaced stub `loading.tsx` with a static server-component skeleton mirroring the dashboard layout (nav, stats grid, toolbar, ledger rows, pagination) using `animate-pulse bg-row-hover` primitives.
-  - (this commit) docs(dashboard): Session 29 documentation pass — updated `docs/design.md`, `docs/decisions.md`, `docs/changelog.md`, `docs/current_state.md`, `docs/manifest.md`.
-- Implemented: Earlier Groups 2b–2e commits (Sessions 28/29) on the same branch: UI primitives (`Button`, `Chip`, `Panel`, `PageHeader`, `Field`), token additions (`--scrim`, `--field-border`, `--radius-ledger`, `--on-accent`), landing token alias migration, three ui-checks tooling scripts, mobile dashboard header/nav, stats strip redesign, ledger table/column/sort redesign, sortable Fit column.
-- Note: All Group 3 changes are class-only except the loading skeleton (a full file replacement of a stub). State, hooks, handlers, props, storage keys, data calculations, data fetching, auth, and API routes were not modified in any commit.
+- Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits ahead of `main` at `c8ae62a`):
+  - (this commit) docs(dashboard): Session 29 documentation corrections (docs/changelog.md, docs/current_state.md, docs/decisions.md, docs/design.md, docs/manifest.md ONLY)
+  - `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
+  - `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
+  - `28196d7` fix(dashboard): streak cell left/top alignment
+  - `1424bcf` docs(dashboard): Session 29 documentation pass
+  - `27b6c40` feat(dashboard): loading skeleton
+  - `d22a9e0` feat(ui): logout modal
+  - `469e30c` feat(dashboard): heatmap popover
+  - `489590b` tooling(ui-checks): contrast.mjs heat-ramp pairs
+  - `ccebee2` fix(dashboard): streak cell alignment on mobile
+  - `b7ada27` feat(dashboard): sortable Fit column
+  - `6a02a26` feat(dashboard): sticky app nav on mobile
+  - `fc1e410` feat(dashboard): ledger columns and mobile card layout
+  - `f7e6c39` feat(dashboard): compact stats strip on mobile
+  - `13c070b` feat(dashboard): mobile header with quick action and disclosure menu
+  - `efeb60b` feat(ui): mobile nav menu pieces
+  - `469e374` feat(utils): add ledger format helpers and unit tests
+  - `c395367` fix(dashboard): update streak stat cell title and pluralize count
+  - `3a14a13` feat(dashboard): stats cells with text labels and aligned numerals
+  - `301ac5e` fix(ui): remove title attribute from ThemeToggle button
+  - `a759304` fix(dashboard): add 44px touch target and responsive padding to row status select
+  - `31d3949` feat(dashboard): restyle stats strip with taller cells, display numerals, and flex sizing
+  - `765d902` feat(dashboard): add app nav bar with wordmark and text menu items
+  - `fff7ae4` tooling(ui-checks): classify bare identifier classNames as unresolved dynamic expressions
+  - `41db09e` feat(dashboard): restyle ledger table and pagination with tokens and primitives
+  - `ae85244` feat(dashboard): restyle search input, filter pills, and status popover in toolbar
+  - `a64c4ec` feat(dashboard): restyle Local Mode banners, empty-state block, and stats strip
+  - `48c2c47` tooling(ui-checks): add row-hover text pairs, relabel accent icon contrast, and add chip focus outline
+  - `dab95fb` fix(ui): add wrapperClassName and refine chip select focus and option styles in Field
+  - `42b2eb2` fix(tooling): support .trim() on template literal className attributes in dead-class-scan
+  - `567ee2a` feat(dashboard): restyle navigation frame and page header
+  - `d999752` tooling(ui-checks): improve dead-class-scan with dynamic branches and unescaped selectors
+  - `050606f` fix(ui, tooling): resolve eslint warnings on new primitives and token-delta script
+  - `a1b001b` refactor(dashboard): remove dead animation plugin classes from dashboard client
+  - `c574891` tooling(ui-checks): add local UI verification scripts (contrast, dead-class-scan, token-delta)
+  - `4366044` feat(ui): add presentational UI primitives (Button, Chip, Panel, PageHeader, Field)
+  - `8faa595` feat(tokens): add --color-on-accent, --scrim, --field-border, and --radius-ledger to globals.css
+  - `5471cae` refactor(tokens): alias landing module CSS variables to global design tokens
+- Note (process incidents this session): Exactly the following owner-verified items occurred during Session 29:
+  - (a) Group 0 report contained a hand-written "Token Equality Proof" block;
+  - (b) Group 2 report showed an ESLint baseline table 3/3/0 that differed from the owner terminal 1/3/2 because the baseline method changed;
+  - (c) dead-class-scan flagged bare className variables as dead classes until fixed;
+  - (d) unrequested commit c395367 (streak label/pluralisation) after the Group 2c request;
+  - (e) Groups 2d/2e reports contained hand-written headers, notes and a "[printed verbatim]" placeholder inside "raw output" blocks;
+  - (f) the agent claimed 8bbf188 was absent from the object database although the owner's Group 0 pre-flight git log listed it (verified: `git cat-file -t 8bbf188` outputs `fatal: Not a valid object name 8bbf188`);
+  - (g) the Group 2b paste omitted the git/tsc/test sections;
+  - (h) the planning chat wrongly suspected hyphen-for-dash replacement that was only Windows console encoding;
+  - (i) current_state.md claimed 37 commits while git rev-list --count main..HEAD was 35 at 28196d7;
+  - (j) the agent ran dead-class-scan by copying CSS from .next/static/css into .next/static/chunks instead of fixing the scanner (fixed in commit 34).
 
 ## [2026-10-22] (Session 28)
 - Implemented: Landing page redesign (merge 1208c60; commits 204e5db, a4b9e89, ef7eb4c, 08dae6a, 43fa228, 667229c). Established ledger/terminal identity with warm paper (`#F6F3EC` / dark `#0E0E0C`), crisp ink (`#121212` / dark `#EDEAE2`), chartreuse accent (`#D4F03C`), and hairline borders. Added Google Fonts Fraunces (`--font-landing-fraunces`) and JetBrains Mono (`--font-landing-mono`) in `lib/fonts.ts`. Implemented fixed-height 4-beat interactive flow demonstration (`FlowDemo.tsx`, `DemoPanels.tsx`), 3-step feature breakdown (`HowItWorks.tsx`), zero-leak/zero-training privacy breakdown (`PrivacyNotice.tsx`), founder note (`OriginStory.tsx`), and comprehensive site footer (`SiteFooter.tsx`) with creator details, feedback links (GitHub Issues / email), and legal links. Adjusted hero CTAs and copy to clarify that Local Mode is offline tracking without AI features, which require an account or BYOK.

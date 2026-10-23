@@ -16,7 +16,7 @@
 
 ## 2. In progress (redesign/dashboard branch — NOT yet on main)
 
-Branch `redesign/dashboard` is ahead of `main` by 37 commits (through `27b6c40`). Groups 2b–3 are complete and verified. The branch has not been merged or pushed.
+Branch `redesign/dashboard` is ahead of `main` by 38 commits (through `98e0c2c` / commit 35). Groups 2b–3c are complete and verified. The branch has not been merged or pushed pending owner real-device review and merge gate.
 
 **Group 3 commits (Session 29, complete):**
 - `ccebee2` fix(dashboard): streak cell alignment on mobile
@@ -24,7 +24,15 @@ Branch `redesign/dashboard` is ahead of `main` by 37 commits (through `27b6c40`)
 - `469e30c` feat(dashboard): heatmap popover
 - `d22a9e0` feat(ui): logout modal
 - `27b6c40` feat(dashboard): loading skeleton
-- (pending commit 31) docs(dashboard): Session 29 documentation pass — **this commit**
+- `1424bcf` docs(dashboard): Session 29 documentation pass
+
+**Group 3b commit (Session 29, complete):**
+- `28196d7` fix(dashboard): streak cell left/top alignment
+
+**Group 3c commits (Session 29, complete):**
+- `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
+- `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
+- (this commit) docs(dashboard): Session 29 documentation corrections
 
 **Pending owner actions before merge:**
 1. Review the full `redesign/dashboard` diff.
@@ -35,7 +43,7 @@ Branch `redesign/dashboard` is ahead of `main` by 37 commits (through `27b6c40`)
 
 ## 3. Open / blocking
 
-- **redesign/dashboard merge gate**: All 37 commits require owner review and a `--no-ff` merge before reaching `main`.
+- **redesign/dashboard merge gate**: All 38 commits require owner review and a `--no-ff` merge before reaching `main`.
 - **Remove `seed_and_test.js`**: Legacy root script needs to be safely removed on its own dedicated branch.
 - **Repo-wide lint cleanup**: Several ESLint warnings and non-blocking lint errors remain across the codebase; needs a focused cleanup pass.
 - **Dead classes from missing Tailwind plugins**: Classes expecting `@tailwindcss/typography` (`prose`, `prose-stone`, etc.) or `tailwindcss-animate` (`animate-in`, `fade-in`, etc.) exist in components/pages but the packages are not installed in `package.json`.

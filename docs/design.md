@@ -26,20 +26,25 @@ Values extracted from `app/globals.css:6-33` and `components/landing/landing.mod
 | `--paper` / `--landing-paper` | `#F6F3EC` | `#0E0E0C` | Page background | `bg-paper` |
 | `--ink` / `--landing-ink` | `#121212` | `#EDEAE2` | Primary text, borders | `text-ink` |
 | `--accent` / `--landing-accent` | `#D4F03C` | `#D4F03C` | Chartreuse highlight/fill | `bg-accent` |
-| `--on-accent` | `#121212` | `#121212` | Text fill on top of accent | (Literal `#121212`) |
+| `--on-accent` | `#121212` | `#121212` | Text fill on top of accent | `text-on-accent` (`--color-on-accent`) |
 | `--hairline` / `--landing-hairline` | `#E5E0D4` | `#23221E` | 1px border dividers | `border-hairline` |
 | `--hairline-subtle` / `--landing-hairline-subtle` | `#ECE8DE` | `#191815` | Faint 32px grid lines | (CSS variable) |
+| `--field-border` | `#8E887E` | `#6E685D` | Form input & select borders (3:1 contrast) | `border-field-border` (`--color-field-border`) |
 | `--muted` / `--landing-muted` | `#525252` | `#A3A3A3` | Secondary text, captions | `text-muted-ink` |
 | `--card` / `--landing-card` | `#FAF8F3` | `#141311` | Container surfaces | `bg-card` |
 | `--row-hover` / `--landing-row-hover` | `#F0EDE4` | `#1A1916` | Interactive hover | `bg-row-hover` |
-| `--scrim` | `rgba(0,0,0,0.45)` | `rgba(0,0,0,0.60)` | Modal backdrop overlay | `bg-scrim` |
+| `--scrim` | `rgba(0,0,0,0.45)` | `rgba(0,0,0,0.60)` | Modal backdrop overlay | `bg-scrim` (`--color-scrim`) |
+| `--radius-ledger` | `0.125rem` (2px) | `0.125rem` (2px) | Standard ledger corner radius | `rounded-ledger` |
 
 ### Tailwind `@theme inline` Aliases (`app/globals.css:218-261`)
 
-- Classes: `bg-paper`, `text-ink`, `bg-accent`, `bg-card`, `border-hairline`, `bg-row-hover`, `text-muted-ink`, `bg-scrim`, `rounded-ledger`.
+- Classes: `bg-paper`, `text-ink`, `bg-accent`, `text-on-accent`, `bg-card`, `border-hairline`, `border-field-border`, `bg-row-hover`, `text-muted-ink`, `bg-scrim`, `rounded-ledger`.
 - Base border reset: `@layer base { *, ::before, ::after { border-color: var(--hairline); } }`
 - `--color-white`: aliased to `#FAF8F3`.
-- `rounded-ledger`: bound to `--radius-ledger` (used for popover panels and modal cards).
+- `--color-on-accent`: bound to `var(--on-accent)`.
+- `--color-scrim`: bound to `var(--scrim)`.
+- `--color-field-border`: bound to `var(--field-border)` (guaranteeing >= 3.0:1 contrast for form inputs).
+- `rounded-ledger`: bound to `--radius-ledger: 0.125rem` (2px, used for ledger rows, popovers, and modal cards).
 - **Stone Ramp Remap (Contrast Tuned)**:
   - `gray-*` (light mode) and `zinc-*` (dark mode) alias to Tailwind v4 stone scales.
   - Tuned stops for >= 4.5:1 contrast: `gray-400` $\rightarrow$ `stone-500` (line 233), `gray-500` $\rightarrow$ `stone-600` (line 234), `zinc-400` $\rightarrow$ `stone-400` (line 252), `zinc-500` $\rightarrow$ `stone-400` (line 253).
@@ -101,9 +106,23 @@ Fonts defined in `lib/fonts.ts` and loaded globally in `app/layout.tsx:33`.
 | **Logout Modal** | `bg-scrim` / `rounded-ledger` | `LogoutButton.tsx` | Dashboard nav | Full-screen `bg-scrim` backdrop (portal to `document.body`); inner card `bg-card rounded-ledger border-hairline`; confirm button `.btn-primary`, cancel `.btn-secondary`; 44px min-height touch targets. |
 | **Dashboard Loading Skeleton** | `animate-pulse bg-row-hover` | `app/(protected)/dashboard/loading.tsx` | Dashboard page route | Server component; mirrors final layout structure (nav bar, stats grid, toolbar, ledger rows, pagination) with `animate-pulse` placeholder blocks using `bg-row-hover` on `bg-card` cells. |
 
+### Presentational UI Primitives (`components/ui/*`)
+
+Shared presentational building blocks implemented on `redesign/dashboard`:
+- **Button** (`components/ui/Button.tsx`): Variants `'primary'` (`.btn-primary`) and `'secondary'` (`.btn-secondary`). Prop `isTouchTarget` (defaults to `true`) enforces `min-h-[44px]`. Forwards `ref`, `className`, and HTML button attributes.
+- **Chip** (`components/ui/Chip.tsx`): Hairline status and metadata tag wrapper (`font-label text-xs uppercase tracking-wider px-2 py-0.5 rounded-ledger inline-flex items-center`). Does not stop propagation; forwards `ref`, `className`, and HTML div attributes.
+- **Panel** (`components/ui/Panel.tsx`): Surface container (`bg-card border border-hairline rounded-ledger`). Forwards `ref`, `className`, and HTML div attributes.
+- **PageHeader** (`components/ui/PageHeader.tsx`): Standard page title block with mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-2xl sm:text-3xl font-normal text-ink`), and optional action slot. Prop `hideActionsOnMobile` (`boolean`, default `false`) hides actions below `sm` (`hidden sm:flex`) in favor of mobile quick actions.
+- **Field** (`components/ui/Field.tsx`): Dual-variant input/select wrapper forwarding `ref` and props:
+  - `variant="input"`: Text input with optional leading icon slot (`pl-9`), `rounded-ledger border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink`.
+  - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border-field-border bg-card pr-8 pl-3 py-2`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
+- **ThemeToggle** (`components/ThemeToggle.tsx`): Supports optional `label?: string` prop. When omitted, renders an icon-only theme toggle button without `title` attribute.
+- **MobileNavMenu** (`components/MobileNavMenu.tsx`): Mobile disclosure menu panel (`z-30 bg-card border border-hairline rounded-ledger`) providing mobile navigation and quick-action access.
+- **LogoutButton** (`components/LogoutButton.tsx`): Supports `menuItem?: boolean` prop. When `true`, renders a full-width menu button for `MobileNavMenu`; when `false`, renders standard icon/text button.
+
 ### Status Chips (`app/globals.css:112-203`, `DashboardClient.tsx:14-21`)
 
-Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracking-[0.05em] px-2 py-0.5`):
+Standardized hairline badge system using `.chip-*` utility naming (not `.status-*`):
 - **Draft** (`.chip-draft`): Transparent background, 1px solid `var(--ink)`, ink text.
 - **Applied** (`.chip-applied`): Chartreuse background (`var(--accent)`), solid border, `#121212` text.
 - **Screening** (`.chip-screening`): 30% chartreuse mix (`color-mix(in srgb, var(--accent) 30%, transparent)`), 1px solid `var(--ink)`, ink text.
@@ -115,7 +134,42 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 
 ---
 
-## 6. Layout and Motion (IMPLEMENTED)
+## 6. Dashboard: Ledger Sheet (IMPLEMENTED on redesign/dashboard)
+
+The authenticated dashboard is redesigned as a clean accounting ledger sheet:
+
+- **App Navigation**:
+  - Pinned sticky nav bar on mobile (`sticky top-0 z-30 -mx-4 -mt-4 px-4 pt-4 bg-paper sm:static sm:z-auto sm:mx-0 sm:mt-0 sm:px-0 sm:pt-0 sm:bg-transparent pb-3 mb-6 border-b border-hairline`).
+  - Wordmark and primary text links (`Dashboard`, `New Application`, `Settings`) visible on desktop (`sm:flex`).
+  - Mobile disclosure menu via `MobileNavMenu` (`z-30 bg-card border-hairline rounded-ledger`) containing navigation links, quick-action trigger, and `LogoutButton menuItem`.
+- **Stats Cell Structure & Mobile Compaction**:
+  - Four stat cells: Goal, Week, Streak, and Quote in a shared `Panel` (`grid grid-cols-2 lg:flex mb-6`).
+  - Standardized three-row vertical structure across desktop (`lg:min-h-[120px] lg:flex-col lg:gap-3`):
+    - Row 1: Label (`font-label text-xs uppercase tracking-wider h-4 leading-4 text-muted-ink`).
+    - Row 2: Numeral / body (`min-h-[2.5rem] font-display text-3xl leading-none tabular-nums text-ink`).
+    - Row 3: Footer (`min-h-[1rem]` progress bar or empty).
+  - Mobile layout: 2-column grid (`grid grid-cols-2`) with compact padding (`p-3`) and baseline-aligned single-row items.
+- **Streak States & Single-Row Mobile Layout**:
+  - `active`: Cell fill `bg-accent text-on-accent`.
+  - `at_risk`: Cell fill `bg-card text-ink` with trailing warning text "apply today to keep it!".
+  - Layout: Cell 3 button uses `w-full h-full flex flex-row flex-nowrap items-center justify-start gap-x-3 text-left min-h-[44px] lg:flex-col lg:items-start lg:justify-start lg:gap-3`. Label and numeral wrappers use `shrink-0` with `whitespace-nowrap` on count. Tail wrapper is conditional (`min-w-0 flex-1 flex items-center lg:flex-none lg:min-h-[1rem]` when at_risk, `hidden lg:block lg:min-h-[1rem]` otherwise) with `leading-snug` text, ensuring warning copy wraps inside its own box on mobile without displacing label or numeral.
+- **Toolbar**:
+  - Search input using `Field variant="input"` with leading Search icon.
+  - Status filter pills and popover using `Field variant="select"` and custom dropdown.
+  - `PageHeader` using `hideActionsOnMobile` to suppress desktop header action on mobile in favor of the mobile quick-action bar.
+- **Columns**: Standardized ledger columns: Company, Role, Status, Applied, Fit, and Priority. Next Action Date was removed from the dashboard table only (retained in DB schema and detail page).
+- **Formatting Helpers (`lib/utils/ledger-format.ts`)**:
+  - `formatMonthDay(dateStr)`: Formats ISO dates into clean "MMM D" strings (e.g. "Oct 23").
+  - `averageFit(scores)`: Computes mean AI fit percentage with null-safe handling.
+- **Sortable Fit**: Numeric column sorting on Fit score with null values sorted last (`compareNullsLast`), fully covered by unit tests in `tests/ledger-format.test.ts`.
+- **Mobile Cards**: Responsive card layout below `md` (`thead hidden md:table-header-group`, `tbody block md:table-row-group`, `tr block md:table-row`), rendering each application as a distinct card with company, role, status chip, applied date, priority, and fit score.
+- **Heatmap Ramp**: Anchored popover (`ActivityHeatmapDropdown.tsx`) with 5-level tile opacity ramp using `color-mix(in srgb, var(--ink) N%, transparent)` at 8%, 25%, 45%, 70%, and 100% ink, evaluated against `--card`. Month navigation buttons remain visible when disabled but faded (`disabled:opacity-40 disabled:cursor-not-allowed`).
+- **Logout Modal**: Full-screen modal portal (`z-[100]`) with `bg-scrim` backdrop, centered card (`bg-card border-hairline rounded-ledger`), `.btn-primary` and `.btn-secondary` actions, all with `min-h-[44px]` touch targets.
+- **Loading Skeleton**: Plain server component (`app/(protected)/dashboard/loading.tsx`) mirroring navigation, stats grid, toolbar, ledger rows, and pagination with `animate-pulse` placeholder blocks (`bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger`).
+
+---
+
+## 7. Layout and Motion (IMPLEMENTED)
 
 - **Max Width**: Standardized `max-w-7xl mx-auto px-4 sm:px-8`.
 - **Section Dividers**: Separated by explicit `border-t border-[var(--hairline)]`.
@@ -130,7 +184,7 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 
 ---
 
-## 7. Copy and Claims Rules (IMPLEMENTED)
+## 8. Copy and Claims Rules (IMPLEMENTED)
 
 - **Benefit-Led Voice**: Focus on calm execution and organization; avoid inflated AI hype.
 - **Strict Verification of Claims**:
@@ -142,7 +196,7 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 
 ---
 
-## 8. Don'ts (IMPLEMENTED)
+## 9. Don'ts (IMPLEMENTED)
 
 1. **NO Purple/Blue Gradients or Neon Glows**: Surfaces stay rooted in paper and ink.
 2. **NO Glassmorphism**: Avoid `backdrop-blur` layers, translucent glass, or diffuse shadows.
@@ -157,7 +211,7 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 
 ---
 
-## 9. Guardrails for UI Work (IMPLEMENTED)
+## 10. Guardrails for UI Work (IMPLEMENTED)
 
 1. **iOS Zoom Guard**: Inputs and textareas must NOT have `text-xs` or `text-sm` on mobile (`new/page.tsx:657`, `ApplicationDetailClient.tsx:357`).
 2. **Select + ChevronDown Pattern**: 8 native `<select>` elements use `appearance-none` + right padding + positioned `ChevronDown` (`new/page.tsx:669,707,756,781`, `ApplicationDetailClient.tsx:343,375,431,441`).
@@ -172,24 +226,24 @@ Standardized hairline badge system (`.font-label text-[0.75rem] uppercase tracki
 
 ---
 
-## 10. Verification Checklist for UI Work (IMPLEMENTED)
+## 11. Verification Checklist for UI Work (IMPLEMENTED)
 
 Every UI task must execute and report the following verification gates:
 1. **WCAG AA Contrast**: Run relative luminance script on modified tokens/colors; text >= 4.5:1, borders >= 3.0:1.
-2. **Dead-Class Scan**: Check all modified class strings against compiled `.next/static/chunks/*.css`.
+2. **Dead-Class Scan**: Check all modified class strings against compiled `.next/static/chunks/*.css` and `.next/static/css/*.css`.
 3. **Class-Only Proof (for retheming)**:
    - Report lines added that do not contain `"class"`.
    - Report dynamic className lines containing `${`, `?`, or `&&`.
    - Confirm zero changes to props, handlers, layout structure, or component logic.
 4. **TypeScript & Linter**: `npx tsc --noEmit` exit 0; scoped ESLint on modified files passes.
 5. **Production Build**: `npm run build` succeeds without CSS errors.
-6. **Unit Tests**: `npm test` (all 81 tests pass).
+6. **Unit Tests**: `npm test` (all tests pass).
 7. **Owner Terminal Merge Gate**: Merges and remote pushes occur strictly via owner terminal.
 8. **Real-Device Pass**: Test on iOS Safari for tap targets, bottom clearance, and input zoom.
 
 ---
 
-## 11. Direction for Full App Redesign (DIRECTION)
+## 12. Direction for Full App Redesign (DIRECTION)
 
 *Directional proposals pending owner review and approval per page:*
 - **Page Headers**: Numbered mono eyebrow (`01 / DASHBOARD`, `02 / NEW`) and Fraunces serif heading (`.font-display`).
@@ -206,7 +260,7 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 12. Known Gaps (IMPLEMENTED list)
+## 13. Known Gaps (IMPLEMENTED list)
 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
@@ -219,7 +273,7 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 13. File Map (IMPLEMENTED)
+## 14. File Map (IMPLEMENTED)
 
 All paths verified via `git ls-files`:
 
