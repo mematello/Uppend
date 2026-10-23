@@ -1,5 +1,10 @@
 # Uppend — Decisions Log
 
+## [2026-10-23] Status chip class names are .chip-*
+- Context: Standardizing status badge utility classes in `app/globals.css`.
+- Decision: Standardized status chip utility classes in `app/globals.css` use `.chip-*` naming (`.chip-draft`, `.chip-applied`, `.chip-screening`, `.chip-interview`, `.chip-offer`, `.chip-rejected`, `.chip-withdrawn`, `.chip-ghosted`), superseding the earlier `.status-*` naming mentioned in the 2026-10-22 entry.
+- Reasoning: Matches the presentational `.chip-*` classes defined in `app/globals.css` and aligns with `components/ui/Chip.tsx`.
+
 ## [2026-10-23] Dashboard redesign (Session 29) — streak cell single-row-on-mobile layout
 - Context: In Group 3c (commit 33), aligning the streak cell with the rest of the stats strip on mobile and desktop.
 - Decision: Configured Cell 3's toggle `<button>` as `flex flex-row flex-nowrap items-center justify-start gap-x-3` below `lg`, transitioning to `lg:flex-col lg:items-start lg:justify-start lg:gap-3` on desktop. Label and numeral wrappers use `shrink-0` with `whitespace-nowrap` on the count. The tail wrapper (`min-w-0 flex-1 flex items-center lg:flex-none lg:min-h-[1rem]` when at_risk, `hidden lg:block lg:min-h-[1rem]` otherwise) allows the warning copy ("apply today to keep it!") to wrap inside its own box without shifting the label or numeral position.
@@ -17,7 +22,7 @@
 
 ## [2026-10-23] Dashboard redesign (Session 29) — mobile nav disclosure menu and sticky nav (z-index stack)
 - Context: Designing mobile navigation for the authenticated dashboard (Group 2d / 3).
-- Decision: Created `components/MobileNavMenu.tsx` providing a tap-friendly disclosure dropdown menu with quick action and links (`Dashboard`, `New Application`, `Settings`, `LogoutButton` via `menuItem` prop). The app nav bar is pinned sticky on mobile (`sticky top-0 z-30 bg-paper sm:static sm:z-auto sm:bg-transparent`). Z-index stack is codified as: overlay helpers = `z-10`, anchored popovers/dropdowns = `z-20`, sticky app nav = `z-30`, modal portals = `z-[100]`.
+- Decision: Created `components/MobileNavMenu.tsx` providing a tap-friendly disclosure dropdown menu with quick action and links (`Dashboard`, `New Application`, `Settings`, `LogoutButton` via `menuItem` prop). The app nav bar is pinned sticky on mobile (`sticky top-0 z-30 bg-paper sm:static sm:z-auto sm:bg-transparent`). Z-index stack is codified as: overlay backdrops = `z-10`, anchored popovers/dropdowns = `z-20`, sticky app nav = `z-30`, modal portals = `z-[100]`.
 - Reasoning: Solves mobile navigation without crowding the header, ensures the app bar stays visible while scrolling long application tables, and prevents layering bugs across popovers and modal backdrops.
 
 ## [2026-10-23] Dashboard redesign (Session 29) — Fit sort is an owner-approved logic exception
@@ -33,8 +38,9 @@
 ## [2026-10-23] Dashboard redesign (Session 29) — scrim token and --field-border (3:1 form borders)
 - Context: Meeting WCAG AA 3.0:1 contrast requirements for interactive form borders and providing a standardized backdrop for modal overlays.
 - Decision:
-  - Added `--scrim` (`rgba(0,0,0,0.45)` light / `rgba(0,0,0,0.60)` dark) mapped to `bg-scrim` under `@theme inline` for `document.body` modal portals (`z-[100]`).
+  - Added `--scrim` (`rgba(18, 18, 18, 0.6)` in :root and .dark) mapped to `bg-scrim` under `@theme inline` for `document.body` modal portals (`z-[100]`).
   - Added `--field-border` (`#8E887E` light / `#6E685D` dark) mapped to `--color-field-border: var(--field-border)` under `@theme inline` for form inputs and selects in `components/ui/Field.tsx`, guaranteeing >= 3.0:1 contrast against both `--paper` and `--card` backgrounds.
+  - Bound `--color-on-accent` to `var(--on-accent)` (`#121212` in both light and dark themes).
 - Reasoning: Fulfills accessibility contrast standards for functional input boundaries while removing arbitrary opacity literals from component markup.
 
 ## [2026-10-23] Dashboard redesign (Session 29) — radius-ledger namespaced instead of overriding rounded-sm

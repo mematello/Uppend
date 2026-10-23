@@ -1,8 +1,9 @@
 # Uppend — Changelog
 
 ## [2026-10-23] (Session 29)
-- Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits ahead of `main` at `c8ae62a`):
-  - (this commit) docs(dashboard): Session 29 documentation corrections (docs/changelog.md, docs/current_state.md, docs/decisions.md, docs/design.md, docs/manifest.md ONLY)
+- Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits on top of `main` at `c8ae62a`):
+  - (this commit) docs(dashboard): Session 29 documentation corrections 2 (docs/decisions.md, docs/design.md, docs/changelog.md, docs/current_state.md, docs/architecture.md, docs/manifest.md ONLY)
+  - `0294679` docs(dashboard): Session 29 documentation corrections
   - `98e0c2c` tooling(ui-checks): scan chunks and css dirs, resolve const identifiers in dead-class-scan
   - `b5e7ed7` fix(dashboard): streak cell single row on mobile, aligned on desktop
   - `28196d7` fix(dashboard): streak cell left/top alignment

@@ -33,7 +33,7 @@ Values extracted from `app/globals.css:6-33` and `components/landing/landing.mod
 | `--muted` / `--landing-muted` | `#525252` | `#A3A3A3` | Secondary text, captions | `text-muted-ink` |
 | `--card` / `--landing-card` | `#FAF8F3` | `#141311` | Container surfaces | `bg-card` |
 | `--row-hover` / `--landing-row-hover` | `#F0EDE4` | `#1A1916` | Interactive hover | `bg-row-hover` |
-| `--scrim` | `rgba(0,0,0,0.45)` | `rgba(0,0,0,0.60)` | Modal backdrop overlay | `bg-scrim` (`--color-scrim`) |
+| `--scrim` | `rgba(18, 18, 18, 0.6)` | `rgba(18, 18, 18, 0.6)` | Modal backdrop overlay | `bg-scrim` (`--color-scrim`) |
 | `--radius-ledger` | `0.125rem` (2px) | `0.125rem` (2px) | Standard ledger corner radius | `rounded-ledger` |
 
 ### Tailwind `@theme inline` Aliases (`app/globals.css:218-261`)
@@ -114,8 +114,8 @@ Shared presentational building blocks implemented on `redesign/dashboard`:
 - **Panel** (`components/ui/Panel.tsx`): Surface container (`bg-card border border-hairline rounded-ledger`). Forwards `ref`, `className`, and HTML div attributes.
 - **PageHeader** (`components/ui/PageHeader.tsx`): Standard page title block with mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-2xl sm:text-3xl font-normal text-ink`), and optional action slot. Prop `hideActionsOnMobile` (`boolean`, default `false`) hides actions below `sm` (`hidden sm:flex`) in favor of mobile quick actions.
 - **Field** (`components/ui/Field.tsx`): Dual-variant input/select wrapper forwarding `ref` and props:
-  - `variant="input"`: Text input with optional leading icon slot (`pl-9`), `rounded-ledger border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink`.
-  - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border-field-border bg-card pr-8 pl-3 py-2`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
+  - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`.
+  - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`. Does not provide label, validation message, or hint props; form controls receive standard HTML attributes and styling directly.
 - **ThemeToggle** (`components/ThemeToggle.tsx`): Supports optional `label?: string` prop. When omitted, renders an icon-only theme toggle button without `title` attribute.
 - **MobileNavMenu** (`components/MobileNavMenu.tsx`): Mobile disclosure menu panel (`z-30 bg-card border border-hairline rounded-ledger`) providing mobile navigation and quick-action access.
 - **LogoutButton** (`components/LogoutButton.tsx`): Supports `menuItem?: boolean` prop. When `true`, renders a full-width menu button for `MobileNavMenu`; when `false`, renders standard icon/text button.
@@ -158,7 +158,7 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
   - Status filter pills and popover using `Field variant="select"` and custom dropdown.
   - `PageHeader` using `hideActionsOnMobile` to suppress desktop header action on mobile in favor of the mobile quick-action bar.
 - **Columns**: Standardized ledger columns: Company, Role, Status, Applied, Fit, and Priority. Next Action Date was removed from the dashboard table only (retained in DB schema and detail page).
-- **Formatting Helpers (`lib/utils/ledger-format.ts`)**:
+- **Formatting Utilities (`lib/utils/ledger-format.ts`)**:
   - `formatMonthDay(dateStr)`: Formats ISO dates into clean "MMM D" strings (e.g. "Oct 23").
   - `averageFit(scores)`: Computes mean AI fit percentage with null-safe handling.
 - **Sortable Fit**: Numeric column sorting on Fit score with null values sorted last (`compareNullsLast`), fully covered by unit tests in `tests/ledger-format.test.ts`.
@@ -222,7 +222,7 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 7. **Portal Modals**: Modals mount to `document.body` via `createPortal` with fixed positioning (`ApplicationDetailClient.tsx:520`, `ResumePreviewModal.tsx:80`, `UnsavedChangesModal.tsx:64`, `LogoutButton.tsx`).
 8. **Touch Targets**: Minimum 44px tap targets (`min-h-[44px]` in `LandingHeader.tsx:31`, `ThemeToggle.tsx:37`, `DashboardClient.tsx:247`, logout modal action buttons).
 9. **Presentational Scope**: UI tasks must never touch data fetching, API routes, or RLS (`AGENTS.md:13`).
-10. **Z-Index Stack**: Sticky nav (`z-30`), popovers / anchored dropdowns (`z-20`), overlay helpers (`z-10`), modal portals (`z-[100]`). Never assign an ad-hoc z-value outside this ladder.
+10. **Z-Index Stack**: Sticky nav (`z-30`), popovers / anchored dropdowns (`z-20`), overlay backdrops (`z-10`), modal portals (`z-[100]`). Never assign an ad-hoc z-value outside this ladder.
 
 ---
 
