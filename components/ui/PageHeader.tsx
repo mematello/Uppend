@@ -5,9 +5,14 @@ export interface PageHeaderProps {
   title: string;
   actions?: React.ReactNode;
   className?: string;
+  hideActionsOnMobile?: boolean;
 }
 
-export function PageHeader({ eyebrow, title, actions, className = '' }: PageHeaderProps) {
+export function PageHeader({ eyebrow, title, actions, className = '', hideActionsOnMobile = false }: PageHeaderProps) {
+  const actionsClass = hideActionsOnMobile
+    ? "hidden sm:flex flex-wrap items-center gap-3 sm:w-auto"
+    : "flex flex-wrap items-center gap-3 w-full sm:w-auto";
+
   return (
     <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 sm:gap-4 mb-8 ${className}`.trim()}>
       <div>
@@ -19,7 +24,7 @@ export function PageHeader({ eyebrow, title, actions, className = '' }: PageHead
         </h1>
       </div>
       {actions && (
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <div className={actionsClass}>
           {actions}
         </div>
       )}

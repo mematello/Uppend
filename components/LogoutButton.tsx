@@ -6,7 +6,7 @@ import { LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-export default function LogoutButton() {
+export default function LogoutButton({ menuItem = false }: { menuItem?: boolean } = {}) {
   const router = useRouter();
   const supabase = createClient();
   const [isMounted, setIsMounted] = useState(false);
@@ -70,15 +70,26 @@ export default function LogoutButton() {
 
   return (
     <>
-      <button
-        onClick={openModal}
-        className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
-        title="Log Out"
-        aria-label="Log Out"
-      >
-        <LogOut className="w-5 h-5 sm:hidden" />
-        <span className="hidden sm:inline">Log Out</span>
-      </button>
+      {menuItem ? (
+        <button
+          onClick={openModal}
+          className="w-full min-h-[44px] px-4 flex items-center justify-start font-label text-xs uppercase tracking-wider text-ink hover:bg-row-hover transition-colors focus-ink"
+          title="Log Out"
+          aria-label="Log Out"
+        >
+          Log Out
+        </button>
+      ) : (
+        <button
+          onClick={openModal}
+          className="font-label text-xs uppercase tracking-wider text-muted-ink hover:text-ink min-h-[44px] min-w-[44px] px-2 inline-flex items-center justify-center transition-colors focus-ink"
+          title="Log Out"
+          aria-label="Log Out"
+        >
+          <LogOut className="w-5 h-5 sm:hidden" />
+          <span className="hidden sm:inline">Log Out</span>
+        </button>
+      )}
       {typeof document !== "undefined" && createPortal(modalContent, document.body)}
     </>
   );
