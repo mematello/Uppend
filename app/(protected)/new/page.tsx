@@ -653,28 +653,33 @@ export default function NewApplicationPage() {
         )}
 
       {/* Manual & Extracted Form */}
-      <form onSubmit={handleSave} className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4 text-gray-900 dark:text-zinc-100">Application Details</h2>
+      <form onSubmit={handleSave} className="bg-card border border-hairline rounded-ledger p-6">
+        <h2 className="font-display text-xl text-ink border-b border-hairline pb-3 mb-4">Application Details</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Column 1 */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Company Name</label>
-              <input required type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Company Name</label>
+              <Field required variant="input" type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} />
             </div>
             
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role</label>
-              <input required type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Role</label>
+              <Field required variant="input" type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Salary Range</label>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Salary Range</label>
               <div className="flex gap-2">
-                <div className="relative">
-<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
+                <Field
+                  variant="select"
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  wrapperClassName="w-24 shrink-0"
+                >
                   <option value="PHP">PHP</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -685,34 +690,40 @@ export default function NewApplicationPage() {
                   <option value="JPY">JPY</option>
                   <option value="INR">INR</option>
                   <option value="AED">AED</option>
-                </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
-                <input type="text" name="salary_range" value={formData.salary_range} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                </Field>
+                <Field
+                  variant="input"
+                  type="text"
+                  name="salary_range"
+                  value={formData.salary_range}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  className="flex-1 min-w-0"
+                />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Location</label>
-              <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Location</label>
+              <Field variant="input" type="text" name="location" value={formData.location} onChange={handleInputChange} />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm text-gray-600 dark:text-zinc-400">Job Link</label>
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink">Job Link</label>
                 {formData.job_link && (
                   <a href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`} target="_blank" rel="noopener noreferrer" className="text-xs link-ink flex items-center gap-1">
                     Open <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                   </a>
                 )}
               </div>
-              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} onPaste={handleJobLinkPaste} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <Field variant="input" type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} onPaste={handleJobLinkPaste} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
-              <div className="relative">
-<select 
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Source</label>
+              <Field 
+                variant="select"
                 value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")} 
                 onChange={(e) => {
                   setIsDirty(true);
@@ -734,23 +745,21 @@ export default function NewApplicationPage() {
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100"
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
               {(explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source)) ? (
-                <input 
+                <Field 
+                  variant="input"
                   type="text" 
                   name="source" 
                   value={formData.source} 
                   onChange={handleInputChange} 
                   placeholder="Please specify"
-                  className="w-full p-2 mt-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" 
+                  className="mt-2" 
                 />
               ) : null}
             </div>
@@ -759,9 +768,8 @@ export default function NewApplicationPage() {
           {/* Column 2 */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
-              <div className="relative">
-<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Status</label>
+              <Field variant="select" name="status" value={formData.status} onChange={handleInputChange}>
                 <option value="draft">Draft</option>
                 <option value="applied">Applied</option>
                 <option value="screening">Screening</option>
@@ -770,67 +778,62 @@ export default function NewApplicationPage() {
                 <option value="rejected">Rejected</option>
                 <option value="withdrawn">Withdrawn</option>
                 <option value="ghosted">Ghosted</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label>
-              <input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Date Applied</label>
+              <Field variant="input" type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Priority
                 {aiSuggestedFields.has('priority') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
               </label>
-              <div className="relative">
-<select name="priority" value={formData.priority} onChange={handleInputChange} className={`w-full appearance-none py-2 pl-2 pr-8 rounded-md border ${aiSuggestedFields.has('priority') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`}>
+              <Field variant="select" name="priority" value={formData.priority} onChange={handleInputChange} aiSuggested={aiSuggestedFields.has('priority')}>
                 <option value="">None</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                   Role Fit (1-5)
                   {aiSuggestedFields.has('role_fit') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
                 </label>
-                <input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('role_fit') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`} />
+                <Field variant="input" type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} aiSuggested={aiSuggestedFields.has('role_fit')} />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                   Culture Fit (1-5)
                   {aiSuggestedFields.has('culture_fit') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
                 </label>
-                <input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('culture_fit') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`} />
+                <Field variant="input" type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} aiSuggested={aiSuggestedFields.has('culture_fit')} />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Recruiter Name</label>
-              <input type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Recruiter Name</label>
+              <Field variant="input" type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Contact Info</label>
-              <input type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Contact Info</label>
+              <Field variant="input" type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Resume Version</label>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Resume Version</label>
               <div className="flex gap-2">
-                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                <Field variant="input" type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1" />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
-                  <button type="button" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-3 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded border border-gray-300 dark:border-zinc-700 text-sm font-medium transition-colors">
+                  <Button type="button" variant="secondary" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)}>
                     Preview
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
