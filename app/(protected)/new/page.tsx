@@ -21,6 +21,7 @@ import { Panel } from "../../../components/ui/Panel";
 import { Button } from "../../../components/ui/Button";
 import { Field } from "../../../components/ui/Field";
 import { Chip } from "../../../components/ui/Chip";
+import { Alert } from "../../../components/ui/Alert";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -514,10 +515,10 @@ export default function NewApplicationPage() {
       <PageHeader eyebrow="02 / NEW" title="New Job Application" />
 
       {isLocal && (
-        <div className="mb-6 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg text-sm flex items-center justify-between">
+        <Alert className="mb-6 flex items-center justify-between gap-4">
           <span><strong>You are in local mode.</strong> AI features are disabled. Data is saved to this device only.</span>
-          <Link href="/signup" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300 ml-4 whitespace-nowrap">Sign up to unlock AI</Link>
-        </div>
+          <Link href="/signup" className="link-ink font-medium whitespace-nowrap min-h-[44px] md:min-h-0 inline-flex items-center">Sign up to unlock AI</Link>
+        </Alert>
       )}
 
       <div className={`grid grid-cols-1 ${isLocal ? '' : 'lg:grid-cols-[340px_1fr]'} gap-6 items-start`}>
@@ -602,9 +603,9 @@ export default function NewApplicationPage() {
               </div>
 
               {activeModelName && activeModelName !== preferredModel && (
-                <span className="text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200 dark:border-amber-900/50">
+                <Chip className="border border-field-border text-ink normal-case tracking-normal">
                   Falling back to {activeModelName}
-                </span>
+                </Chip>
               )}
             </div>
             
@@ -616,14 +617,14 @@ export default function NewApplicationPage() {
               )}
               
               {limitExhausted ? (
-                <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 max-w-lg">
-                  <div className="text-sm text-amber-800 dark:text-amber-400">
+                <Alert className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div>
                     You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
                   </div>
-                  <Link href="/settings" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium whitespace-nowrap transition-colors">
+                  <Link href="/settings" className="btn-primary px-4 min-h-[44px] inline-flex items-center justify-center whitespace-nowrap">
                     Go to Settings
                   </Link>
-                </div>
+                </Alert>
               ) : (
                 <div className="flex flex-col items-end lg:items-stretch gap-1 w-full">
                   <Button
@@ -906,9 +907,9 @@ export default function NewApplicationPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
             {toast && (
-              <div className={`p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+              <Alert tone={toast.type === 'success' ? 'success' : 'error'} role="status">
                 {toast.message}
-              </div>
+              </Alert>
             )}
           </div>
           <Button
