@@ -4,18 +4,25 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 import ResumePreviewModal from "../../../components/ResumePreviewModal";
-import { Sparkles, ChevronDown, Check } from "lucide-react";
+import { Sparkles, ChevronDown, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
 import { normalizeTitleCase, normalizeSalaryInput } from "../../../lib/utils/format";
-import { SOURCE_OPTIONS, matchSourceOption, matchSourceFromUrl } from "../../../lib/constants";
+import { SOURCE_OPTIONS, matchSourceFromUrl, resolveExtractedSource } from "../../../lib/constants";
+import { resolveBackNavigation } from "../../../lib/utils/navigation";
 import { useRef } from "react";
 import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarning";
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
 
 import { AIModel } from "../../../lib/types";
 import { getProviderFromModel } from "../../../lib/ai/providers";
+import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { Button } from "../../../components/ui/Button";
+import { Field } from "../../../components/ui/Field";
+import { Chip } from "../../../components/ui/Chip";
+import { Alert } from "../../../components/ui/Alert";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -293,11 +300,9 @@ export default function NewApplicationPage() {
 
       // Process extracted source
       const extractedSource = (extracted.source as string) || "";
-      const sourceMatch = matchSourceOption(extractedSource);
-      if (sourceMatch.option === "Other") {
-        setExplicitOther(true);
-      } else {
-        setExplicitOther(false);
+      const r = resolveExtractedSource(extractedSource);
+      if (r.hasSource) {
+        setExplicitOther(r.isOther);
       }
 
       // Single atomic form state update using loose null checks (!= null)
@@ -321,7 +326,7 @@ export default function NewApplicationPage() {
           role: (extracted.role as string) || "",
           tech_stack: (extracted.tech_stack as string[]) || [],
           location: (extracted.location as string) || "",
-          source: sourceMatch.option === "Other" ? sourceMatch.freeText : sourceMatch.option,
+          source: r.hasSource ? r.source : prev.source,
           recruiter_name: (extracted.recruiter_name as string) || "",
           contact_info: (extracted.contact_info as string) || "",
           notes: (extracted.notes as string) || "",
@@ -359,6 +364,10 @@ export default function NewApplicationPage() {
       });
 
       if (newSuggested.size > 0) {
+        // Tag carry-over reads the click-time aiSuggestedFields (accepted staleness)
+        if (!r.hasSource && aiSuggestedFields.has('source')) {
+          newSuggested.add('source');
+        }
         setAiSuggestedFields(newSuggested);
       }
 
@@ -505,168 +514,188 @@ export default function NewApplicationPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 text-gray-900 dark:text-zinc-100">
-      <h1 className="text-3xl font-bold font-display mb-8">New Job Application</h1>
+    <>
+      <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`}>
+      <Link
+        href="/dashboard"
+        className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4"
+        aria-label="Back"
+        onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+          if (resolveBackNavigation(window.history.length, isDirty) === 'back') {
+            e.preventDefault();
+            router.back();
+          }
+        }}
+      >
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+      </Link>
+      <PageHeader eyebrow="02 / NEW" title="New Job Application" />
 
       {isLocal && (
-        <div className="mb-6 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg text-sm flex items-center justify-between">
+        <Alert className="mb-6 flex items-center justify-between gap-4">
           <span><strong>You are in local mode.</strong> AI features are disabled. Data is saved to this device only.</span>
-          <Link href="/signup" className="underline font-semibold hover:text-amber-900 dark:hover:text-amber-300 ml-4 whitespace-nowrap">Sign up to unlock AI</Link>
-        </div>
+          <Link href="/signup" className="link-ink font-medium whitespace-nowrap min-h-[44px] md:min-h-0 inline-flex items-center">Sign up to unlock AI</Link>
+        </Alert>
       )}
 
-      {toast && (
-        <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-          {toast.message}
-        </div>
-      )}
-
-      {/* Extraction Section */}
-      {!isLocal && (
-      <div className="mb-10 bg-card p-6 rounded-xl border border-hairline shadow-sm">
-        <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Paste Job Description</label>
-        <textarea
-          className="w-full h-40 p-3 rounded-md bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 focus-ink placeholder:text-gray-400 dark:text-zinc-500"
-          placeholder="Paste the full job description here..."
-          value={jobDescription}
-          onChange={(e) => { setJobDescription(e.target.value); setIsDirty(true); }}
-        />
-        <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div className="flex items-center gap-2 relative">
-            <div className="relative">
-              <button 
-                type="button"
-                onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                disabled={isUpdatingModel}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-hairline text-[var(--ink)] text-sm font-medium hover:bg-[var(--row-hover)] transition-colors disabled:opacity-50"
-              >
-                {preferredModel || "Select Model"}
-                <svg className={`w-4 h-4 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              
-              {isModelDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsModelDropdownOpen(false)}></div>
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-bottom-left transition-all">
-                    <div className="p-2 space-y-1">
-                      <div className="px-3 py-2 text-xs font-label font-semibold text-[var(--muted)] uppercase tracking-wider">
-                        Select AI Engine
-                      </div>
-                      {hasCustomKey && (
-                        <div className="px-3 pb-2 text-xs text-[var(--muted)]">
-                          Using your API key
+      <div className={`grid grid-cols-1 ${isLocal ? '' : 'lg:grid-cols-[340px_1fr]'} gap-6 items-start`}>
+        {/* Extraction Section */}
+        {!isLocal && (
+        <Panel className="p-4 sm:p-6">
+          <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-2">Paste Job Description</label>
+          <Field
+            variant="textarea"
+            className="h-40 min-h-[10rem]"
+            placeholder="Paste the full job description here..."
+            value={jobDescription}
+            onChange={(e) => { setJobDescription(e.target.value); setIsDirty(true); }}
+          />
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-1 gap-3 items-start">
+            <div className="flex flex-col gap-2 relative w-full">
+              <div className="relative w-full">
+                <Button 
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                  disabled={isUpdatingModel}
+                  className="w-full flex items-center justify-between gap-2 px-4"
+                >
+                  <span className="truncate">{preferredModel || "Select Model"}</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {isModelDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsModelDropdownOpen(false)}></div>
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-card rounded-ledger border border-hairline z-20 overflow-hidden">
+                      <div className="p-2 space-y-1">
+                        <div className="px-3 py-2 text-xs font-label font-semibold text-muted-ink uppercase tracking-wider">
+                          Select AI Engine
                         </div>
-                      )}
-                      {aiModels.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-500">Loading...</div>
-                      ) : (
-                        aiModels.map((m: AIModel) => {
-                          const isBlocked = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-                          const isExhausted = !hasCustomKey && m.request_count >= m.dailyLimit;
-                          const unavailable = isBlocked || isExhausted;
-                          const isSelected = preferredModel === m.name;
-                          
-                          return (
-                            <button
-                              key={m.name}
-                              type="button"
-                              disabled={unavailable}
-                              onClick={() => {
-                                handleModelChange(m.name);
-                                setIsModelDropdownOpen(false);
-                              }}
-                              className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all
-                                ${isSelected ? 'bg-[var(--accent)] text-[var(--on-accent)] font-medium' : 'text-gray-700 dark:text-zinc-200 hover:bg-[var(--row-hover)]'}
-                                ${unavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                              `}
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-medium">{m.name}</span>
-                                {!hasCustomKey && (
-                                  <span className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-                                    {unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`}
-                                  </span>
-                                )}
-                              </div>
-                              {isSelected && <Check className="w-4 h-4" />}
-                            </button>
-                          )
-                        })
-                      )}
+                        {hasCustomKey && (
+                          <div className="px-3 pb-2 text-xs text-muted-ink">
+                            Using your API key
+                          </div>
+                        )}
+                        {aiModels.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-muted-ink">Loading...</div>
+                        ) : (
+                          aiModels.map((m: AIModel) => {
+                            const isBlocked = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
+                            const isExhausted = !hasCustomKey && m.request_count >= m.dailyLimit;
+                            const unavailable = isBlocked || isExhausted;
+                            const isSelected = preferredModel === m.name;
+                            
+                            return (
+                              <button
+                                key={m.name}
+                                type="button"
+                                disabled={unavailable}
+                                onClick={() => {
+                                  handleModelChange(m.name);
+                                  setIsModelDropdownOpen(false);
+                                }}
+                                className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-ledger text-sm transition-colors
+                                  ${isSelected ? 'bg-accent text-on-accent font-medium' : 'text-ink hover:bg-row-hover'}
+                                  ${unavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                                `}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{m.name}</span>
+                                  {!hasCustomKey && (
+                                    <span className="text-xs text-muted-ink mt-0.5">
+                                      {unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`}
+                                    </span>
+                                  )}
+                                </div>
+                                {isSelected && <Check className="w-4 h-4 shrink-0" />}
+                              </button>
+                            )
+                          })
+                        )}
+                      </div>
                     </div>
+                  </>
+                )}
+              </div>
+            </div>
+            
+            <div className="w-full">
+              {limitExhausted ? (
+                <Alert className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div>
+                    You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
                   </div>
-                </>
+                  <Link href="/settings" className="btn-primary px-4 min-h-[44px] inline-flex items-center justify-center whitespace-nowrap">
+                    Go to Settings
+                  </Link>
+                </Alert>
+              ) : (
+                <div className="flex flex-col items-end lg:items-stretch gap-1 w-full">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleExtract}
+                    disabled={isExtracting || isMatching || !jobDescription.trim()}
+                    className="w-full px-4"
+                  >
+                    {isExtracting ? "Extracting with AI..." : "Extract Data"}
+                  </Button>
+                  <div className="min-h-5 text-center lg:text-right">
+                    {isMatching ? (
+                      <span role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse">
+                        Analyzing fit...
+                      </span>
+                    ) : (
+                      !hasCustomKey && freeUses !== null && (
+                        <span className="text-xs text-muted-ink text-center lg:text-right">
+                          {freeUses} of 5 free AI uses remaining
+                        </span>
+                      )
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
             {activeModelName && activeModelName !== preferredModel && (
-              <span className="text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200 dark:border-amber-900/50">
+              <Chip className="col-span-2 lg:col-span-1 w-full break-words border border-field-border text-ink normal-case tracking-normal">
                 Falling back to {activeModelName}
-              </span>
+              </Chip>
             )}
           </div>
-          
-          <div className="flex justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0 flex-col sm:flex-row items-end sm:items-center">
-            {isMatching && (
-              <div className="px-4 py-2 text-[var(--muted)] font-medium animate-pulse flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Analyzing fit...
-              </div>
-            )}
-            
-            {limitExhausted ? (
-              <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 max-w-lg">
-                <div className="text-sm text-amber-800 dark:text-amber-400">
-                  You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
-                </div>
-                <Link href="/settings" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium whitespace-nowrap transition-colors">
-                  Go to Settings
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col items-end gap-1">
-                <button
-                  type="button"
-                  onClick={handleExtract}
-                  disabled={isExtracting || isMatching || !jobDescription.trim()}
-                  className="btn-primary px-4 py-2 rounded-md font-medium shadow-sm"
-                >
-                  {isExtracting ? "Extracting with AI..." : "✨ Extract Data"}
-                </button>
-                {!hasCustomKey && freeUses !== null && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400 mr-1">
-                    {freeUses} of 5 free AI uses remaining
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      )}
+        </Panel>
+        )}
 
       {/* Manual & Extracted Form */}
-      <form onSubmit={handleSave} className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4 text-gray-900 dark:text-zinc-100">Application Details</h2>
+      <form id="new-application-form" onSubmit={handleSave} className="bg-card border border-hairline rounded-ledger p-6">
+        <h2 className="font-display text-xl text-ink border-b border-hairline pb-3 mb-4">Application Details</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Column 1 */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Company Name</label>
-              <input required type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Company Name</label>
+              <Field required variant="input" type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} />
             </div>
             
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role</label>
-              <input required type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Role</label>
+              <Field required variant="input" type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Salary Range</label>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Salary Range</label>
               <div className="flex gap-2">
-                <div className="relative">
-<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
+                <Field
+                  variant="select"
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  wrapperClassName="w-24 shrink-0"
+                >
                   <option value="PHP">PHP</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -677,34 +706,40 @@ export default function NewApplicationPage() {
                   <option value="JPY">JPY</option>
                   <option value="INR">INR</option>
                   <option value="AED">AED</option>
-                </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
-                <input type="text" name="salary_range" value={formData.salary_range} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                </Field>
+                <Field
+                  variant="input"
+                  type="text"
+                  name="salary_range"
+                  value={formData.salary_range}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  className="flex-1 min-w-0"
+                />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Location</label>
-              <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Location</label>
+              <Field variant="input" type="text" name="location" value={formData.location} onChange={handleInputChange} />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm text-gray-600 dark:text-zinc-400">Job Link</label>
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink">Job Link</label>
                 {formData.job_link && (
                   <a href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`} target="_blank" rel="noopener noreferrer" className="text-xs link-ink flex items-center gap-1">
                     Open <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                   </a>
                 )}
               </div>
-              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} onPaste={handleJobLinkPaste} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <Field variant="input" type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} onPaste={handleJobLinkPaste} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
-              <div className="relative">
-<select 
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Source</label>
+              <Field 
+                variant="select"
                 value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")} 
                 onChange={(e) => {
                   setIsDirty(true);
@@ -726,23 +761,21 @@ export default function NewApplicationPage() {
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100"
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
               {(explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source)) ? (
-                <input 
+                <Field 
+                  variant="input"
                   type="text" 
                   name="source" 
                   value={formData.source} 
                   onChange={handleInputChange} 
                   placeholder="Please specify"
-                  className="w-full p-2 mt-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" 
+                  className="mt-2" 
                 />
               ) : null}
             </div>
@@ -751,9 +784,8 @@ export default function NewApplicationPage() {
           {/* Column 2 */}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
-              <div className="relative">
-<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Status</label>
+              <Field variant="select" name="status" value={formData.status} onChange={handleInputChange}>
                 <option value="draft">Draft</option>
                 <option value="applied">Applied</option>
                 <option value="screening">Screening</option>
@@ -762,67 +794,62 @@ export default function NewApplicationPage() {
                 <option value="rejected">Rejected</option>
                 <option value="withdrawn">Withdrawn</option>
                 <option value="ghosted">Ghosted</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label>
-              <input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Date Applied</label>
+              <Field variant="input" type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Priority
                 {aiSuggestedFields.has('priority') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
               </label>
-              <div className="relative">
-<select name="priority" value={formData.priority} onChange={handleInputChange} className={`w-full appearance-none py-2 pl-2 pr-8 rounded-md border ${aiSuggestedFields.has('priority') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`}>
+              <Field variant="select" name="priority" value={formData.priority} onChange={handleInputChange} aiSuggested={aiSuggestedFields.has('priority')}>
                 <option value="">None</option>
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                   Role Fit (1-5)
                   {aiSuggestedFields.has('role_fit') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
                 </label>
-                <input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('role_fit') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`} />
+                <Field variant="input" type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} aiSuggested={aiSuggestedFields.has('role_fit')} />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+                <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                   Culture Fit (1-5)
                   {aiSuggestedFields.has('culture_fit') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
                 </label>
-                <input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('culture_fit') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink text-gray-900 dark:text-zinc-100 transition-colors`} />
+                <Field variant="input" type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} aiSuggested={aiSuggestedFields.has('culture_fit')} />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Recruiter Name</label>
-              <input type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Recruiter Name</label>
+              <Field variant="input" type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Contact Info</label>
-              <input type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Contact Info</label>
+              <Field variant="input" type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Resume Version</label>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Resume Version</label>
               <div className="flex gap-2">
-                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                <Field variant="input" type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1" />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
-                  <button type="button" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-3 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded border border-gray-300 dark:border-zinc-700 text-sm font-medium transition-colors">
+                  <Button type="button" variant="secondary" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-4">
                     Preview
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -832,13 +859,20 @@ export default function NewApplicationPage() {
         {/* Full width elements */}
         <div className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Tech Stack</label>
-            <div className="p-2 min-h-[42px] rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
+            <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Tech Stack</label>
+            <div className="rounded-ledger border border-field-border bg-card p-2 min-h-[44px] flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
               {formData.tech_stack.map((tech, idx) => (
-                <span key={idx} className="bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-800 text-sm px-2 py-1 rounded flex items-center gap-1">
+                <Chip key={idx} className="border border-field-border text-ink normal-case tracking-normal gap-1">
                   {tech}
-                  <button type="button" onClick={() => removeTech(tech)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:text-zinc-100">&times;</button>
-                </span>
+                  <button
+                    type="button"
+                    onClick={() => removeTech(tech)}
+                    aria-label={`Remove ${tech}`}
+                    className="relative text-muted-ink hover:text-ink inline-flex items-center justify-center before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:min-w-[44px] before:min-h-[44px]"
+                  >
+                    &times;
+                  </button>
+                </Chip>
               ))}
               <input
                 type="text"
@@ -846,35 +880,40 @@ export default function NewApplicationPage() {
                 onChange={e => setTechInput(e.target.value)}
                 onKeyDown={handleTechKeyDown}
                 placeholder="Type and press Enter or comma..."
-                className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:text-zinc-500"
+                className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-base sm:text-sm text-ink placeholder:text-muted-ink"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+            <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
               Notes
               {aiSuggestedFields.has('notes') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
             </label>
-            <textarea name="notes" value={formData.notes} onChange={handleInputChange} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('notes') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink min-h-48 resize-y text-gray-900 dark:text-zinc-100 transition-colors`} />
+            <Field
+              variant="textarea"
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              className="min-h-48 resize-y"
+              aiSuggested={aiSuggestedFields.has('notes')}
+            />
           </div>
 
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
-            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-            <label htmlFor="cover_letter_sent" className="text-sm text-gray-700 dark:text-zinc-300">Cover Letter Sent</label>
+          <div className="min-h-[44px] flex items-center gap-3 border-t border-hairline pt-4 mt-4">
+            <input
+              type="checkbox"
+              id="cover_letter_sent"
+              name="cover_letter_sent"
+              checked={formData.cover_letter_sent}
+              onChange={handleInputChange}
+              className="w-5 h-5 rounded-ledger border border-field-border bg-card accent-ink"
+            />
+            <label htmlFor="cover_letter_sent" className="text-sm text-ink cursor-pointer">Cover Letter Sent</label>
           </div>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {isSaving ? "Saving..." : "Save Application"}
-          </button>
         </div>
       </form>
+      </div>
 
       <ResumePreviewModal resumeId={previewResumeId} onClose={() => setPreviewResumeId(null)} />
 
@@ -884,5 +923,27 @@ export default function NewApplicationPage() {
         onCancel={cancelNavigation}
       />
     </div>
-  );
+
+    <div className="sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3`}>
+        <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
+          {toast && (
+            <p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>
+              {toast.message}
+            </p>
+          )}
+        </div>
+        <Button
+          type="submit"
+          form="new-application-form"
+          variant="primary"
+          disabled={isSaving}
+          className="w-full sm:w-auto sm:ml-auto px-6"
+        >
+          {isSaving ? "Saving..." : "Save Application"}
+        </Button>
+      </div>
+    </div>
+  </>
+);
 }

@@ -168,6 +168,38 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   const rejBgToken = themeName === 'Light' ? '--color-red-700' : '--color-red-800';
   const rejBg = tailwindColors.get(rejBgToken);
   checkPair('Chip Text', `Rejected (#FFFFFF on ${rejBgToken})`, themeName, '#FFFFFF', '#FFFFFF', 'white', rejBgToken, rejBg, `node_modules:${rejBgToken}`, 4.5);
+
+  // Alert Text on Tinted Surface
+  const alertSuccessBg = blendHex(ink, c, 0.10);
+  checkPair(
+    'Alert Text',
+    'Success Alert Text (--ink on blend(--ink/10%, --card))',
+    themeName,
+    '--ink',
+    ink,
+    theme.rawSources.get('--ink'),
+    'blend(--ink/10%, card)',
+    alertSuccessBg,
+    `blended surface over ${theme.rawSources.get('--card')}`,
+    4.5
+  );
+
+  const alertRedToken = themeName === 'Light' ? '--color-red-700' : '--color-red-950';
+  const alertRedOpacity = themeName === 'Light' ? 0.10 : 0.20;
+  const alertRedHex = tailwindColors.get(alertRedToken);
+  const alertRedBg = blendHex(alertRedHex, c, alertRedOpacity);
+  checkPair(
+    'Alert Text',
+    `Error Alert Text (--ink on ${alertRedToken} ${Math.round(alertRedOpacity * 100)}% over Card)`,
+    themeName,
+    '--ink',
+    ink,
+    theme.rawSources.get('--ink'),
+    `blend(${alertRedToken}/${Math.round(alertRedOpacity * 100)}%, card)`,
+    alertRedBg,
+    `blended surface over ${theme.rawSources.get('--card')}`,
+    4.5
+  );
 }
 
 // 2. Group B: Functional UI Borders (>= 3.0:1)
@@ -202,12 +234,19 @@ console.log('--- Group (c): Decorative Hairlines (Exempt from 3.0:1 gate) ---');
 for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   const p = theme.vars.get('--paper');
   const c = theme.vars.get('--card');
+  const ink = theme.vars.get('--ink');
   const h = theme.vars.get('--hairline');
   const hs = theme.vars.get('--hairline-subtle');
 
   checkPair('Decorative', 'Hairline vs Paper', themeName, '--hairline', h, theme.rawSources.get('--hairline'), '--paper', p, theme.rawSources.get('--paper'), 3.0, false);
   checkPair('Decorative', 'Hairline vs Card', themeName, '--hairline', h, theme.rawSources.get('--hairline'), '--card', c, theme.rawSources.get('--card'), 3.0, false);
   checkPair('Decorative', 'Hairline Subtle vs Paper', themeName, '--hairline-subtle', hs, theme.rawSources.get('--hairline-subtle'), '--paper', p, theme.rawSources.get('--paper'), 3.0, false);
+
+  checkPair('Decorative', 'Alert Success Border vs Card (--ink)', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 3.0, false);
+
+  const alertRedBorderToken = themeName === 'Light' ? '--color-red-700' : '--color-red-500';
+  const alertRedBorder = tailwindColors.get(alertRedBorderToken);
+  checkPair('Decorative', `Alert Error Border vs Card (${alertRedBorderToken})`, themeName, alertRedBorderToken, alertRedBorder, `node_modules:${alertRedBorderToken}`, '--card', c, theme.rawSources.get('--card'), 3.0, false);
 }
 
 // Helper: blend fg over bg with proportion p (0..1) in sRGB
