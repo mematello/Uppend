@@ -928,9 +928,9 @@ export default function NewApplicationPage() {
       <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3`}>
         <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
           {toast && (
-            <Alert tone={toast.type === 'success' ? 'success' : 'error'} role="status">
+            <p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>
               {toast.message}
-            </Alert>
+            </p>
           )}
         </div>
         <Button
