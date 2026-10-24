@@ -622,12 +622,6 @@ export default function NewApplicationPage() {
             </div>
             
             <div className="w-full">
-              {isMatching && (
-                <div role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse min-h-[44px] flex items-center">
-                  Analyzing fit...
-                </div>
-              )}
-              
               {limitExhausted ? (
                 <Alert className="flex flex-col sm:flex-row sm:items-center gap-3">
                   <div>
@@ -648,11 +642,19 @@ export default function NewApplicationPage() {
                   >
                     {isExtracting ? "Extracting with AI..." : "Extract Data"}
                   </Button>
-                  {!hasCustomKey && freeUses !== null && (
-                    <span className="text-xs text-muted-ink text-center lg:text-right">
-                      {freeUses} of 5 free AI uses remaining
-                    </span>
-                  )}
+                  <div className="min-h-5 text-center lg:text-right">
+                    {isMatching ? (
+                      <span role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse">
+                        Analyzing fit...
+                      </span>
+                    ) : (
+                      !hasCustomKey && freeUses !== null && (
+                        <span className="text-xs text-muted-ink text-center lg:text-right">
+                          {freeUses} of 5 free AI uses remaining
+                        </span>
+                      )
+                    )}
+                  </div>
                 </div>
               )}
             </div>
