@@ -170,19 +170,16 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   checkPair('Chip Text', `Rejected (#FFFFFF on ${rejBgToken})`, themeName, '#FFFFFF', '#FFFFFF', 'white', rejBgToken, rejBg, `node_modules:${rejBgToken}`, 4.5);
 
   // Alert Text on Tinted Surface
-  const alertGreenToken = themeName === 'Light' ? '--color-green-700' : '--color-green-950';
-  const alertGreenOpacity = themeName === 'Light' ? 0.10 : 0.20;
-  const alertGreenHex = tailwindColors.get(alertGreenToken);
-  const alertGreenBg = blendHex(alertGreenHex, c, alertGreenOpacity);
+  const alertSuccessBg = blendHex(ink, c, 0.10);
   checkPair(
     'Alert Text',
-    `Success Alert Text (--ink on ${alertGreenToken} ${Math.round(alertGreenOpacity * 100)}% over Card)`,
+    'Success Alert Text (--ink on blend(--ink/10%, --card))',
     themeName,
     '--ink',
     ink,
     theme.rawSources.get('--ink'),
-    `blend(${alertGreenToken}/${Math.round(alertGreenOpacity * 100)}%, card)`,
-    alertGreenBg,
+    'blend(--ink/10%, card)',
+    alertSuccessBg,
     `blended surface over ${theme.rawSources.get('--card')}`,
     4.5
   );
@@ -237,6 +234,7 @@ console.log('--- Group (c): Decorative Hairlines (Exempt from 3.0:1 gate) ---');
 for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   const p = theme.vars.get('--paper');
   const c = theme.vars.get('--card');
+  const ink = theme.vars.get('--ink');
   const h = theme.vars.get('--hairline');
   const hs = theme.vars.get('--hairline-subtle');
 
@@ -244,9 +242,7 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   checkPair('Decorative', 'Hairline vs Card', themeName, '--hairline', h, theme.rawSources.get('--hairline'), '--card', c, theme.rawSources.get('--card'), 3.0, false);
   checkPair('Decorative', 'Hairline Subtle vs Paper', themeName, '--hairline-subtle', hs, theme.rawSources.get('--hairline-subtle'), '--paper', p, theme.rawSources.get('--paper'), 3.0, false);
 
-  const alertGreenBorderToken = themeName === 'Light' ? '--color-green-700' : '--color-green-500';
-  const alertGreenBorder = tailwindColors.get(alertGreenBorderToken);
-  checkPair('Decorative', `Alert Success Border vs Card (${alertGreenBorderToken})`, themeName, alertGreenBorderToken, alertGreenBorder, `node_modules:${alertGreenBorderToken}`, '--card', c, theme.rawSources.get('--card'), 3.0, false);
+  checkPair('Decorative', 'Alert Success Border vs Card (--ink)', themeName, '--ink', ink, theme.rawSources.get('--ink'), '--card', c, theme.rawSources.get('--card'), 3.0, false);
 
   const alertRedBorderToken = themeName === 'Light' ? '--color-red-700' : '--color-red-500';
   const alertRedBorder = tailwindColors.get(alertRedBorderToken);

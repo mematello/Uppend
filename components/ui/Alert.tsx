@@ -6,7 +6,7 @@ export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const toneStyles: Record<NonNullable<AlertProps['tone']>, string> = {
   default: 'border border-hairline bg-card text-ink',
-  success: 'border border-green-700/40 bg-green-700/10 text-ink dark:border-green-500/40 dark:bg-green-950/20',
+  success: 'border border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] text-ink',
   error: 'border border-red-700/40 bg-red-700/10 text-ink dark:border-red-500/40 dark:bg-red-950/20',
 };
 
