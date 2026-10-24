@@ -608,8 +608,8 @@ export default function NewApplicationPage() {
             
             <div className="w-full">
               {isMatching && (
-                <div className="px-4 py-2 text-muted-ink font-medium animate-pulse flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" /> Analyzing fit...
+                <div role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse min-h-[44px] flex items-center">
+                  Analyzing fit...
                 </div>
               )}
               
