@@ -20,6 +20,7 @@ import { PageHeader } from "../../../components/ui/PageHeader";
 import { Panel } from "../../../components/ui/Panel";
 import { Button } from "../../../components/ui/Button";
 import { Field } from "../../../components/ui/Field";
+import { Chip } from "../../../components/ui/Chip";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -519,12 +520,6 @@ export default function NewApplicationPage() {
         </div>
       )}
 
-      {toast && (
-        <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-          {toast.message}
-        </div>
-      )}
-
       <div className={`grid grid-cols-1 ${isLocal ? '' : 'lg:grid-cols-[340px_1fr]'} gap-6 items-start`}>
         {/* Extraction Section */}
         {!isLocal && (
@@ -653,7 +648,7 @@ export default function NewApplicationPage() {
         )}
 
       {/* Manual & Extracted Form */}
-      <form onSubmit={handleSave} className="bg-card border border-hairline rounded-ledger p-6">
+      <form id="new-application-form" onSubmit={handleSave} className="bg-card border border-hairline rounded-ledger p-6">
         <h2 className="font-display text-xl text-ink border-b border-hairline pb-3 mb-4">Application Details</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -843,13 +838,20 @@ export default function NewApplicationPage() {
         {/* Full width elements */}
         <div className="mt-6 space-y-4">
           <div>
-            <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Tech Stack</label>
-            <div className="p-2 min-h-[42px] rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
+            <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Tech Stack</label>
+            <div className="rounded-ledger border border-field-border bg-card p-2 min-h-[44px] flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
               {formData.tech_stack.map((tech, idx) => (
-                <span key={idx} className="bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-800 text-sm px-2 py-1 rounded flex items-center gap-1">
+                <Chip key={idx} className="border border-field-border text-ink normal-case tracking-normal gap-1">
                   {tech}
-                  <button type="button" onClick={() => removeTech(tech)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:text-zinc-100">&times;</button>
-                </span>
+                  <button
+                    type="button"
+                    onClick={() => removeTech(tech)}
+                    aria-label={`Remove ${tech}`}
+                    className="relative text-muted-ink hover:text-ink inline-flex items-center justify-center before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:min-w-[44px] before:min-h-[44px]"
+                  >
+                    &times;
+                  </button>
+                </Chip>
               ))}
               <input
                 type="text"
@@ -857,33 +859,37 @@ export default function NewApplicationPage() {
                 onChange={e => setTechInput(e.target.value)}
                 onKeyDown={handleTechKeyDown}
                 placeholder="Type and press Enter or comma..."
-                className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:text-zinc-500"
+                className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-base sm:text-sm text-ink placeholder:text-muted-ink"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">
+            <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
               Notes
               {aiSuggestedFields.has('notes') && <span title="AI suggested"><Sparkles className="w-3 h-3 text-[var(--ink)] inline ml-1" /></span>}
             </label>
-            <textarea name="notes" value={formData.notes} onChange={handleInputChange} className={`w-full p-2 rounded-md border ${aiSuggestedFields.has('notes') ? 'ai-suggested' : 'bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700'} focus-ink min-h-48 resize-y text-gray-900 dark:text-zinc-100 transition-colors`} />
+            <Field
+              variant="textarea"
+              name="notes"
+              value={formData.notes}
+              onChange={handleInputChange}
+              className="min-h-48 resize-y"
+              aiSuggested={aiSuggestedFields.has('notes')}
+            />
           </div>
 
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-zinc-800">
-            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-            <label htmlFor="cover_letter_sent" className="text-sm text-gray-700 dark:text-zinc-300">Cover Letter Sent</label>
+          <div className="min-h-[44px] flex items-center gap-3 border-t border-hairline pt-4 mt-4">
+            <input
+              type="checkbox"
+              id="cover_letter_sent"
+              name="cover_letter_sent"
+              checked={formData.cover_letter_sent}
+              onChange={handleInputChange}
+              className="w-5 h-5 rounded-ledger border border-field-border bg-card accent-ink"
+            />
+            <label htmlFor="cover_letter_sent" className="text-sm text-ink cursor-pointer">Cover Letter Sent</label>
           </div>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-          >
-            {isSaving ? "Saving..." : "Save Application"}
-          </button>
         </div>
       </form>
       </div>
@@ -895,6 +901,27 @@ export default function NewApplicationPage() {
         onConfirm={confirmNavigation}
         onCancel={cancelNavigation}
       />
+
+      <div className="sticky bottom-0 z-10 mt-6 -mx-4 sm:-mx-8 px-4 sm:px-8 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card border-t border-hairline">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
+            {toast && (
+              <div className={`p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                {toast.message}
+              </div>
+            )}
+          </div>
+          <Button
+            type="submit"
+            form="new-application-form"
+            variant="primary"
+            disabled={isSaving}
+            className="w-full sm:w-auto sm:ml-auto px-6"
+          >
+            {isSaving ? "Saving..." : "Save Application"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
