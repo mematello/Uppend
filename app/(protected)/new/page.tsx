@@ -17,6 +17,9 @@ import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
 import { AIModel } from "../../../lib/types";
 import { getProviderFromModel } from "../../../lib/ai/providers";
 import { PageHeader } from "../../../components/ui/PageHeader";
+import { Panel } from "../../../components/ui/Panel";
+import { Button } from "../../../components/ui/Button";
+import { Field } from "../../../components/ui/Field";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -525,126 +528,129 @@ export default function NewApplicationPage() {
       <div className={`grid grid-cols-1 ${isLocal ? '' : 'lg:grid-cols-[340px_1fr]'} gap-6 items-start`}>
         {/* Extraction Section */}
         {!isLocal && (
-        <div className="mb-10 bg-card p-6 rounded-xl border border-hairline shadow-sm">
-        <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Paste Job Description</label>
-        <textarea
-          className="w-full h-40 p-3 rounded-md bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 focus-ink placeholder:text-gray-400 dark:text-zinc-500"
-          placeholder="Paste the full job description here..."
-          value={jobDescription}
-          onChange={(e) => { setJobDescription(e.target.value); setIsDirty(true); }}
-        />
-        <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div className="flex items-center gap-2 relative">
-            <div className="relative">
-              <button 
-                type="button"
-                onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                disabled={isUpdatingModel}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-hairline text-[var(--ink)] text-sm font-medium hover:bg-[var(--row-hover)] transition-colors disabled:opacity-50"
-              >
-                {preferredModel || "Select Model"}
-                <svg className={`w-4 h-4 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              
-              {isModelDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setIsModelDropdownOpen(false)}></div>
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-card rounded-xl shadow-xl border border-hairline z-20 overflow-hidden transform origin-bottom-left transition-all">
-                    <div className="p-2 space-y-1">
-                      <div className="px-3 py-2 text-xs font-label font-semibold text-[var(--muted)] uppercase tracking-wider">
-                        Select AI Engine
-                      </div>
-                      {hasCustomKey && (
-                        <div className="px-3 pb-2 text-xs text-[var(--muted)]">
-                          Using your API key
-                        </div>
-                      )}
-                      {aiModels.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-500">Loading...</div>
-                      ) : (
-                        aiModels.map((m: AIModel) => {
-                          const isBlocked = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
-                          const isExhausted = !hasCustomKey && m.request_count >= m.dailyLimit;
-                          const unavailable = isBlocked || isExhausted;
-                          const isSelected = preferredModel === m.name;
-                          
-                          return (
-                            <button
-                              key={m.name}
-                              type="button"
-                              disabled={unavailable}
-                              onClick={() => {
-                                handleModelChange(m.name);
-                                setIsModelDropdownOpen(false);
-                              }}
-                              className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all
-                                ${isSelected ? 'bg-[var(--accent)] text-[var(--on-accent)] font-medium' : 'text-gray-700 dark:text-zinc-200 hover:bg-[var(--row-hover)]'}
-                                ${unavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                              `}
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-medium">{m.name}</span>
-                                {!hasCustomKey && (
-                                  <span className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-                                    {unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`}
-                                  </span>
-                                )}
-                              </div>
-                              {isSelected && <Check className="w-4 h-4" />}
-                            </button>
-                          )
-                        })
-                      )}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {activeModelName && activeModelName !== preferredModel && (
-              <span className="text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200 dark:border-amber-900/50">
-                Falling back to {activeModelName}
-              </span>
-            )}
-          </div>
-          
-          <div className="flex justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0 flex-col sm:flex-row items-end sm:items-center">
-            {isMatching && (
-              <div className="px-4 py-2 text-[var(--muted)] font-medium animate-pulse flex items-center gap-2">
-                <Sparkles className="w-4 h-4" /> Analyzing fit...
-              </div>
-            )}
-            
-            {limitExhausted ? (
-              <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 max-w-lg">
-                <div className="text-sm text-amber-800 dark:text-amber-400">
-                  You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
-                </div>
-                <Link href="/settings" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium whitespace-nowrap transition-colors">
-                  Go to Settings
-                </Link>
-              </div>
-            ) : (
-              <div className="flex flex-col items-end gap-1">
-                <button
+        <Panel className="p-4 sm:p-6">
+          <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-2">Paste Job Description</label>
+          <Field
+            variant="textarea"
+            className="h-40 min-h-[10rem]"
+            placeholder="Paste the full job description here..."
+            value={jobDescription}
+            onChange={(e) => { setJobDescription(e.target.value); setIsDirty(true); }}
+          />
+          <div className="mt-4 grid grid-cols-2 lg:grid-cols-1 gap-3 items-start">
+            <div className="flex flex-col gap-2 relative w-full">
+              <div className="relative w-full">
+                <Button 
                   type="button"
-                  onClick={handleExtract}
-                  disabled={isExtracting || isMatching || !jobDescription.trim()}
-                  className="btn-primary px-4 py-2 rounded-md font-medium shadow-sm"
+                  variant="secondary"
+                  onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                  disabled={isUpdatingModel}
+                  className="w-full justify-between"
                 >
-                  {isExtracting ? "Extracting with AI..." : "✨ Extract Data"}
-                </button>
-                {!hasCustomKey && freeUses !== null && (
-                  <span className="text-xs text-gray-500 dark:text-zinc-400 mr-1">
-                    {freeUses} of 5 free AI uses remaining
-                  </span>
+                  <span className="truncate">{preferredModel || "Select Model"}</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                </Button>
+                
+                {isModelDropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setIsModelDropdownOpen(false)}></div>
+                    <div className="absolute bottom-full left-0 mb-2 w-64 bg-card rounded-ledger border border-hairline z-20 overflow-hidden">
+                      <div className="p-2 space-y-1">
+                        <div className="px-3 py-2 text-xs font-label font-semibold text-muted-ink uppercase tracking-wider">
+                          Select AI Engine
+                        </div>
+                        {hasCustomKey && (
+                          <div className="px-3 pb-2 text-xs text-muted-ink">
+                            Using your API key
+                          </div>
+                        )}
+                        {aiModels.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-muted-ink">Loading...</div>
+                        ) : (
+                          aiModels.map((m: AIModel) => {
+                            const isBlocked = !hasCustomKey && m.blocked_until && new Date(m.blocked_until) > new Date();
+                            const isExhausted = !hasCustomKey && m.request_count >= m.dailyLimit;
+                            const unavailable = isBlocked || isExhausted;
+                            const isSelected = preferredModel === m.name;
+                            
+                            return (
+                              <button
+                                key={m.name}
+                                type="button"
+                                disabled={unavailable}
+                                onClick={() => {
+                                  handleModelChange(m.name);
+                                  setIsModelDropdownOpen(false);
+                                }}
+                                className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-ledger text-sm transition-colors
+                                  ${isSelected ? 'bg-accent text-on-accent font-medium' : 'text-ink hover:bg-row-hover'}
+                                  ${unavailable ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                                `}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{m.name}</span>
+                                  {!hasCustomKey && (
+                                    <span className="text-xs text-muted-ink mt-0.5">
+                                      {unavailable ? (isBlocked ? 'Temporarily Blocked' : 'Daily Limit Reached') : `${m.request_count}/${m.dailyLimit} requests used`}
+                                    </span>
+                                  )}
+                                </div>
+                                {isSelected && <Check className="w-4 h-4 shrink-0" />}
+                              </button>
+                            )
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
-            )}
+
+              {activeModelName && activeModelName !== preferredModel && (
+                <span className="text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded border border-amber-200 dark:border-amber-900/50">
+                  Falling back to {activeModelName}
+                </span>
+              )}
+            </div>
+            
+            <div className="w-full">
+              {isMatching && (
+                <div className="px-4 py-2 text-muted-ink font-medium animate-pulse flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" /> Analyzing fit...
+                </div>
+              )}
+              
+              {limitExhausted ? (
+                <div className="flex items-center gap-4 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 max-w-lg">
+                  <div className="text-sm text-amber-800 dark:text-amber-400">
+                    You&apos;ve used all 5 of your free AI credits! To continue extracting data and matching resumes, please add your own API key.
+                  </div>
+                  <Link href="/settings" className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-md text-sm font-medium whitespace-nowrap transition-colors">
+                    Go to Settings
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col items-end lg:items-stretch gap-1 w-full">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    onClick={handleExtract}
+                    disabled={isExtracting || isMatching || !jobDescription.trim()}
+                    className="w-full"
+                  >
+                    {isExtracting ? "Extracting with AI..." : "Extract Data"}
+                  </Button>
+                  {!hasCustomKey && freeUses !== null && (
+                    <span className="text-xs text-muted-ink text-center lg:text-right">
+                      {freeUses} of 5 free AI uses remaining
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-      )}
+        </Panel>
+        )}
 
       {/* Manual & Extracted Form */}
       <form onSubmit={handleSave} className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
