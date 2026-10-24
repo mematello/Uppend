@@ -604,12 +604,6 @@ export default function NewApplicationPage() {
                   </>
                 )}
               </div>
-
-              {activeModelName && activeModelName !== preferredModel && (
-                <Chip className="border border-field-border text-ink normal-case tracking-normal">
-                  Falling back to {activeModelName}
-                </Chip>
-              )}
             </div>
             
             <div className="w-full">
@@ -647,6 +641,12 @@ export default function NewApplicationPage() {
                 </div>
               )}
             </div>
+
+            {activeModelName && activeModelName !== preferredModel && (
+              <Chip className="col-span-2 lg:col-span-1 w-full break-words border border-field-border text-ink normal-case tracking-normal">
+                Falling back to {activeModelName}
+              </Chip>
+            )}
           </div>
         </Panel>
         )}
