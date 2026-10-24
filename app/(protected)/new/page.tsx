@@ -16,6 +16,7 @@ import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
 
 import { AIModel } from "../../../lib/types";
 import { getProviderFromModel } from "../../../lib/ai/providers";
+import { PageHeader } from "../../../components/ui/PageHeader";
 
 export default function NewApplicationPage() {
   const router = useRouter();
@@ -505,8 +506,8 @@ export default function NewApplicationPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-8 text-gray-900 dark:text-zinc-100">
-      <h1 className="text-3xl font-bold font-display mb-8">New Job Application</h1>
+    <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`}>
+      <PageHeader eyebrow="02 / NEW" title="New Job Application" />
 
       {isLocal && (
         <div className="mb-6 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg text-sm flex items-center justify-between">
@@ -521,9 +522,10 @@ export default function NewApplicationPage() {
         </div>
       )}
 
-      {/* Extraction Section */}
-      {!isLocal && (
-      <div className="mb-10 bg-card p-6 rounded-xl border border-hairline shadow-sm">
+      <div className={`grid grid-cols-1 ${isLocal ? '' : 'lg:grid-cols-[340px_1fr]'} gap-6 items-start`}>
+        {/* Extraction Section */}
+        {!isLocal && (
+        <div className="mb-10 bg-card p-6 rounded-xl border border-hairline shadow-sm">
         <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">Paste Job Description</label>
         <textarea
           className="w-full h-40 p-3 rounded-md bg-gray-50 dark:bg-zinc-950 border border-gray-300 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 focus-ink placeholder:text-gray-400 dark:text-zinc-500"
@@ -875,6 +877,7 @@ export default function NewApplicationPage() {
           </button>
         </div>
       </form>
+      </div>
 
       <ResumePreviewModal resumeId={previewResumeId} onClose={() => setPreviewResumeId(null)} />
 
