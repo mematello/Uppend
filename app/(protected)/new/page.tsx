@@ -511,7 +511,8 @@ export default function NewApplicationPage() {
   };
 
   return (
-    <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`}>
+    <>
+      <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`}>
       <PageHeader eyebrow="02 / NEW" title="New Job Application" />
 
       {isLocal && (
@@ -902,27 +903,28 @@ export default function NewApplicationPage() {
         onConfirm={confirmNavigation}
         onCancel={cancelNavigation}
       />
+    </div>
 
-      <div className="sticky bottom-0 z-10 mt-6 -mx-4 sm:-mx-8 px-4 sm:px-8 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-card border-t border-hairline">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
-            {toast && (
-              <Alert tone={toast.type === 'success' ? 'success' : 'error'} role="status">
-                {toast.message}
-              </Alert>
-            )}
-          </div>
-          <Button
-            type="submit"
-            form="new-application-form"
-            variant="primary"
-            disabled={isSaving}
-            className="w-full sm:w-auto sm:ml-auto px-6"
-          >
-            {isSaving ? "Saving..." : "Save Application"}
-          </Button>
+    <div className="sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3`}>
+        <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
+          {toast && (
+            <Alert tone={toast.type === 'success' ? 'success' : 'error'} role="status">
+              {toast.message}
+            </Alert>
+          )}
         </div>
+        <Button
+          type="submit"
+          form="new-application-form"
+          variant="primary"
+          disabled={isSaving}
+          className="w-full sm:w-auto sm:ml-auto px-6"
+        >
+          {isSaving ? "Saving..." : "Save Application"}
+        </Button>
       </div>
     </div>
-  );
+  </>
+);
 }
