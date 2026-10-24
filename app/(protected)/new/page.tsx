@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase/client";
 import ResumePreviewModal from "../../../components/ResumePreviewModal";
-import { Sparkles, ChevronDown, Check } from "lucide-react";
+import { Sparkles, ChevronDown, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
 import { normalizeTitleCase, normalizeSalaryInput } from "../../../lib/utils/format";
 import { SOURCE_OPTIONS, matchSourceFromUrl, resolveExtractedSource } from "../../../lib/constants";
+import { resolveBackNavigation } from "../../../lib/utils/navigation";
 import { useRef } from "react";
 import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarning";
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
@@ -515,6 +516,19 @@ export default function NewApplicationPage() {
   return (
     <>
       <div className={`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`}>
+      <Link
+        href="/dashboard"
+        className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4"
+        aria-label="Back"
+        onClick={(e) => {
+          if (resolveBackNavigation(window.history.length, isDirty) === 'back') {
+            e.preventDefault();
+            router.back();
+          }
+        }}
+      >
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+      </Link>
       <PageHeader eyebrow="02 / NEW" title="New Job Application" />
 
       {isLocal && (
