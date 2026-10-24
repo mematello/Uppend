@@ -545,7 +545,7 @@ export default function NewApplicationPage() {
                   variant="secondary"
                   onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
                   disabled={isUpdatingModel}
-                  className="w-full justify-between"
+                  className="w-full flex items-center justify-between gap-2 px-4"
                 >
                   <span className="truncate">{preferredModel || "Select Model"}</span>
                   <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
@@ -636,7 +636,7 @@ export default function NewApplicationPage() {
                     variant="primary"
                     onClick={handleExtract}
                     disabled={isExtracting || isMatching || !jobDescription.trim()}
-                    className="w-full"
+                    className="w-full px-4"
                   >
                     {isExtracting ? "Extracting with AI..." : "Extract Data"}
                   </Button>
@@ -831,7 +831,7 @@ export default function NewApplicationPage() {
               <div className="flex gap-2">
                 <Field variant="input" type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1" />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
-                  <Button type="button" variant="secondary" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)}>
+                  <Button type="button" variant="secondary" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-4">
                     Preview
                   </Button>
                 )}
@@ -880,7 +880,7 @@ export default function NewApplicationPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             {isSaving ? "Saving..." : "Save Application"}
           </button>
