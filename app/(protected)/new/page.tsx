@@ -521,6 +521,7 @@ export default function NewApplicationPage() {
         className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4"
         aria-label="Back"
         onClick={(e) => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
           if (resolveBackNavigation(window.history.length, isDirty) === 'back') {
             e.preventDefault();
             router.back();
