@@ -9,7 +9,7 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
 import { normalizeTitleCase, normalizeSalaryInput } from "../../../lib/utils/format";
-import { SOURCE_OPTIONS, matchSourceOption, matchSourceFromUrl } from "../../../lib/constants";
+import { SOURCE_OPTIONS, matchSourceOption, matchSourceFromUrl, resolveExtractedSource } from "../../../lib/constants";
 import { useRef } from "react";
 import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarning";
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
@@ -299,11 +299,9 @@ export default function NewApplicationPage() {
 
       // Process extracted source
       const extractedSource = (extracted.source as string) || "";
-      const sourceMatch = matchSourceOption(extractedSource);
-      if (sourceMatch.option === "Other") {
-        setExplicitOther(true);
-      } else {
-        setExplicitOther(false);
+      const r = resolveExtractedSource(extractedSource);
+      if (r.hasSource) {
+        setExplicitOther(r.isOther);
       }
 
       // Single atomic form state update using loose null checks (!= null)
@@ -327,7 +325,7 @@ export default function NewApplicationPage() {
           role: (extracted.role as string) || "",
           tech_stack: (extracted.tech_stack as string[]) || [],
           location: (extracted.location as string) || "",
-          source: sourceMatch.option === "Other" ? sourceMatch.freeText : sourceMatch.option,
+          source: r.hasSource ? r.source : prev.source,
           recruiter_name: (extracted.recruiter_name as string) || "",
           contact_info: (extracted.contact_info as string) || "",
           notes: (extracted.notes as string) || "",
@@ -365,6 +363,10 @@ export default function NewApplicationPage() {
       });
 
       if (newSuggested.size > 0) {
+        // Tag carry-over reads the click-time aiSuggestedFields (accepted staleness)
+        if (!r.hasSource && aiSuggestedFields.has('source')) {
+          newSuggested.add('source');
+        }
         setAiSuggestedFields(newSuggested);
       }
 
