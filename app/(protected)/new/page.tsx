@@ -9,7 +9,7 @@ import Link from "next/link";
 import { User } from "@supabase/supabase-js";
 import { createApplication } from "../../../lib/data-source";
 import { normalizeTitleCase, normalizeSalaryInput } from "../../../lib/utils/format";
-import { SOURCE_OPTIONS, matchSourceOption, matchSourceFromUrl, resolveExtractedSource } from "../../../lib/constants";
+import { SOURCE_OPTIONS, matchSourceFromUrl, resolveExtractedSource } from "../../../lib/constants";
 import { useRef } from "react";
 import { useUnsavedChangesWarning } from "../../../hooks/useUnsavedChangesWarning";
 import UnsavedChangesModal from "../../../components/UnsavedChangesModal";
