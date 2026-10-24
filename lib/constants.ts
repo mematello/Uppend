@@ -30,3 +30,18 @@ export function matchSourceFromUrl(url: string): string | null {
   if (domainMatch) return domainMatch.value;
   return "Company Website";
 }
+
+export function resolveExtractedSource(raw: string | null | undefined): { source: string; isOther: boolean; hasSource: boolean } {
+  if (!raw || !raw.trim()) {
+    return { source: "", isOther: false, hasSource: false };
+  }
+  const match = matchSourceOption(raw);
+  if (!match.option) {
+    return { source: "", isOther: false, hasSource: false };
+  }
+  if (match.option === "Other") {
+    return { source: match.freeText, isOther: true, hasSource: true };
+  }
+  return { source: match.option, isOther: false, hasSource: true };
+}
+
