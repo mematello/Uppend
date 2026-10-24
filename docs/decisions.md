@@ -1,5 +1,41 @@
 # Uppend — Decisions Log
 
+## [2026-10-25] /new redesign (Session 30) — plain-text save bar toast and neutral success tone
+- Context: Notification styling in the sticky save bar and tone treatment for success states on the `/new` page.
+- Decision: Replaced the `<Alert>` component wrapper inside the save bar toast slot with a plain paragraph element (`<p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>{toast.message}</p>`) in commit `50e227d`. Wrapped in the same scrollable container (`flex-1 min-w-0 max-h-16 overflow-y-auto`). The `<Alert>` component's success tone was modified in commit `0f51144` to use a neutral ink tint (`border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] text-ink`) rather than green.
+- Reasoning: The `<Alert>` wrapper originally committed for save bar toasts contradicted the approved plan's plain-text design; removing the enclosing card, border, and background restored clean alignment with the save button. The neutral success tone aligns success alerts with the editorial ledger identity, keeping green strictly reserved for the positive Offer status chip.
+
+## [2026-10-25] /new redesign (Session 30) — analyzing status reserved slot
+- Context: Layout stability and preventing button shift when AI extraction and match analysis trigger in `/new`.
+- Decision: Removed the top-level status banner above the Extract button and created an always-rendered `<div className="min-h-5 text-center lg:text-right">` slot directly beneath the button in commit `2896da8`. When `isMatching` is true, displays `<span role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse">Analyzing fit...</span>`; otherwise displays `{freeUses} of 5 free AI uses remaining` (or empty when BYOK/null).
+- Reasoning: Dynamically injecting the status indicator above the Extract button previously caused vertical layout shift on desktop and disrupted the 50/50 action grid on mobile. Permanently reserving 20px (`min-h-5`) beneath the button guarantees the Extract button never moves when analysis starts or ends.
+
+## [2026-10-25] /new redesign (Session 30) — L2 history-aware back button
+- Context: Back button navigation from `/new` to `/dashboard` or previous referrer.
+- Decision: Implemented `resolveBackNavigation(historyLength: number, isDirty: boolean): 'back' | 'dashboard'` in `lib/utils/navigation.ts` (commit `bbd25bf`) and wired it to the Back Link (commit `7e0a904`, with modified-click bypass in `ced487f`). When clean and `window.history.length > 1`, calls `e.preventDefault(); router.back()`. When dirty, the `useUnsavedChangesWarning` capture-phase anchor listener intercepts the click, calls `preventDefault()` and `stopPropagation()`, and opens `UnsavedChangesModal`. When confirmed, the modal executes `router.push('/dashboard')`. Modified clicks (`metaKey`, `ctrlKey`, `shiftKey`, `altKey`, or `button !== 0`) bypass the handler.
+- Reasoning: Provides native-feeling back navigation to the previous referrer when clean, while preserving unsaved change protection when dirty. Accepted limitation: `window.history.length > 1` may navigate back externally if the user arrived at `/new` via direct link in an existing browser tab.
+
+## [2026-10-25] /new redesign (Session 30) — L1 resolveExtractedSource contract
+- Context: Resolving the job application Source field upon AI extraction (`lib/constants.ts`, commit `8605818`, `db6580b`).
+- Decision: Defined `resolveExtractedSource(extractedSource: string | undefined, currentSource: string): { source: string; isAiSuggested: boolean }`. If `currentSource` has non-whitespace characters, it is preserved verbatim (`hasSource = true`). If empty/whitespace-only, matches extracted source to `SOURCE_OPTIONS` or falls back to `'Other'`. Tag carry-over is placed inside the `newSuggested.size > 0` block. Accepted limitation: click-time source changes during active extraction are evaluated based on state when the extraction handler resolves.
+- Reasoning: Solves the issue where user-selected source values (e.g. from pasted URL auto-selection) were wiped out if the AI extraction payload omitted a source.
+
+## [2026-10-25] /new redesign (Session 30) — save bar sticky and full-bleed outside container
+- Context: Save bar layout and viewport spanning in `/new`.
+- Decision: Structured the save bar as `sticky bottom-0 z-10 bg-card border-t border-hairline` as a direct child of the outer page fragment, placing it outside the width-capped `max-w-7xl` / `max-w-4xl` container (corrected in `dd62355`). The inner flex row matches the container width. The initial placement inside the container was a planning chat error that caused the background and hairline border to truncate on screens wider than the cap. Fixed positioning was ruled out because `app/globals.css:45` `.animate-page-fade-in` ends on `to { opacity: 1; transform: scale(1); }` (`app/globals.css:218`), creating a CSS containing block that breaks fixed positioning.
+- Reasoning: Ensures the save bar surface and top hairline border span 100% of the viewport width while keeping interactive elements aligned with the page grid.
+
+## [2026-10-25] /new redesign (Session 30) — model fallback badge quota tracking key limitation
+- Context: Fallback badge display on `/new` when secondary models are used.
+- Decision: Retained the model fallback badge condition from `main` (`activeModelName && activeModelName !== preferredModel`). The badge currently displays the quota tracking key (e.g. `groq:shared-bucket`) rather than the human-readable model name because `/api/extract` (lines 176, 254, 282) and `/api/match` (lines 136, 188) assign and return `modelConfig.trackingName` as `model_used`.
+- Reasoning: Modifying the API return payload requires changing `/api/extract` and `/api/match`, which are protected routes under standing agent rules. Resolving the display name requires a dedicated protected-route cycle and a client-safe display helper.
+
+## [2026-10-25] /new redesign (Session 30) — contrast.mjs Alert pairs and Dark Field Border verification
+- Context: WCAG AA contrast additions for Alert primitive tones.
+- Decision: Added contrast test pairs for Alert Success Text, Alert Error Text, Alert Success Border, and Alert Error Border in `scripts/ui-checks/contrast.mjs` (commit `3b40c7e`, updated in `0f51144`). Review of `git log --format='%h %s' -- scripts/ui-checks/contrast.mjs` confirms that between `489590b` and `0f51144`, only Alert pairs were added. The diff proves zero code changes to Dark Field Border or Offer-outline pairs; any variance in reported ratios between test runs was not caused by code edits to those checks in `contrast.mjs`.
+- Reasoning: Extends automated contrast regression gates to all new Alert tones while documenting verification consistency.
+
+
 ## [2026-10-23] Redesign process rules
 - Context: Establishing standard operating procedures for redesign branches, verification evidence discipline, and handling logic modifications on presentational tasks.
 - Decision:

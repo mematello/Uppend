@@ -62,7 +62,8 @@ Values extracted from `app/globals.css:6-33` and `components/landing/landing.mod
   - `muted` on `card`: **7.36:1** (light) / **7.36:1** (dark)
   - `on-accent` on `accent`: **14.57:1**
 - **Buttons**: Ink-filled (`bg-[var(--ink)] text-[var(--paper)]`) with chartreuse hover (`hover:bg-[var(--accent)] hover:text-[#121212]`).
-- **Functional Colors**: Red, green, and amber reserved strictly for errors, validation, destructive actions, and Offer/Rejected chips.
+- **Functional Colors**: Red is strictly reserved for errors, validation, destructive actions, Rejected chip (`.chip-rejected`), error alerts, and error toasts (`text-red-700 dark:text-red-400`); green is strictly reserved for the positive Offer chip (`.chip-offer`) and nowhere else in the application; chartreuse accent (`#D4F03C`) is reserved for primary interactive hover/focus, active Applied status (`.chip-applied`), and AI suggestions (`.ai-suggested`); amber is prohibited across authenticated surfaces.
+- **Success Notifications**: Success alerts use a neutral ink tint (`border-ink` with `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]` and `text-ink`) or plain ink text rather than green, aligning positive confirmation with the editorial ledger identity.
 - **Partial Fills Behind Text**: Use an ink tint (`color-mix(in srgb, var(--ink) 10%, transparent)`), never chartreuse, except `.ai-suggested` (~25% accent tint with dark ink border and text).
 
 ---
@@ -105,17 +106,29 @@ Fonts defined in `lib/fonts.ts` and loaded globally in `app/layout.tsx:33`.
 | **Heatmap Popover** | `rounded-ledger border-hairline bg-card` | `ActivityHeatmapDropdown.tsx` | Dashboard streak cell | Token-based anchored dropdown panel; tile ramp via `color-mix(in srgb, var(--ink) N%, transparent)` at five opacity levels; nav buttons use `.btn-secondary`; month label in `.font-label`. |
 | **Logout Modal** | `bg-scrim` / `rounded-ledger` | `LogoutButton.tsx` | Dashboard nav | Full-screen `bg-scrim` backdrop (portal to `document.body`); inner card `bg-card rounded-ledger border-hairline`; confirm button `.btn-primary`, cancel `.btn-secondary`; 44px min-height touch targets. |
 | **Dashboard Loading Skeleton** | `animate-pulse bg-row-hover` | `app/(protected)/dashboard/loading.tsx` | Dashboard page route | Server component; mirrors final layout structure (nav bar, stats grid, toolbar, ledger rows, pagination) with `animate-pulse` placeholder blocks using `bg-row-hover` on `bg-card` cells. |
+| **Alert** | `border border-hairline bg-card text-ink` | `components/ui/Alert.tsx` | New Application, Settings | Surface banner primitive (`rounded-ledger p-4 text-sm`). Supports `tone="default"`, `tone="success"` (neutral ink tint `border-ink` + 10% ink mix), and `tone="error"` (red tint). |
+| **Back Button** | `.btn-secondary rounded-ledger min-h-[44px] min-w-[44px]` | `app/(protected)/new/page.tsx` | Secondary flows | Touch target navigation button with `ArrowLeft`; uses `resolveBackNavigation` for history-aware back navigation with modified-click bypass. |
 
 ### Presentational UI Primitives (`components/ui/*`)
 
 Shared presentational building blocks implemented on `redesign/dashboard`:
 - **Button** (`components/ui/Button.tsx`): Variants `'primary'` (`.btn-primary`) and `'secondary'` (`.btn-secondary`). Prop `isTouchTarget` (defaults to `true`) enforces `min-h-[44px]`. Forwards `ref`, `className`, and HTML button attributes.
+- **Alert** (`components/ui/Alert.tsx`): Surface notification primitive (`rounded-ledger p-4 text-sm`). Props: `tone?: 'default' | 'success' | 'error'`.
+  - `tone="default"`: `border border-hairline bg-card text-ink`. Used for Local Mode banner and credit exhaustion notices.
+  - `tone="success"`: `border border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] text-ink`. Neutral ink tint (10% ink mix) rather than green; contrast evaluated in `contrast.mjs` (14.34:1 light / 12.10:1 dark text, 17.65:1 light / 15.45:1 dark decorative border).
+  - `tone="error"`: `border border-red-700/40 bg-red-700/10 text-ink dark:border-red-500/40 dark:bg-red-950/20`. Contrast evaluated in `contrast.mjs` (14.65:1 light / 15.29:1 dark text, 6.05:1 light / 4.88:1 dark border).
+  Forwards `ref`, `className`, and HTML div attributes.
 - **Chip** (`components/ui/Chip.tsx`): Hairline status and metadata tag wrapper (`font-label text-xs uppercase tracking-wider px-2 py-0.5 rounded-ledger inline-flex items-center`). Does not stop propagation; forwards `ref`, `className`, and HTML div attributes.
 - **Panel** (`components/ui/Panel.tsx`): Surface container (`bg-card border border-hairline rounded-ledger`). Forwards `ref`, `className`, and HTML div attributes.
 - **PageHeader** (`components/ui/PageHeader.tsx`): Standard page title block with mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-2xl sm:text-3xl font-normal text-ink`), and optional action slot. Prop `hideActionsOnMobile` (`boolean`, default `false`) hides actions below `sm` (`hidden sm:flex`) in favor of mobile quick actions.
-- **Field** (`components/ui/Field.tsx`): Dual-variant input/select wrapper forwarding `ref` and props:
-  - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`.
-  - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`. Does not provide label, validation message, or hint props; form controls receive standard HTML attributes and styling directly.
+- **Field** (`components/ui/Field.tsx`): Tri-variant input/select/textarea wrapper forwarding `ref` and props:
+  - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
+  - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
+  - `variant="textarea"`: Multi-line text entry with `px-4 py-3 rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
+  Does not provide label, validation message, or hint props; form controls receive standard HTML attributes and styling directly.
+- **Back Button Pattern**: Standalone navigation trigger for secondary flows:
+  - Markup: `<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>`.
+  - Behavior: Intercepted in `onClick` with modified-click bypass (`if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;`). Invokes `resolveBackNavigation(window.history.length, isDirty)`: if clean and `history.length > 1`, calls `e.preventDefault(); router.back();` to return to referrer; if dirty or history is minimal, falls through to standard `/dashboard` link navigation (or unsaved changes guard).
 - **ThemeToggle** (`components/ThemeToggle.tsx`): Supports optional `label?: string` prop. When omitted, renders an icon-only theme toggle button without `title` attribute.
 - **MobileNavMenu** (`components/MobileNavMenu.tsx`): Mobile disclosure menu panel (`z-30 bg-card border border-hairline rounded-ledger`) providing mobile navigation and quick-action access.
 - **LogoutButton** (`components/LogoutButton.tsx`): Supports `menuItem?: boolean` prop. When `true`, renders a full-width menu button for `MobileNavMenu`; when `false`, renders standard icon/text button.
@@ -169,7 +182,23 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 
 ---
 
-## 7. Layout and Motion (IMPLEMENTED)
+---
+
+## 7. New Application Page (/new): Split-Intake Form (IMPLEMENTED on redesign/new)
+
+The `/new` application creation view uses a responsive split-intake layout:
+
+- **Desktop Two-Column Grid**: Viewport at `lg` renders `grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start`.
+  - Left column (`340px`): Encapsulates job description input (`min-h-[10rem]`), model selection dropdown trigger and anchored popover menu, extraction trigger button, and model fallback badge.
+  - Right column (`1fr`): Houses the manual application details form inside a `Panel` (`p-4 sm:p-6 space-y-4`): company, role, location, status select, salary/currency, priority select, fit scores, and notes textarea.
+- **Local Mode Compaction**: When unauthenticated (`isLocal`), container width is capped at `max-w-4xl` (`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 py-8`). The entire left extraction panel is omitted; the page displays a top Local Mode informational banner (`<Alert className="mb-6 flex items-center justify-between gap-4">`) followed by the centered single-column form.
+- **Mobile 50/50 Action Row**: Below `lg`, the model selection trigger and extraction action button sit side-by-side in a 2-column grid (`mt-4 grid grid-cols-2 lg:grid-cols-1 gap-3 items-start`).
+- **Full-Row Fallback Badge**: When model fallback triggers (`activeModelName && activeModelName !== preferredModel`), renders a full-width `Chip` spanning both mobile columns (`<Chip className="col-span-2 lg:col-span-1 w-full break-words border border-field-border text-ink normal-case tracking-normal">Falling back to {activeModelName}</Chip>`).
+- **Reserved Analyzing Status Slot**: An always-rendered `<div className="min-h-5 text-center lg:text-right">` under the Extract button permanently reserves 20px (1.25rem) height. Renders `<span role="status" className="font-label text-xs uppercase tracking-wider text-muted-ink animate-pulse">Analyzing fit...</span>` during `isMatching`, otherwise renders the byte-identical free-uses counter (`{freeUses} of 5 free AI uses remaining`). Because slot height is permanently allocated, the Extract button never moves or shifts when analysis begins or ends on mobile or desktop.
+
+---
+
+## 8. Layout and Motion (IMPLEMENTED)
 
 - **Max Width**: Standardized `max-w-7xl mx-auto px-4 sm:px-8`.
 - **Section Dividers**: Separated by explicit `border-t border-[var(--hairline)]`.
@@ -184,7 +213,7 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 
 ---
 
-## 8. Copy and Claims Rules (IMPLEMENTED)
+## 9. Copy and Claims Rules (IMPLEMENTED)
 
 - **Benefit-Led Voice**: Focus on calm execution and organization; avoid inflated AI hype.
 - **Strict Verification of Claims**:
@@ -196,7 +225,7 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 
 ---
 
-## 9. Don'ts (IMPLEMENTED)
+## 10. Don'ts (IMPLEMENTED)
 
 1. **NO Purple/Blue Gradients or Neon Glows**: Surfaces stay rooted in paper and ink.
 2. **NO Glassmorphism**: Avoid `backdrop-blur` layers, translucent glass, or diffuse shadows.
@@ -211,12 +240,17 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 
 ---
 
-## 10. Guardrails for UI Work (IMPLEMENTED)
+## 11. Guardrails for UI Work (IMPLEMENTED)
 
 1. **iOS Zoom Guard**: Inputs and textareas must NOT have `text-xs` or `text-sm` on mobile (`new/page.tsx:657`, `ApplicationDetailClient.tsx:357`).
 2. **Select + ChevronDown Pattern**: 8 native `<select>` elements use `appearance-none` + right padding + positioned `ChevronDown` (`new/page.tsx:669,707,756,781`, `ApplicationDetailClient.tsx:343,375,431,441`).
 3. **Textarea Geometry**: Notes and descriptions enforce `min-h-48 resize-y` (`new/page.tsx:859`, `ApplicationDetailClient.tsx:489,493`).
-4. **Sticky Save Bar**: Application detail sticky footer uses `sticky bottom-4 z-10 pointer-events-none` with children `pointer-events-auto` (`ApplicationDetailClient.tsx:498-505`).
+4. **Sticky Save Bar Pattern**:
+   - Outer container uses `sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]`. Placed outside the page's width-capped container (`max-w-7xl` or `max-w-4xl`) as a direct child of the page fragment, spanning the full viewport width.
+   - Inner flex row uses matching container constraint (`${isLocal ? 'max-w-4xl' : 'max-w-7xl'} mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3`). Save button connects to the form via HTML5 `form="new-application-form"` attribute.
+   - **Why sticky and not fixed**: `app/globals.css:45` `.animate-page-fade-in` (mounted on `app/(protected)/template.tsx`) defines `animation: pageFadeIn 0.25s ease-out forwards;` ending on `to { opacity: 1; transform: scale(1); }` (`app/globals.css:218`). The non-none `transform` property creates a new CSS containing block for all `position: fixed` descendants per the CSS spec, forcing a fixed save bar to be positioned relative to the page wrapper rather than the viewport. `position: sticky` anchors to the document scrolling context without being broken by the transform containing block.
+   - **Plain-Text Toasts**: Save bar toast notifications render as unadorned paragraph elements `<p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>{toast.message}</p>` inside a scrollable container (`flex-1 min-w-0 max-h-16 overflow-y-auto`). No alert boxes, borders, backgrounds, or decorative icons.
+   - **Status Typography**: Status and metadata indicators strictly use `.font-label` (`JetBrains Mono text-xs uppercase tracking-wider`).
 5. **Status Badges**: Must be `inline-flex` without `w-full` (`DashboardClient.tsx:440`).
 6. **Stacked Mobile Dashboard**: Tables transition to stacked cards on mobile (`thead hidden md:table-header-group`, `tbody block md:table-row-group`, `tr block md:table-row` in `DashboardClient.tsx:379,409,490`).
 7. **Portal Modals**: Modals mount to `document.body` via `createPortal` with fixed positioning (`ApplicationDetailClient.tsx:520`, `ResumePreviewModal.tsx:80`, `UnsavedChangesModal.tsx:64`, `LogoutButton.tsx`).
@@ -226,7 +260,7 @@ The authenticated dashboard is redesigned as a clean accounting ledger sheet:
 
 ---
 
-## 11. Verification Checklist for UI Work (IMPLEMENTED)
+## 12. Verification Checklist for UI Work (IMPLEMENTED)
 
 Every UI task must execute and report the following verification gates:
 1. **WCAG AA Contrast**: Run relative luminance script on modified tokens/colors; text >= 4.5:1, borders >= 3.0:1.
@@ -243,7 +277,7 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 12. Direction for Full App Redesign (DIRECTION)
+## 13. Direction for Full App Redesign (DIRECTION)
 
 *Directional proposals pending owner review and approval per page:*
 - **Page Headers**: Numbered mono eyebrow (`01 / DASHBOARD`, `02 / NEW`) and Fraunces serif heading (`.font-display`).
@@ -260,7 +294,7 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 13. Known Gaps (IMPLEMENTED list)
+## 14. Known Gaps (IMPLEMENTED list)
 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
@@ -270,10 +304,13 @@ Every UI task must execute and report the following verification gates:
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
 - **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.
+- **Modal Component Legacy Styling**: `UnsavedChangesModal` and `ResumePreviewModal` retain legacy styling with dead Tailwind animation classes (`animate-in`, `fade-in-0`, `zoom-in-95`). Scheduled for migration in the final modals + cookie banner redesign pass.
+- **Alert Success Tone Usage**: The `Alert` component's `success` tone (`border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]`) is compiled and contrast-verified but currently unused in `/new` (save bar toasts are plain text; local mode and exhaustion banners use `default`).
+- **Dead-Class Scanner Object-Literal Blind Spot**: `scripts/ui-checks/dead-class-scan.mjs` extracts static strings from JSX attributes and const declarations, but cannot resolve class strings nested inside object-literal lookup tables (such as `toneStyles` in `Alert.tsx`). Classes defined in dictionary maps require manual verification and compile proof via grep.
 
 ---
 
-## 14. File Map (IMPLEMENTED)
+## 15. File Map (IMPLEMENTED)
 
 All paths verified via `git ls-files`:
 
@@ -299,7 +336,10 @@ All paths verified via `git ls-files`:
   - `app/(protected)/dashboard/page.tsx` (server component; auth, data fetch, layout shell)
   - `components/LogoutButton.tsx` (logout trigger + scrim modal portal)
   - `components/ThemeToggle.tsx` (icon-only theme toggle, no title attribute)
-  - `components/Button.tsx`, `components/Chip.tsx`, `components/Panel.tsx`, `components/PageHeader.tsx`, `components/Field.tsx` (shared UI primitives)
+  - `components/ui/Button.tsx`, `components/ui/Chip.tsx`, `components/ui/Panel.tsx`, `components/ui/PageHeader.tsx`, `components/ui/Field.tsx`, `components/ui/Alert.tsx` (shared UI primitives)
+- **New Application (/new)**:
+  - `app/(protected)/new/page.tsx` (split-intake form, model fallback badge, reserved analyzing slot, full-bleed save bar)
+  - `lib/utils/navigation.ts` (`resolveBackNavigation` helper for history-aware back navigation)
 - **Tooling**:
   - `scripts/ui-checks/contrast.mjs` (WCAG contrast checker for all token pairs including heatmap tile ramp Groups A–D)
   - `scripts/ui-checks/dead-class-scan.mjs` (scans TSX class strings against compiled CSS chunks)

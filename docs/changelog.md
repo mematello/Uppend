@@ -1,5 +1,40 @@
 # Uppend — Changelog
 
+## [2026-10-25] (Session 30)
+- Implemented: `/new` application creation redesign on branch `redesign/new` (21 commits on top of `main` at `e5a9773`):
+  - `3b40c7e` test(ui): add Alert tone contrast checks to contrast script
+  - `4d93478` feat(ui): add Alert primitive with tokenized tones
+  - `58f3d8b` feat(ui): add textarea variant and aiSuggested prop to Field primitive
+  - `ad7f6bc` feat(new): implement PageHeader and two-column split layout shell
+  - `7c9ac94` feat(new): restyle extraction panel, model picker, and mobile 50/50 action row
+  - `8769819` feat(new): migrate application details form fields and selects to Field primitive
+  - `6903da1` fix(new): button layout and currency width
+  - `ae21927` feat(new): restyle tech chips, notes textarea, checkbox, and add sticky save bar
+  - `02a226a` feat(new): wire Alert primitive for local mode, exhaustion, toasts, and Chip fallback badge
+  - `dd62355` fix(new): full-bleed sticky save bar
+  - `8605818` feat(constants): add resolveExtractedSource helper with unit tests
+  - `db6580b` fix(new): preserve existing source and tag on empty extraction
+  - `295b2a2` chore(new): drop unused matchSourceOption import
+  - `e322ae8` fix(new): full-width model fallback badge
+  - `e4255ec` fix(new): restyle analyzing indicator
+  - `0f51144` fix(ui): neutral success tone for Alert
+  - `bbd25bf` feat(navigation): add resolveBackNavigation helper with unit tests
+  - `7e0a904` feat(new): add history-aware back button
+  - `ced487f` fix(new): ignore modified clicks on back button
+  - `2896da8` fix(new): reserve slot for analyzing status
+  - `50e227d` fix(new): plain-text save bar toast
+- Merged `redesign/new` into `main` via `--no-ff` (merge commit `0aeb78c`) and pushed (`e5a9773..0aeb78c`). Owner-terminal merge gate: UNVERIFIED (merge evidence comes from owner terminal). Verification totals on branch: `tsc --noEmit` exit 0, vitest test suite 117/117 passed (9 test files), production build exit 0. Owner real-device pass (iOS Safari, both themes): not yet run. Production smoke test for `/new`: pending.
+- Note (process incidents this session): Exactly the following owner-verified items occurred during Session 30:
+  - (a) save bar placed inside the width-capped container per a planning-chat amendment, fixed in `dd62355`;
+  - (b) Alert wrapper for toast contradicted the plan's plain-text design, fixed in `50e227d`;
+  - (c) L1 wiring left an unused matchSourceOption import (ESLint 0->1), fixed in `295b2a2`;
+  - (d) L1 manual test matrix expected a Sparkles badge on Source, contradicting the 2026-09-16 decision;
+  - (e) one report changed the logic-multiset counting method (12/14 vs 5/9) so numbers were not comparable;
+  - (f) an agent claim that the fallback badge can show with a null preferredModel was unevidenced;
+  - (g) contrast.mjs ratios changed between runs without being mentioned;
+  - (h) the dead-class scanner cannot resolve object-literal class maps.
+
+
 ## [2026-10-23] (Session 29)
 - Implemented: Dashboard redesign Groups 2b–3c on branch `redesign/dashboard` (38 commits on top of `main` at `c8ae62a`):
   - `daf86a8` docs(dashboard): Session 29 documentation corrections 3 (docs/changelog.md, docs/architecture.md, docs/current_state.md, docs/manifest.md ONLY)

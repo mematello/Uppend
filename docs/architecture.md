@@ -16,7 +16,7 @@ app/
   migrate/              → Interstitial page for local-to-cloud migration
 components/
   landing/              → Modular marketing landing page sections (LandingHeader, LandingHero, FlowDemo, DemoPanels, HowItWorks, PrivacyNotice, SiteFooter, OriginStory, landing.module.css)
-  ui/                     Presentational primitives (Button.tsx, Chip.tsx, Panel.tsx, PageHeader.tsx, Field.tsx)
+  ui/                     Presentational primitives (Button.tsx, Chip.tsx, Panel.tsx, PageHeader.tsx, Field.tsx, Alert.tsx)
   MobileNavMenu.tsx       Disclosure navigation menu on mobile screens
   ThemeToggle.tsx       → Dark/light mode toggle
   ResumeUploader.tsx    → Shared component for resume uploads (used in Settings and Onboarding)
@@ -25,9 +25,11 @@ components/
   ClearLocalDataButton.tsx → Settings trigger for wiping IndexedDB local storage
 lib/
   fonts.ts              → Display (Fraunces) and label (JetBrains Mono) Google Fonts loader with CSS variables
+  constants.ts          → Application constants and source resolution (resolveExtractedSource)
   utils/
     email.ts            → Shared Nodemailer transporter (lazy-verified) for all system emails
     ledger-format.ts      Formatting and sorting utilities (averageFit, formatMonthDay, fitValue, compareNullsLast)
+    navigation.ts         Navigation helpers (resolveBackNavigation)
   ai/providers.ts       → Source of truth for AI providers, display names, and client-safe helpers
   ai/models.ts          → Model selection, fallback, and error-parsing logic
   ai/guard.ts           → Pre-filter heuristic scanning for AI prompt injection defense
