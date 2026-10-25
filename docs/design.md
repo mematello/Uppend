@@ -122,7 +122,7 @@ Shared presentational building blocks implemented on `redesign/dashboard`:
 - **Panel** (`components/ui/Panel.tsx`): Surface container (`bg-card border border-hairline rounded-ledger`). Forwards `ref`, `className`, and HTML div attributes.
 - **PageHeader** (`components/ui/PageHeader.tsx`): Standard page title block with mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-2xl sm:text-3xl font-normal text-ink`), and optional action slot. Prop `hideActionsOnMobile` (`boolean`, default `false`) hides actions below `sm` (`hidden sm:flex`) in favor of mobile quick actions.
 - **Field** (`components/ui/Field.tsx`): Four-variant input/select/textarea/toggle wrapper forwarding `ref` and props:
-  - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
+  - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
   - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
   - `variant="textarea"`: Multi-line text entry with `px-4 py-3 rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
   - `variant="toggle"`: Labeled 44px bordered cell (`min-h-[44px] rounded-ledger border border-field-border bg-card px-3 flex items-center justify-between`) containing a text label and an accent-ink styled checkbox switch (`h-5 w-5 rounded-ledger border-field-border accent-[var(--ink)] cursor-pointer`). Supports `label: string`, `checked`, `onChange`, and standard HTML input checkbox attributes.
@@ -285,6 +285,9 @@ The `/applications/[id]` detail view implements direction B (split rail):
 8. **Touch Targets**: Minimum 44px tap targets (`min-h-[44px]` in `LandingHeader.tsx:31`, `ThemeToggle.tsx:37`, `DashboardClient.tsx:247`, logout modal action buttons).
 9. **Presentational Scope**: UI tasks must never touch data fetching, API routes, or RLS (`AGENTS.md:13`).
 10. **Z-Index Stack**: Sticky nav (`z-30`), popovers / anchored dropdowns (`z-20`), overlay backdrops (`z-10`), modal portals (`z-[100]`). Never assign an ad-hoc z-value outside this ladder.
+11. **Form Input & Grid Cell Contraction Guard**:
+   - Form inputs (`variant="input"` in `Field.tsx`) must declare `w-full min-w-0 max-w-full`. Native date pickers (`<input type="date">`) enforce rigid intrinsic minimum content widths in WebKit/iOS Safari; `min-w-0 max-w-full` enables the input to shrink fluidly and strictly adhere to container bounds without overflowing.
+   - Grid cell wrappers containing form controls inside CSS Grid containers must declare `min-w-0` to override the CSS Grid default `min-width: auto`, preventing intrinsic-size track blowout and cross-column overlaps on narrow viewports (`ApplicationDetailClient.tsx:625,646,663,676,689,702,715,731`).
 
 ---
 

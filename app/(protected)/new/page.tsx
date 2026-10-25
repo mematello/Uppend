@@ -797,7 +797,7 @@ export default function NewApplicationPage() {
               </Field>
             </div>
 
-            <div>
+            <div className="min-w-0">
               <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">Date Applied</label>
               <Field variant="input" type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} />
             </div>

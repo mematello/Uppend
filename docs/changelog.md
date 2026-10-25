@@ -1,6 +1,7 @@
 # Uppend — Changelog
 
 ## [2026-10-25] (Session 31)
+- Fixed: iOS Safari layout bug where `Date Applied` and `Next Action Date` input fields overflowed/protruded outside their parent container and overlapped adjacent cells in `md:grid-cols-2`. Added `w-full min-w-0 max-w-full` to `variant="input"` in `components/ui/Field.tsx`, `min-w-0` to Tracking details grid cells in `ApplicationDetailClient.tsx` and `new/page.tsx`, Guardrail 11 to `docs/design.md`, and logged decision in `docs/decisions.md`.
 - Implemented: Application detail redesign on branch `redesign/application-detail` (direction B split rail: sticky summary rail with live status chip, priority, fit, next action, resume; three Panels), Field `variant="toggle"` (labeled 44px bordered cell, used for Reminder and Cover letter; `/new` untouched), label shortening (Company, Salary), full-bleed sticky save bar with single plain-text toast, delete modal restyle (bg-scrim, rounded-ledger, role=dialog; state machine/Esc/stopPropagation unchanged), loading skeleton and early-return states, delete-confirm contrast pairs (11 commits on top of `main` at `37d80da`):
   - `d6ce3ff` feat(ui): add toggle variant to Field
   - `32959d4` feat(detail): page shell, header, summary rail

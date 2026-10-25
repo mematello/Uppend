@@ -63,7 +63,7 @@ export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement | HTM
             </div>
             <input
               ref={ref as React.ForwardedRef<HTMLInputElement>}
-              className={`pl-9 pr-4 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${aiClass} ${className}`.trim()}
+              className={`pl-9 pr-4 py-2 w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${aiClass} ${className}`.trim()}
               {...inputProps}
             />
           </div>
@@ -72,7 +72,7 @@ export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement | HTM
       return (
         <input
           ref={ref as React.ForwardedRef<HTMLInputElement>}
-          className={`px-4 py-2 w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${aiClass} ${className}`.trim()}
+          className={`px-4 py-2 w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors ${aiClass} ${className}`.trim()}
           {...inputProps}
         />
       );

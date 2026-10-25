@@ -1,5 +1,13 @@
 # Uppend — Decisions Log
 
+## [2026-10-25] iOS Safari date input layout containment (Session 31)
+- Context: On iOS Safari, `<input type="date">` elements on the detail page (`Date Applied` and `Next Action Date`) overflowed and protruded outside their parent container and overlapped adjacent grid cells in `md:grid-cols-2`.
+- Decision:
+  - **Form Input Contraction (`min-w-0 max-w-full`)**: Added `min-w-0 max-w-full` to `variant="input"` in `components/ui/Field.tsx`. Unlike text/select/toggle inputs, WebKit's native date picker enforces a rigid intrinsic minimum content size (~220px-280px). Setting `w-full min-w-0 max-w-full` allows the native date control to shrink fluidly and strictly adhere to container bounds without overflowing.
+  - **Grid Item Contraction (`min-w-0`)**: Added `min-w-0` to the grid cell `<div>` elements inside the Tracking details section in `ApplicationDetailClient.tsx` (and `new/page.tsx`). In CSS Grid, items default to `min-width: auto`, which prevents cells from shrinking below child intrinsic content size; `min-w-0` explicitly overrides this and prevents column blowout and cross-column overlaps on narrow and responsive viewports.
+  - **Guardrail Addition**: Added Guardrail 11 to `docs/design.md` to ensure future form inputs and CSS Grid cells maintain these containment safeguards.
+- Schema change: none. Data fetching, API routes, and business logic untouched.
+
 ## [2026-10-25] Application detail redesign (Session 31) — layout, primitives, and modal architecture
 - Context: Redesigning the application detail view (`app/(protected)/applications/[id]/`) to align with the warm paper/ink ledger identity.
 - Decision:

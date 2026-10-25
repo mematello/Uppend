@@ -622,7 +622,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             Tracking details
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
-            <div>
+            <div className="min-w-0">
               <label htmlFor="status" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Status
               </label>
@@ -643,7 +643,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 <option value="ghosted">Ghosted</option>
               </Field>
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="priority" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Priority
               </label>
@@ -660,7 +660,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 <option value="high">High</option>
               </Field>
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="date_applied" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Date Applied
               </label>
@@ -673,7 +673,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 onChange={handleInputChange}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="next_action" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Next Action
               </label>
@@ -686,7 +686,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 onChange={handleInputChange}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="next_action_date" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Next Action Date
               </label>
@@ -699,7 +699,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 onChange={handleInputChange}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Reminder
               </label>
@@ -712,7 +712,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 onChange={handleInputChange}
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <label htmlFor="resume_version" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Resume Version
               </label>
@@ -738,7 +738,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                 )}
               </div>
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
                 Cover letter
               </label>
