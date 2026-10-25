@@ -34,16 +34,7 @@ const STATUS_CHIP: Record<string, string> = {
   ghosted: 'chip-ghosted',
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  draft: 'Draft',
-  applied: 'Applied',
-  screening: 'Screening',
-  interview: 'Interview',
-  offer: 'Offer',
-  rejected: 'Rejected',
-  withdrawn: 'Withdrawn',
-  ghosted: 'Ghosted',
-};
+const statusLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function ApplicationDetailClient({ initialApplication, isLocal, appId }: { initialApplication: Application | null, isLocal?: boolean, appId?: string }) {
   const router = useRouter();
@@ -375,7 +366,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                   <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Status</dt>
                   <dd className="text-sm text-ink mt-0.5">
                     <Chip className={STATUS_CHIP[formData.status] ?? ''}>
-                      {STATUS_LABEL[formData.status] || formData.status}
+                      {statusLabel(formData.status)}
                     </Chip>
                   </dd>
                 </div>
