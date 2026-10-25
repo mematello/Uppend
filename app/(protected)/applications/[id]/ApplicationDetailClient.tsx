@@ -16,6 +16,33 @@ import { normalizeTitleCase, normalizeSalaryInput } from '../../../../lib/utils/
 import { SOURCE_OPTIONS } from '../../../../lib/constants';
 import { useUnsavedChangesWarning } from '../../../../hooks/useUnsavedChangesWarning';
 import UnsavedChangesModal from '../../../../components/UnsavedChangesModal';
+import { Button } from '../../../../components/ui/Button';
+import { Chip } from '../../../../components/ui/Chip';
+import { Panel } from '../../../../components/ui/Panel';
+import { PageHeader } from '../../../../components/ui/PageHeader';
+import { formatMonthDay } from '../../../../lib/utils/ledger-format';
+
+const STATUS_CHIP: Record<string, string> = {
+  draft: 'chip-draft',
+  applied: 'chip-applied',
+  screening: 'chip-screening',
+  interview: 'chip-interview',
+  offer: 'chip-offer',
+  rejected: 'chip-rejected',
+  withdrawn: 'chip-withdrawn',
+  ghosted: 'chip-ghosted',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Draft',
+  applied: 'Applied',
+  screening: 'Screening',
+  interview: 'Interview',
+  offer: 'Offer',
+  rejected: 'Rejected',
+  withdrawn: 'Withdrawn',
+  ghosted: 'Ghosted',
+};
 
 export default function ApplicationDetailClient({ initialApplication, isLocal, appId }: { initialApplication: Application | null, isLocal?: boolean, appId?: string }) {
   const router = useRouter();
@@ -302,33 +329,94 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 text-gray-900 dark:text-zinc-100 pb-24">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 mb-2 flex items-center gap-2 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold font-display">{formData.role} at {formData.company_name}</h1>
-        </div>
-        <button
-          type="button"
-          onClick={openDeleteModal}
-          disabled={isDeleting}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-full transition-colors disabled:opacity-50"
+    <>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+        <Link
+          href="/dashboard"
+          className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4"
+          aria-label="Back"
         >
-          <Trash2 className="w-4 h-4" />
-          {isDeleting ? "Deleting..." : "Delete"}
-        </button>
-      </div>
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+        </Link>
 
-      {toast && (
-        <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-          {toast.message}
-        </div>
-      )}
+        <PageHeader
+          eyebrow="03 / APPLICATION"
+          title={[formData.role, formData.company_name].filter(Boolean).join(' at ') || 'Untitled application'}
+          actions={
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={openDeleteModal}
+              disabled={isDeleting}
+              className="px-4 gap-2 inline-flex items-center text-red-700 dark:text-red-400"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          }
+        />
 
-      <form onSubmit={handleSave} className="space-y-8">
+        {toast && (
+          <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+            {toast.message}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
+          <aside>
+            <Panel className="lg:sticky lg:top-6">
+              <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+                Summary
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 lg:block lg:px-5 lg:py-4">
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Status</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    <Chip className={STATUS_CHIP[formData.status] ?? ''}>
+                      {STATUS_LABEL[formData.status] || formData.status}
+                    </Chip>
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Priority</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.priority ? (formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1)) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Role fit</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.role_fit ? (
+                      <span className="font-display text-2xl tabular-nums">{formData.role_fit} / 5</span>
+                    ) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Culture fit</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.culture_fit ? (
+                      <span className="font-display text-2xl tabular-nums">{formData.culture_fit} / 5</span>
+                    ) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Next action</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    <div>{formData.next_action || '—'}</div>
+                    {formData.next_action_date && /^\d{4}-\d{2}-\d{2}$/.test(formData.next_action_date) && (
+                      <span className="text-xs text-muted-ink block">{formatMonthDay(formData.next_action_date)}</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Resume version</dt>
+                  <dd className="text-sm text-ink mt-0.5">{formData.resume_version || '—'}</dd>
+                </div>
+              </dl>
+            </Panel>
+          </aside>
+
+          <form onSubmit={handleSave} className="space-y-8">
         
         {/* Extracted Fields */}
         <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
@@ -510,6 +598,8 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           </button>
         </div>
       </form>
+        </div>
+      </div>
 
       <ResumePreviewModal resumeId={previewResumeId} onClose={() => setPreviewResumeId(null)} />
       <UnsavedChangesModal
@@ -518,6 +608,6 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
         onCancel={cancelNavigation}
       />
       {typeof document !== "undefined" && createPortal(deleteModalContent, document.body)}
-    </div>
+    </>
   );
 }
