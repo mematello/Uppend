@@ -357,11 +357,6 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           }
         />
 
-        {toast && (
-          <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-            {toast.message}
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
           <aside>
@@ -856,21 +851,16 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           </div>
         </Panel>
 
-        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-3 sticky bottom-4 z-10 pt-4 pointer-events-none">
-          {toast && (
-            <div className={`px-4 py-2 rounded-md text-sm font-medium shadow-md pointer-events-auto transition-opacity ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-              {toast.message}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="btn-primary px-8 py-3 rounded-md font-medium shadow-lg pointer-events-auto"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
+          </form>
         </div>
-      </form>
+      </div>
+
+      <div className="sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
+            {toast && (<p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>{toast.message}</p>)}
+          </div>
+          <Button type="submit" form="application-detail-form" variant="primary" disabled={isSaving} className="w-full sm:w-auto sm:ml-auto px-6">{isSaving ? "Saving..." : "Save changes"}</Button>
         </div>
       </div>
 
