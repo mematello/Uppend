@@ -7,7 +7,7 @@ import { createClient } from '../../../../lib/supabase/client';
 import ResumePreviewModal from '../../../../components/ResumePreviewModal';
 import { createPortal } from 'react-dom';
 
-import { ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useRef } from 'react';
 
 import { Application } from '../../../../lib/types';
@@ -16,6 +16,25 @@ import { normalizeTitleCase, normalizeSalaryInput } from '../../../../lib/utils/
 import { SOURCE_OPTIONS } from '../../../../lib/constants';
 import { useUnsavedChangesWarning } from '../../../../hooks/useUnsavedChangesWarning';
 import UnsavedChangesModal from '../../../../components/UnsavedChangesModal';
+import { Button } from '../../../../components/ui/Button';
+import { Chip } from '../../../../components/ui/Chip';
+import { Panel } from '../../../../components/ui/Panel';
+import { PageHeader } from '../../../../components/ui/PageHeader';
+import { Field } from '../../../../components/ui/Field';
+import { formatMonthDay } from '../../../../lib/utils/ledger-format';
+
+const STATUS_CHIP: Record<string, string> = {
+  draft: 'chip-draft',
+  applied: 'chip-applied',
+  screening: 'chip-screening',
+  interview: 'chip-interview',
+  offer: 'chip-offer',
+  rejected: 'chip-rejected',
+  withdrawn: 'chip-withdrawn',
+  ghosted: 'chip-ghosted',
+};
+
+const statusLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function ApplicationDetailClient({ initialApplication, isLocal, appId }: { initialApplication: Application | null, isLocal?: boolean, appId?: string }) {
   const router = useRouter();
@@ -261,25 +280,31 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
 
   const deleteModalContent = isDeleteModalMounted ? (
     <div 
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isDeleteModalVisible ? 'opacity-100' : 'opacity-0'}`} 
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-scrim transition-opacity duration-200 ${isDeleteModalVisible ? 'opacity-100' : 'opacity-0'}`} 
       onClick={closeDeleteModal}
     >
       <div 
-        className={`bg-card rounded-xl border border-hairline shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
+        className={`bg-card rounded-ledger border border-hairline w-full max-w-sm p-6 flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-2">Delete Application</h3>
-        <p className="text-gray-600 dark:text-zinc-400 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
+        <h3 id="delete-dialog-title" className="font-display text-xl font-normal text-ink mb-2">Delete application</h3>
+        <p className="text-sm text-muted-ink mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
         <div className="flex justify-end gap-3">
-          <button 
+          <Button 
+            type="button"
+            variant="secondary"
             onClick={closeDeleteModal}
-            className="btn-secondary px-4 py-2 font-medium rounded-md transition-colors"
+            className="px-4"
           >
             Cancel
-          </button>
+          </Button>
           <button 
+            type="button"
             onClick={executeDelete}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
+            className="min-h-[44px] px-4 rounded-ledger bg-red-700 dark:bg-red-800 text-white font-medium hover:opacity-90 transition-opacity focus-ink"
           >
             Delete
           </button>
@@ -289,58 +314,152 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
   ) : null;
 
   if (isLoading) {
-    return <div className="max-w-5xl mx-auto p-4 md:p-8 flex justify-center py-20 text-gray-500">Loading application details...</div>;
+    return <div className="max-w-6xl mx-auto px-4 sm:px-8 py-20 flex justify-center text-muted-ink">Loading application details...</div>;
   }
 
   if (!applicationData) {
     return (
-      <div className="max-w-5xl mx-auto p-4 md:p-8 text-center py-20">
-        <h2 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">Application Not Found</h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center py-20">
+        <h2 className="font-display text-xl font-normal text-ink mb-4">Application not found</h2>
         <Link href="/dashboard" className="link-ink">Return to Dashboard</Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 text-gray-900 dark:text-zinc-100 pb-24">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 mb-2 flex items-center gap-2 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold font-display">{formData.role} at {formData.company_name}</h1>
-        </div>
-        <button
-          type="button"
-          onClick={openDeleteModal}
-          disabled={isDeleting}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-full transition-colors disabled:opacity-50"
+    <>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+        <Link
+          href="/dashboard"
+          className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4"
+          aria-label="Back"
         >
-          <Trash2 className="w-4 h-4" />
-          {isDeleting ? "Deleting..." : "Delete"}
-        </button>
-      </div>
+          <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+        </Link>
 
-      {toast && (
-        <div className={`mb-6 p-4 rounded-md text-sm font-medium ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-          {toast.message}
-        </div>
-      )}
+        <PageHeader
+          eyebrow="03 / APPLICATION"
+          title={[formData.role, formData.company_name].filter(Boolean).join(' at ') || 'Untitled application'}
+          actions={
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={openDeleteModal}
+              disabled={isDeleting}
+              className="px-4 gap-2 inline-flex items-center text-red-700 dark:text-red-400"
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          }
+        />
 
-      <form onSubmit={handleSave} className="space-y-8">
+
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
+          <aside>
+            <Panel className="lg:sticky lg:top-6">
+              <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+                Summary
+              </div>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 lg:block lg:px-5 lg:py-4">
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Status</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    <Chip className={STATUS_CHIP[formData.status] ?? ''}>
+                      {statusLabel(formData.status)}
+                    </Chip>
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Priority</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.priority ? (formData.priority.charAt(0).toUpperCase() + formData.priority.slice(1)) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Role fit</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.role_fit ? (
+                      <span className="font-display text-2xl tabular-nums">{formData.role_fit} / 5</span>
+                    ) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Culture fit</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    {formData.culture_fit ? (
+                      <span className="font-display text-2xl tabular-nums">{formData.culture_fit} / 5</span>
+                    ) : '—'}
+                  </dd>
+                </div>
+                <div className="lg:mb-3">
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Next action</dt>
+                  <dd className="text-sm text-ink mt-0.5">
+                    <div>{formData.next_action || '—'}</div>
+                    {formData.next_action_date && /^\d{4}-\d{2}-\d{2}$/.test(formData.next_action_date) && (
+                      <span className="text-xs text-muted-ink block">{formatMonthDay(formData.next_action_date)}</span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-label text-xs uppercase tracking-wider text-muted-ink">Resume version</dt>
+                  <dd className="text-sm text-ink mt-0.5">{formData.resume_version || '—'}</dd>
+                </div>
+              </dl>
+            </Panel>
+          </aside>
+
+          <form id="application-detail-form" onSubmit={handleSave} className="space-y-6">
         
         {/* Extracted Fields */}
-        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Extracted Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Company Name</label><input required type="text" name="company_name" value={formData.company_name} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role</label><input required type="text" name="role" value={formData.role} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+        <Panel>
+          <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+            Extracted details
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Salary Range</label>
+              <label htmlFor="company_name" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Company
+              </label>
+              <Field
+                variant="input"
+                required
+                type="text"
+                id="company_name"
+                name="company_name"
+                value={formData.company_name}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div>
+              <label htmlFor="role" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Role
+              </label>
+              <Field
+                variant="input"
+                required
+                type="text"
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div>
+              <label htmlFor="salary_range" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Salary
+              </label>
               <div className="flex gap-2">
-                <div className="relative">
-<select name="currency" value={formData.currency} onChange={handleInputChange} className="w-24 appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
+                <Field
+                  variant="select"
+                  id="currency"
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleInputChange}
+                  wrapperClassName="w-28 shrink-0"
+                >
                   <option value="PHP">PHP</option>
                   <option value="USD">USD</option>
                   <option value="EUR">EUR</option>
@@ -351,29 +470,66 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                   <option value="JPY">JPY</option>
                   <option value="INR">INR</option>
                   <option value="AED">AED</option>
-                </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
-                <input type="text" name="salary_range" value={formData.salary_range || ''} onChange={handleInputChange} onBlur={handleBlur} className="flex-1 min-w-0 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                </Field>
+                <Field
+                  variant="input"
+                  type="text"
+                  id="salary_range"
+                  name="salary_range"
+                  value={formData.salary_range || ''}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                  className="flex-1 min-w-0"
+                />
               </div>
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Location</label><input type="text" name="location" value={formData.location} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+            <div>
+              <label htmlFor="location" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Location
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="location"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+              />
+            </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm text-gray-600 dark:text-zinc-400">Job Link</label>
+                <label htmlFor="job_link" className="block font-label text-xs uppercase tracking-wider text-muted-ink">
+                  Job Link
+                </label>
                 {formData.job_link && (
-                  <a href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`} target="_blank" rel="noopener noreferrer" className="text-xs link-ink flex items-center gap-1">
+                  <a
+                    href={formData.job_link.startsWith('http') ? formData.job_link : `https://${formData.job_link}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs link-ink flex items-center gap-1"
+                  >
                     Open <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3 h-3"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
                   </a>
                 )}
               </div>
-              <input type="url" name="job_link" value={formData.job_link} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+              <Field
+                variant="input"
+                type="url"
+                id="job_link"
+                name="job_link"
+                value={formData.job_link}
+                onChange={handleInputChange}
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Source</label>
-              <div className="relative">
-<select 
-                value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")} 
+              <label htmlFor="source" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Source
+              </label>
+              <Field
+                variant="select"
+                id="source"
+                name="source"
+                value={explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source) ? "Other" : (SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) ? formData.source : "")}
                 onChange={(e) => {
                   setIsDirty(true);
                   const val = e.target.value;
@@ -385,131 +541,325 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
                     setFormData(prev => ({ ...prev, source: val }));
                   }
                 }}
-                className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100"
               >
                 <option value="">Select a source...</option>
                 {SOURCE_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              </Field>
               {(explicitOther || (!SOURCE_OPTIONS.some(o => o.value !== "Other" && o.value === formData.source) && formData.source)) ? (
-                <input 
-                  type="text" 
-                  name="source" 
-                  value={formData.source} 
-                  onChange={handleInputChange} 
+                <Field
+                  variant="input"
+                  type="text"
+                  name="source"
+                  value={formData.source}
+                  onChange={handleInputChange}
                   placeholder="Please specify"
-                  className="w-full p-2 mt-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" 
+                  className="mt-2"
                 />
               ) : null}
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Recruiter Name</label><input type="text" name="recruiter_name" value={formData.recruiter_name} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Contact Info</label><input type="text" name="contact_info" value={formData.contact_info} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-          </div>
-          <div className="mt-6">
-            <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Tech Stack</label>
-            <div className="p-2 min-h-[42px] rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
-              {formData.tech_stack.map((tech: string, idx: number) => (
-                <span key={idx} className="bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-800 text-sm px-2 py-1 rounded flex items-center gap-1">
-                  {tech} <button type="button" onClick={() => removeTech(tech)} className="text-gray-400 dark:text-zinc-500 hover:text-gray-900 dark:text-zinc-100">&times;</button>
-                </span>
-              ))}
-              <input type="text" value={techInput} onChange={e => setTechInput(e.target.value)} onKeyDown={handleTechKeyDown} placeholder="Type and press Enter..." className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:text-zinc-500" />
-            </div>
-          </div>
-        </section>
-
-        {/* Tracking Fields */}
-        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Tracking Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
-              <div className="relative">
-<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
-                <option value="draft">Draft</option><option value="applied">Applied</option><option value="screening">Screening</option>
-                <option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option><option value="ghosted">Ghosted</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              <label htmlFor="recruiter_name" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Recruiter Name
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="recruiter_name"
+                name="recruiter_name"
+                value={formData.recruiter_name}
+                onChange={handleInputChange}
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Priority</label>
-              <div className="relative">
-<select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
-                <option value="">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              <label htmlFor="contact_info" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Contact Info
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="contact_info"
+                name="contact_info"
+                value={formData.contact_info}
+                onChange={handleInputChange}
+              />
             </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label><input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action</label><input type="text" name="next_action" value={formData.next_action} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action Date</label>
-              <div className="flex flex-col gap-3">
-                <input type="date" name="next_action_date" value={formData.next_action_date} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="reminder_enabled" name="reminder_enabled" checked={formData.reminder_enabled} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-                  <label htmlFor="reminder_enabled" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Enable Email Reminder</label>
-                </div>
+            <div className="md:col-span-2">
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Tech Stack
+              </label>
+              <div className="rounded-ledger border border-field-border bg-card p-2 min-h-[44px] flex flex-wrap gap-2 items-center focus-within:ring-2 focus-within:ring-[var(--ink)]">
+                {formData.tech_stack.map((tech: string, idx: number) => (
+                  <Chip key={idx} className="border border-field-border text-ink normal-case tracking-normal gap-1">
+                    {tech}
+                    <button
+                      type="button"
+                      onClick={() => removeTech(tech)}
+                      aria-label={`Remove ${tech}`}
+                      className="relative text-muted-ink hover:text-ink inline-flex items-center justify-center before:content-[''] before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:min-w-[44px] before:min-h-[44px]"
+                    >
+                      &times;
+                    </button>
+                  </Chip>
+                ))}
+                <input
+                  type="text"
+                  value={techInput}
+                  onChange={e => setTechInput(e.target.value)}
+                  onKeyDown={handleTechKeyDown}
+                  placeholder="Type and press Enter or comma..."
+                  className="bg-transparent border-none outline-none flex-1 min-w-[150px] text-base sm:text-sm text-ink placeholder:text-muted-ink"
+                />
               </div>
             </div>
+          </div>
+        </Panel>
+
+        {/* Tracking Fields */}
+        <Panel>
+          <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+            Tracking details
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Resume Version</label>
+              <label htmlFor="status" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Status
+              </label>
+              <Field
+                variant="select"
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+              >
+                <option value="draft">Draft</option>
+                <option value="applied">Applied</option>
+                <option value="screening">Screening</option>
+                <option value="interview">Interview</option>
+                <option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
+                <option value="ghosted">Ghosted</option>
+              </Field>
+            </div>
+            <div>
+              <label htmlFor="priority" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Priority
+              </label>
+              <Field
+                variant="select"
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+              >
+                <option value="">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </Field>
+            </div>
+            <div>
+              <label htmlFor="date_applied" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Date Applied
+              </label>
+              <Field
+                variant="input"
+                type="date"
+                id="date_applied"
+                name="date_applied"
+                value={formData.date_applied}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="next_action" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Next Action
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="next_action"
+                name="next_action"
+                value={formData.next_action}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="next_action_date" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Next Action Date
+              </label>
+              <Field
+                variant="input"
+                type="date"
+                id="next_action_date"
+                name="next_action_date"
+                value={formData.next_action_date}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Reminder
+              </label>
+              <Field
+                variant="toggle"
+                label="Email me on this date"
+                id="reminder_enabled"
+                name="reminder_enabled"
+                checked={formData.reminder_enabled}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="resume_version" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Resume Version
+              </label>
               <div className="flex gap-2">
-                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                <Field
+                  variant="input"
+                  type="text"
+                  id="resume_version"
+                  name="resume_version"
+                  value={formData.resume_version}
+                  onChange={handleInputChange}
+                  className="flex-1"
+                />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
-                  <button type="button" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-3 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded border border-gray-300 dark:border-zinc-700 text-sm font-medium transition-colors">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)}
+                    className="px-4"
+                  >
                     Preview
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
+            <div>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Cover letter
+              </label>
+              <Field
+                variant="toggle"
+                label="Sent with this application"
+                id="cover_letter_sent"
+                name="cover_letter_sent"
+                checked={formData.cover_letter_sent}
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2 mt-6">
-            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-            <label htmlFor="cover_letter_sent" className="text-sm text-gray-700 dark:text-zinc-300">Cover Letter Sent</label>
-          </div>
-        </section>
+        </Panel>
 
         {/* Evaluation Fields */}
-        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Evaluation & Interviews</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Stage</label><input type="text" name="interview_stage" value={formData.interview_stage} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" placeholder="e.g. Phone Screen, Technical, Final" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Rejection Reason</label><input type="text" name="rejection_reason" value={formData.rejection_reason} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role Fit (1-5)</label><input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Culture Fit (1-5)</label><input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+        <Panel>
+          <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+            Evaluation and interviews
           </div>
-          <div className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Notes</label>
-              <textarea name="interview_notes" value={formData.interview_notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <label htmlFor="interview_stage" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Interview Stage
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="interview_stage"
+                name="interview_stage"
+                value={formData.interview_stage}
+                onChange={handleInputChange}
+                placeholder="e.g. Phone Screen, Technical, Final"
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">General Notes</label>
-              <textarea name="notes" value={formData.notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <label htmlFor="rejection_reason" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Rejection Reason
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="rejection_reason"
+                name="rejection_reason"
+                value={formData.rejection_reason}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="role_fit" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Role Fit (1-5)
+              </label>
+              <Field
+                variant="input"
+                type="number"
+                min="1"
+                max="5"
+                id="role_fit"
+                name="role_fit"
+                value={formData.role_fit}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div>
+              <label htmlFor="culture_fit" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Culture Fit (1-5)
+              </label>
+              <Field
+                variant="input"
+                type="number"
+                min="1"
+                max="5"
+                id="culture_fit"
+                name="culture_fit"
+                value={formData.culture_fit}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="interview_notes" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Interview Notes
+              </label>
+              <Field
+                variant="textarea"
+                id="interview_notes"
+                name="interview_notes"
+                value={formData.interview_notes}
+                onChange={handleInputChange}
+                className="min-h-48 resize-y"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="notes" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                General Notes
+              </label>
+              <Field
+                variant="textarea"
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                className="min-h-48 resize-y"
+              />
             </div>
           </div>
-        </section>
+        </Panel>
 
-        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-3 sticky bottom-4 z-10 pt-4 pointer-events-none">
-          {toast && (
-            <div className={`px-4 py-2 rounded-md text-sm font-medium shadow-md pointer-events-auto transition-opacity ${toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-              {toast.message}
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="btn-primary px-8 py-3 rounded-md font-medium shadow-lg pointer-events-auto"
-          >
-            {isSaving ? "Saving..." : "Save Changes"}
-          </button>
+          </form>
         </div>
-      </form>
+      </div>
+
+      <div className="sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 min-w-0 max-h-16 overflow-y-auto">
+            {toast && (<p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>{toast.message}</p>)}
+          </div>
+          <Button type="submit" form="application-detail-form" variant="primary" disabled={isSaving} className="w-full sm:w-auto sm:ml-auto px-6">{isSaving ? "Saving..." : "Save changes"}</Button>
+        </div>
+      </div>
 
       <ResumePreviewModal resumeId={previewResumeId} onClose={() => setPreviewResumeId(null)} />
       <UnsavedChangesModal
@@ -518,6 +868,6 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
         onCancel={cancelNavigation}
       />
       {typeof document !== "undefined" && createPortal(deleteModalContent, document.body)}
-    </div>
+    </>
   );
 }

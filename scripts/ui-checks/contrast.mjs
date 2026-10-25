@@ -169,6 +169,10 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
   const rejBg = tailwindColors.get(rejBgToken);
   checkPair('Chip Text', `Rejected (#FFFFFF on ${rejBgToken})`, themeName, '#FFFFFF', '#FFFFFF', 'white', rejBgToken, rejBg, `node_modules:${rejBgToken}`, 4.5);
 
+  const delConfirmBgToken = themeName === 'Light' ? '--color-red-700' : '--color-red-800';
+  const delConfirmBg = tailwindColors.get(delConfirmBgToken);
+  checkPair('Text', `Delete Confirm (#FFFFFF on ${delConfirmBgToken})`, themeName, '#FFFFFF', '#FFFFFF', 'white', delConfirmBgToken, delConfirmBg, `node_modules:${delConfirmBgToken}`, 4.5);
+
   // Alert Text on Tinted Surface
   const alertSuccessBg = blendHex(ink, c, 0.10);
   checkPair(

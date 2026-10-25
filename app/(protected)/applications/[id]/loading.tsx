@@ -1,36 +1,88 @@
+const skel = "animate-pulse bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger";
+
 export default function ApplicationLoading() {
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 w-full animate-pulse pb-24">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-32 mb-4"></div>
-          <div className="h-10 bg-gray-200 dark:bg-zinc-800 rounded w-64"></div>
-        </div>
-        <div className="h-10 bg-gray-200 dark:bg-zinc-800 rounded w-32"></div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8">
+      {/* Back square */}
+      <div className={`h-11 w-11 mb-4 ${skel}`} />
+
+      {/* Eyebrow and title */}
+      <div className="mb-8">
+        <div className={`h-3 w-24 mb-2 ${skel}`} />
+        <div className={`h-8 w-72 max-w-full ${skel}`} />
       </div>
 
-      <div className="space-y-8">
-        {/* Sections */}
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-            <div className="h-6 bg-gray-200 dark:bg-zinc-800 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, j) => (
-                <div key={j}>
-                  <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-1/3 mb-2"></div>
-                  <div className="h-10 bg-gray-200 dark:bg-zinc-800 rounded w-full"></div>
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
+        {/* Left rail */}
+        <div className="bg-card border border-hairline rounded-ledger">
+          <div className="px-5 py-3.5 border-b border-hairline">
+            <div className={`h-5 w-24 ${skel}`} />
+          </div>
+          <div className="p-5 space-y-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i}>
+                <div className={`h-3 w-16 mb-2 ${skel}`} />
+                <div className={`h-4 w-28 ${skel}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right 3 panels */}
+        <div className="space-y-6">
+          {/* Extracted Details */}
+          <div className="bg-card border border-hairline rounded-ledger">
+            <div className="px-5 py-3.5 border-b border-hairline">
+              <div className={`h-5 w-36 ${skel}`} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
+              {[...Array(8)].map((_, i) => (
+                <div key={i}>
+                  <div className={`h-3 w-1/3 mb-2 ${skel}`} />
+                  <div className={`h-11 ${skel}`} />
                 </div>
               ))}
             </div>
-            {i === 0 && (
-              <div className="mt-6">
-                <div className="h-4 bg-gray-200 dark:bg-zinc-800 rounded w-1/4 mb-2"></div>
-                <div className="h-12 bg-gray-200 dark:bg-zinc-800 rounded w-full"></div>
-              </div>
-            )}
           </div>
-        ))}
+
+          {/* Tracking Details */}
+          <div className="bg-card border border-hairline rounded-ledger">
+            <div className="px-5 py-3.5 border-b border-hairline">
+              <div className={`h-5 w-36 ${skel}`} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
+              {[...Array(6)].map((_, i) => (
+                <div key={i}>
+                  <div className={`h-3 w-1/3 mb-2 ${skel}`} />
+                  <div className={`h-11 ${skel}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Evaluation and Interviews */}
+          <div className="bg-card border border-hairline rounded-ledger">
+            <div className="px-5 py-3.5 border-b border-hairline">
+              <div className={`h-5 w-36 ${skel}`} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i}>
+                  <div className={`h-3 w-1/3 mb-2 ${skel}`} />
+                  <div className={`h-11 ${skel}`} />
+                </div>
+              ))}
+              <div className="md:col-span-2">
+                <div className={`h-3 w-1/3 mb-2 ${skel}`} />
+                <div className={`h-48 ${skel}`} />
+              </div>
+              <div className="md:col-span-2">
+                <div className={`h-3 w-1/3 mb-2 ${skel}`} />
+                <div className={`h-48 ${skel}`} />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
