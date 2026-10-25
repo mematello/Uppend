@@ -323,13 +323,13 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
   ) : null;
 
   if (isLoading) {
-    return <div className="max-w-5xl mx-auto p-4 md:p-8 flex justify-center py-20 text-gray-500">Loading application details...</div>;
+    return <div className="max-w-6xl mx-auto px-4 sm:px-8 py-20 flex justify-center text-muted-ink">Loading application details...</div>;
   }
 
   if (!applicationData) {
     return (
-      <div className="max-w-5xl mx-auto p-4 md:p-8 text-center py-20">
-        <h2 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">Application Not Found</h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 text-center py-20">
+        <h2 className="font-display text-xl font-normal text-ink mb-4">Application not found</h2>
         <Link href="/dashboard" className="link-ink">Return to Dashboard</Link>
       </div>
     );
