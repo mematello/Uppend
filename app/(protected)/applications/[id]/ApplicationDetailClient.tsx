@@ -417,7 +417,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             </Panel>
           </aside>
 
-          <form onSubmit={handleSave} className="space-y-8">
+          <form id="application-detail-form" onSubmit={handleSave} className="space-y-6">
         
         {/* Extracted Fields */}
         <Panel>
@@ -763,25 +763,98 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
         </Panel>
 
         {/* Evaluation Fields */}
-        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Evaluation & Interviews</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Stage</label><input type="text" name="interview_stage" value={formData.interview_stage} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" placeholder="e.g. Phone Screen, Technical, Final" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Rejection Reason</label><input type="text" name="rejection_reason" value={formData.rejection_reason} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Role Fit (1-5)</label><input type="number" min="1" max="5" name="role_fit" value={formData.role_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Culture Fit (1-5)</label><input type="number" min="1" max="5" name="culture_fit" value={formData.culture_fit} onChange={handleInputChange} onBlur={handleBlur} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
+        <Panel>
+          <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+            Evaluation and interviews
           </div>
-          <div className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Interview Notes</label>
-              <textarea name="interview_notes" value={formData.interview_notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <label htmlFor="interview_stage" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Interview Stage
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="interview_stage"
+                name="interview_stage"
+                value={formData.interview_stage}
+                onChange={handleInputChange}
+                placeholder="e.g. Phone Screen, Technical, Final"
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">General Notes</label>
-              <textarea name="notes" value={formData.notes} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink min-h-48 md:min-h-24 resize-y text-gray-900 dark:text-zinc-100" />
+              <label htmlFor="rejection_reason" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Rejection Reason
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="rejection_reason"
+                name="rejection_reason"
+                value={formData.rejection_reason}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="role_fit" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Role Fit (1-5)
+              </label>
+              <Field
+                variant="input"
+                type="number"
+                min="1"
+                max="5"
+                id="role_fit"
+                name="role_fit"
+                value={formData.role_fit}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div>
+              <label htmlFor="culture_fit" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Culture Fit (1-5)
+              </label>
+              <Field
+                variant="input"
+                type="number"
+                min="1"
+                max="5"
+                id="culture_fit"
+                name="culture_fit"
+                value={formData.culture_fit}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="interview_notes" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Interview Notes
+              </label>
+              <Field
+                variant="textarea"
+                id="interview_notes"
+                name="interview_notes"
+                value={formData.interview_notes}
+                onChange={handleInputChange}
+                className="min-h-48 resize-y"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="notes" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                General Notes
+              </label>
+              <Field
+                variant="textarea"
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                className="min-h-48 resize-y"
+              />
             </div>
           </div>
-        </section>
+        </Panel>
 
         <div className="flex flex-col sm:flex-row items-end sm:items-center justify-end gap-3 sticky bottom-4 z-10 pt-4 pointer-events-none">
           {toast && (
