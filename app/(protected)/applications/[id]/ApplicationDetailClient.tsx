@@ -427,7 +427,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
               <label htmlFor="company_name" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
-                Company Name
+                Company
               </label>
               <Field
                 variant="input"
@@ -457,7 +457,7 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
             </div>
             <div>
               <label htmlFor="salary_range" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
-                Salary Range
+                Salary
               </label>
               <div className="flex gap-2">
                 <Field
