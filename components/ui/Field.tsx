@@ -19,10 +19,33 @@ export interface TextAreaFieldProps extends React.TextareaHTMLAttributes<HTMLTex
   aiSuggested?: boolean;
 }
 
-export type FieldProps = InputFieldProps | SelectFieldProps | TextAreaFieldProps;
+export interface ToggleFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  variant: 'toggle';
+  label: string;
+}
+
+export type FieldProps = InputFieldProps | SelectFieldProps | TextAreaFieldProps | ToggleFieldProps;
 
 export const Field = React.forwardRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement, FieldProps>(
   function Field(props, ref) {
+    if (props.variant === 'toggle') {
+      const { label, className = '', ...rest } = props;
+      const inputProps = { ...rest };
+      delete (inputProps as Record<string, unknown>).variant;
+      delete (inputProps as Record<string, unknown>).label;
+
+      return (
+        <label className={`flex items-center justify-between gap-3 min-h-[44px] px-3 py-2 rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink cursor-pointer focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ink ${className}`.trim()}>
+          <span>{label}</span>
+          <input
+            ref={ref as React.ForwardedRef<HTMLInputElement>}
+            type="checkbox"
+            className="w-5 h-5 accent-ink shrink-0"
+            {...inputProps}
+          />
+        </label>
+      );
+    }
     if (props.variant === 'input') {
       const { icon, aiSuggested, className = '', ...rest } = props;
       // Exclude custom variant/aiSuggested props from native input
