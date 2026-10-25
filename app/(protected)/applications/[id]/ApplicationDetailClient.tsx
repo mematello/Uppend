@@ -7,7 +7,7 @@ import { createClient } from '../../../../lib/supabase/client';
 import ResumePreviewModal from '../../../../components/ResumePreviewModal';
 import { createPortal } from 'react-dom';
 
-import { ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useRef } from 'react';
 
 import { Application } from '../../../../lib/types';
@@ -625,57 +625,142 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
         </Panel>
 
         {/* Tracking Fields */}
-        <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
-          <h2 className="text-xl font-semibold font-display mb-6 border-b border-hairline pb-4">Tracking Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Panel>
+          <div className="font-display text-lg px-5 py-3.5 border-b border-hairline">
+            Tracking details
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5">
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Status</label>
-              <div className="relative">
-<select name="status" value={formData.status} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
-                <option value="draft">Draft</option><option value="applied">Applied</option><option value="screening">Screening</option>
-                <option value="interview">Interview</option><option value="offer">Offer</option><option value="rejected">Rejected</option><option value="withdrawn">Withdrawn</option><option value="ghosted">Ghosted</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
+              <label htmlFor="status" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Status
+              </label>
+              <Field
+                variant="select"
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+              >
+                <option value="draft">Draft</option>
+                <option value="applied">Applied</option>
+                <option value="screening">Screening</option>
+                <option value="interview">Interview</option>
+                <option value="offer">Offer</option>
+                <option value="rejected">Rejected</option>
+                <option value="withdrawn">Withdrawn</option>
+                <option value="ghosted">Ghosted</option>
+              </Field>
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Priority</label>
-              <div className="relative">
-<select name="priority" value={formData.priority} onChange={handleInputChange} className="w-full appearance-none py-2 pl-2 pr-8 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100">
-                <option value="">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
-              </select>
-<ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-</div>
-            </div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Date Applied</label><input type="date" name="date_applied" value={formData.date_applied} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div><label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action</label><input type="text" name="next_action" value={formData.next_action} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" /></div>
-            <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Next Action Date</label>
-              <div className="flex flex-col gap-3">
-                <input type="date" name="next_action_date" value={formData.next_action_date} onChange={handleInputChange} className="w-full p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="reminder_enabled" name="reminder_enabled" checked={formData.reminder_enabled} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-                  <label htmlFor="reminder_enabled" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Enable Email Reminder</label>
-                </div>
-              </div>
+              <label htmlFor="priority" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Priority
+              </label>
+              <Field
+                variant="select"
+                id="priority"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+              >
+                <option value="">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </Field>
             </div>
             <div>
-              <label className="block text-sm text-gray-600 dark:text-zinc-400 mb-1">Resume Version</label>
+              <label htmlFor="date_applied" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Date Applied
+              </label>
+              <Field
+                variant="input"
+                type="date"
+                id="date_applied"
+                name="date_applied"
+                value={formData.date_applied}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="next_action" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Next Action
+              </label>
+              <Field
+                variant="input"
+                type="text"
+                id="next_action"
+                name="next_action"
+                value={formData.next_action}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="next_action_date" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Next Action Date
+              </label>
+              <Field
+                variant="input"
+                type="date"
+                id="next_action_date"
+                name="next_action_date"
+                value={formData.next_action_date}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Reminder
+              </label>
+              <Field
+                variant="toggle"
+                label="Email me on this date"
+                id="reminder_enabled"
+                name="reminder_enabled"
+                checked={formData.reminder_enabled}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="resume_version" className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Resume Version
+              </label>
               <div className="flex gap-2">
-                <input type="text" name="resume_version" value={formData.resume_version} onChange={handleInputChange} className="flex-1 p-2 rounded-md bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 focus-ink text-gray-900 dark:text-zinc-100" />
+                <Field
+                  variant="input"
+                  type="text"
+                  id="resume_version"
+                  name="resume_version"
+                  value={formData.resume_version}
+                  onChange={handleInputChange}
+                  className="flex-1"
+                />
                 {resumes.find(r => r.version_label === formData.resume_version) && (
-                  <button type="button" onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)} className="px-3 py-2 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 rounded border border-gray-300 dark:border-zinc-700 text-sm font-medium transition-colors">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setPreviewResumeId(resumes.find(r => r.version_label === formData.resume_version)!.id)}
+                    className="px-4"
+                  >
                     Preview
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
+            <div>
+              <label className="block font-label text-xs uppercase tracking-wider text-muted-ink mb-1">
+                Cover letter
+              </label>
+              <Field
+                variant="toggle"
+                label="Sent with this application"
+                id="cover_letter_sent"
+                name="cover_letter_sent"
+                checked={formData.cover_letter_sent}
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2 mt-6">
-            <input type="checkbox" id="cover_letter_sent" name="cover_letter_sent" checked={formData.cover_letter_sent} onChange={handleInputChange} className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]" />
-            <label htmlFor="cover_letter_sent" className="text-sm text-gray-700 dark:text-zinc-300">Cover Letter Sent</label>
-          </div>
-        </section>
+        </Panel>
 
         {/* Evaluation Fields */}
         <section className="bg-card p-6 rounded-xl border border-hairline shadow-sm">
