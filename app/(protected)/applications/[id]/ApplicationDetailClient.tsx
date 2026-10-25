@@ -289,25 +289,31 @@ export default function ApplicationDetailClient({ initialApplication, isLocal, a
 
   const deleteModalContent = isDeleteModalMounted ? (
     <div 
-      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-200 ${isDeleteModalVisible ? 'opacity-100' : 'opacity-0'}`} 
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-scrim transition-opacity duration-200 ${isDeleteModalVisible ? 'opacity-100' : 'opacity-0'}`} 
       onClick={closeDeleteModal}
     >
       <div 
-        className={`bg-card rounded-xl border border-hairline shadow-xl w-full max-w-sm p-6 overflow-hidden flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-dialog-title"
+        className={`bg-card rounded-ledger border border-hairline w-full max-w-sm p-6 flex flex-col transition-all duration-200 ${isDeleteModalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} 
         onClick={e => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-2">Delete Application</h3>
-        <p className="text-gray-600 dark:text-zinc-400 mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
+        <h3 id="delete-dialog-title" className="font-display text-xl font-normal text-ink mb-2">Delete application</h3>
+        <p className="text-sm text-muted-ink mb-6">Are you sure you want to delete this application? This action cannot be undone.</p>
         <div className="flex justify-end gap-3">
-          <button 
+          <Button 
+            type="button"
+            variant="secondary"
             onClick={closeDeleteModal}
-            className="btn-secondary px-4 py-2 font-medium rounded-md transition-colors"
+            className="px-4"
           >
             Cancel
-          </button>
+          </Button>
           <button 
+            type="button"
             onClick={executeDelete}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors"
+            className="min-h-[44px] px-4 rounded-ledger bg-red-700 dark:bg-red-800 text-white font-medium hover:opacity-90 transition-opacity focus-ink"
           >
             Delete
           </button>
