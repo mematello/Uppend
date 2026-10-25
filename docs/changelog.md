@@ -1,5 +1,25 @@
 # Uppend — Changelog
 
+## [2026-10-25] (Session 31)
+- Implemented: Application detail redesign on branch `redesign/application-detail` (direction B split rail: sticky summary rail with live status chip, priority, fit, next action, resume; three Panels), Field `variant="toggle"` (labeled 44px bordered cell, used for Reminder and Cover letter; `/new` untouched), label shortening (Company, Salary), full-bleed sticky save bar with single plain-text toast, delete modal restyle (bg-scrim, rounded-ledger, role=dialog; state machine/Esc/stopPropagation unchanged), loading skeleton and early-return states, delete-confirm contrast pairs (11 commits on top of `main` at `37d80da`):
+  - `d6ce3ff` feat(ui): add toggle variant to Field
+  - `32959d4` feat(detail): page shell, header, summary rail
+  - `4b6769d` feat(detail): extracted details via Field
+  - `e19f244` feat(detail): tracking details via Field and toggles
+  - `8a33b9d` feat(detail): evaluation panel, textareas, form id
+  - `761aa0f` style(detail): shorten labels
+  - `57dd9f5` feat(detail): full-bleed save bar, single toast
+  - `4118657` feat(detail): delete modal restyle
+  - `ce87cf0` feat(detail): states and loading skeleton
+  - `f867b38` test(ui): delete confirm contrast pairs
+  - `ceeed3c` refactor(detail): derive status label instead of literal map
+- Merged `redesign/application-detail` into `main` via `--no-ff` (merge commit `7c3ff5a`) and pushed (`37d80da..7c3ff5a`). Owner-terminal merge gate: `tsc --noEmit` exit 0, vitest test suite 117/117 passed, production build exit 0, dead-class-scan 0 unexpected dead classes (from owner paste; not reproduced by agent). Device pass: owner reports the page works completely; itemised checklist was NOT recorded: UNVERIFIED. Production smoke test for application detail: pending.
+- Note (process incidents this session): Exactly the following owner-verified items occurred during Session 31:
+  - (a) Block 1's pasted contrast output did not match a deterministic re-run (Block 2, run against a clean main worktree, matched the Step 0 baseline);
+  - (b) Block 1 omitted ESLint output and its dead-class-scan call had no file arguments (planner prompt error);
+  - (c) the planner's line-based logic count could not compare multi-line JSX and was replaced by per-token occurrence counts;
+  - (d) dead-class-scan reported 8 false positives from the uppercase-named STATUS_LABEL display map, fixed in `ceeed3c` (statusLabel derivation).
+
 ## [2026-10-25] (Session 30)
 - Implemented: `/new` application creation redesign on branch `redesign/new` (21 commits on top of `main` at `e5a9773`):
   - `3b40c7e` test(ui): add Alert tone contrast checks to contrast script

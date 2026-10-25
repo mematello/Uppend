@@ -121,11 +121,12 @@ Shared presentational building blocks implemented on `redesign/dashboard`:
 - **Chip** (`components/ui/Chip.tsx`): Hairline status and metadata tag wrapper (`font-label text-xs uppercase tracking-wider px-2 py-0.5 rounded-ledger inline-flex items-center`). Does not stop propagation; forwards `ref`, `className`, and HTML div attributes.
 - **Panel** (`components/ui/Panel.tsx`): Surface container (`bg-card border border-hairline rounded-ledger`). Forwards `ref`, `className`, and HTML div attributes.
 - **PageHeader** (`components/ui/PageHeader.tsx`): Standard page title block with mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-2xl sm:text-3xl font-normal text-ink`), and optional action slot. Prop `hideActionsOnMobile` (`boolean`, default `false`) hides actions below `sm` (`hidden sm:flex`) in favor of mobile quick actions.
-- **Field** (`components/ui/Field.tsx`): Tri-variant input/select/textarea wrapper forwarding `ref` and props:
+- **Field** (`components/ui/Field.tsx`): Four-variant input/select/textarea/toggle wrapper forwarding `ref` and props:
   - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
   - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
   - `variant="textarea"`: Multi-line text entry with `px-4 py-3 rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
-  Does not provide label, validation message, or hint props; form controls receive standard HTML attributes and styling directly.
+  - `variant="toggle"`: Labeled 44px bordered cell (`min-h-[44px] rounded-ledger border border-field-border bg-card px-3 flex items-center justify-between`) containing a text label and an accent-ink styled checkbox switch (`h-5 w-5 rounded-ledger border-field-border accent-[var(--ink)] cursor-pointer`). Supports `label: string`, `checked`, `onChange`, and standard HTML input checkbox attributes.
+  Does not provide external label, validation message, or hint props (except `variant="toggle"` which renders its inline label); form controls receive standard HTML attributes and styling directly.
 - **Back Button Pattern**: Standalone navigation trigger for secondary flows:
   - Markup: `<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>`.
   - Behavior: Intercepted in `onClick` with modified-click bypass (`if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;`). Invokes `resolveBackNavigation(window.history.length, isDirty)`: if clean and `history.length > 1`, calls `e.preventDefault(); router.back();` to return to referrer; if dirty or history is minimal, falls through to standard `/dashboard` link navigation (or unsaved changes guard).
@@ -198,7 +199,34 @@ The `/new` application creation view uses a responsive split-intake layout:
 
 ---
 
-## 8. Layout and Motion (IMPLEMENTED)
+## 8. Application Detail (/applications/[id]): Split-Rail Form (IMPLEMENTED on redesign/application-detail)
+
+The `/applications/[id]` detail view implements direction B (split rail):
+
+- **Desktop Split-Rail Layout**: Two-column layout on viewports at `lg` (`max-w-6xl mx-auto px-4 sm:px-8 py-8`, `grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start`).
+  - **Sticky Summary Rail (left, 280px)**: Encapsulated in a sticky `Panel` (`lg:sticky lg:top-6 p-5 space-y-4`). Houses a monospace section header (`Summary`), live status chip (`STATUS_CHIP[form.status]`), priority indicator, tabular Fit numerals (`role_fit` and `culture_fit` in `font-display text-2xl tabular-nums`), next action date (`formatMonthDay`), and active resume version.
+  - **Three Form Panels (right, 1fr)**: The `<form id="application-detail-form">` groups fields into three `Panel` cards (`p-5` with `grid grid-cols-1 md:grid-cols-2 gap-5`):
+    1. *Extracted details*: Company (shortened label), Role, Location, Salary (shortened label).
+    2. *Tracking details*: Status select, Priority select, Applied date, Next action date, Follow-up date, and two 44px toggle cells (`Field variant="toggle"`) for Reminder enabled and Cover letter sent.
+    3. *Evaluation and interviews*: Role fit, Culture fit, Job description textarea (`min-h-48 resize-y col-span-full md:col-span-2`), and Notes textarea (`min-h-48 resize-y col-span-full md:col-span-2`).
+- **Header & Navigation**:
+  - `PageHeader` with mono eyebrow `03 / APPLICATION`, serif heading (`form.role_title || 'Untitled application'`), and an action slot containing a `.btn-secondary` Delete button (`min-h-[44px]`).
+  - Standalone `Link` back navigation (`<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] ... aria-label="Back"><ArrowLeft ... /></Link>`) without `resolveBackNavigation` or `onClick` intercept, ensuring users deep-linking from reminder emails can always navigate directly to `/dashboard`.
+- **Full-Bleed Sticky Save Bar**:
+  - Outer container positioned outside `max-w-6xl` as a direct sibling in the page fragment: `sticky bottom-0 z-10 bg-card border-t border-hairline pb-[max(0.75rem,env(safe-area-inset-bottom))]`.
+  - Inner container: `max-w-6xl mx-auto px-4 sm:px-8 pt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`.
+  - Form connection via HTML5 attribute: `<button type="submit" form="application-detail-form" ...>Save changes</button>`.
+  - Single plain-text toast notification: `<p role="status" className={`text-sm ${toast.type === 'success' ? 'text-ink' : 'text-red-700 dark:text-red-400'}`}>{toast.message}</p>`. Replaces the old duplicate top-of-form banner toasts.
+- **Delete Confirmation Modal**:
+  - Full-screen `createPortal` modal (`z-[100]`) with `bg-scrim` backdrop, centered card (`bg-card rounded-ledger border-hairline p-6 max-w-md w-full`), and `role="dialog"` accessibility attributes.
+  - Retains state machine (closing/closed states), Esc key listener, and `stopPropagation` backdrop click handler.
+  - Delete button styled in red-700 light / red-800 dark (`bg-red-700 hover:bg-red-700/90 text-white dark:bg-red-800 dark:hover:bg-red-800/90 min-h-[44px]`), verified against WCAG AA in `contrast.mjs`.
+- **Loading Skeleton**:
+  - Server component `loading.tsx` mirroring the two-column grid layout, sticky summary rail, and three form panels with `animate-pulse` placeholder cells (`bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger`).
+
+---
+
+## 9. Layout and Motion (IMPLEMENTED)
 
 - **Max Width**: Standardized `max-w-7xl mx-auto px-4 sm:px-8`.
 - **Section Dividers**: Separated by explicit `border-t border-[var(--hairline)]`.
@@ -213,7 +241,7 @@ The `/new` application creation view uses a responsive split-intake layout:
 
 ---
 
-## 9. Copy and Claims Rules (IMPLEMENTED)
+## 10. Copy and Claims Rules (IMPLEMENTED)
 
 - **Benefit-Led Voice**: Focus on calm execution and organization; avoid inflated AI hype.
 - **Strict Verification of Claims**:
@@ -225,7 +253,7 @@ The `/new` application creation view uses a responsive split-intake layout:
 
 ---
 
-## 10. Don'ts (IMPLEMENTED)
+## 11. Don'ts (IMPLEMENTED)
 
 1. **NO Purple/Blue Gradients or Neon Glows**: Surfaces stay rooted in paper and ink.
 2. **NO Glassmorphism**: Avoid `backdrop-blur` layers, translucent glass, or diffuse shadows.
@@ -240,7 +268,7 @@ The `/new` application creation view uses a responsive split-intake layout:
 
 ---
 
-## 11. Guardrails for UI Work (IMPLEMENTED)
+## 12. Guardrails for UI Work (IMPLEMENTED)
 
 1. **iOS Zoom Guard**: Inputs and textareas must NOT have `text-xs` or `text-sm` on mobile (`new/page.tsx:657`, `ApplicationDetailClient.tsx:357`).
 2. **Select + ChevronDown Pattern**: 8 native `<select>` elements use `appearance-none` + right padding + positioned `ChevronDown` (`new/page.tsx:669,707,756,781`, `ApplicationDetailClient.tsx:343,375,431,441`).
@@ -260,7 +288,7 @@ The `/new` application creation view uses a responsive split-intake layout:
 
 ---
 
-## 12. Verification Checklist for UI Work (IMPLEMENTED)
+## 13. Verification Checklist for UI Work (IMPLEMENTED)
 
 Every UI task must execute and report the following verification gates:
 1. **WCAG AA Contrast**: Run relative luminance script on modified tokens/colors; text >= 4.5:1, borders >= 3.0:1.
@@ -277,7 +305,7 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 13. Direction for Full App Redesign (DIRECTION)
+## 14. Direction for Full App Redesign (DIRECTION)
 
 *Directional proposals pending owner review and approval per page:*
 - **Page Headers**: Numbered mono eyebrow (`01 / DASHBOARD`, `02 / NEW`) and Fraunces serif heading (`.font-display`).
@@ -294,23 +322,26 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
-## 14. Known Gaps (IMPLEMENTED list)
+## 15. Known Gaps (IMPLEMENTED list)
 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
 - **Cookie Banner Mobile Clearance**: Fixed CookieConsentBanner mobile clearance above footer is estimated and unmeasured on small viewports.
-- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages pending.
+- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard` and application detail on `redesign/application-detail` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages pending.
 - **Dead Plugin Classes**: References to `animate-in`, `fade-in`, and `prose` exist in code while `tailwindcss-animate` and `@tailwindcss/typography` are not in `package.json`.
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
 - **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.
 - **Modal Component Legacy Styling**: `UnsavedChangesModal` and `ResumePreviewModal` retain legacy styling with dead Tailwind animation classes (`animate-in`, `fade-in-0`, `zoom-in-95`). Scheduled for migration in the final modals + cookie banner redesign pass.
-- **Alert Success Tone Usage**: The `Alert` component's `success` tone (`border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]`) is compiled and contrast-verified but currently unused in `/new` (save bar toasts are plain text; local mode and exhaustion banners use `default`).
-- **Dead-Class Scanner Object-Literal Blind Spot**: `scripts/ui-checks/dead-class-scan.mjs` extracts static strings from JSX attributes and const declarations, but cannot resolve class strings nested inside object-literal lookup tables (such as `toneStyles` in `Alert.tsx`). Classes defined in dictionary maps require manual verification and compile proof via grep.
+- **Alert Success Tone Usage**: The `Alert` component's `success` tone (`border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]`) is compiled and contrast-verified but currently unused across `/new` and `/applications/[id]` (save bar toasts on both pages are plain text; local mode and exhaustion banners use `default`).
+- **Dead-Class Scanner Object-Literal Limitations**: `scripts/ui-checks/dead-class-scan.mjs` parses uppercase-named const declarations (`const [A-Z0-9_]+ = { ... }`) as class dictionary tables, causing any uppercase display-string maps (such as the former `STATUS_LABEL`) to produce false-positive dead-class errors. Conversely, object maps with lowercase or camelCase names (such as `toneStyles` in `Alert.tsx`) are ignored entirely by the scanner and require manual verification and compile proof via grep.
+- **Form handleBlur isDirty Marking**: In `ApplicationDetailClient.tsx`, numeric score field blur handlers (`handleBlur`) unconditionally call `setIsDirty(true)` on every blur event regardless of whether the field value was modified (pre-existing behavior).
+- **Unbroken Page Titles in PageHeader**: `PageHeader.tsx` heading does not include `break-words`. Extremely long unbroken application titles (e.g. URLs or single long strings) are untested for horizontal overflow.
+- **STATUS_CHIP Token Map Duplication**: The `STATUS_CHIP` class dictionary is duplicated locally between `DashboardClient.tsx` and `ApplicationDetailClient.tsx` rather than shared from a single utility module.
 
 ---
 
-## 15. File Map (IMPLEMENTED)
+## 16. File Map (IMPLEMENTED)
 
 All paths verified via `git ls-files`:
 
@@ -340,6 +371,10 @@ All paths verified via `git ls-files`:
 - **New Application (/new)**:
   - `app/(protected)/new/page.tsx` (split-intake form, model fallback badge, reserved analyzing slot, full-bleed save bar)
   - `lib/utils/navigation.ts` (`resolveBackNavigation` helper for history-aware back navigation)
+- **Application Detail (/applications/[id])**:
+  - `app/(protected)/applications/[id]/page.tsx` (server component; auth, data fetch, layout shell)
+  - `app/(protected)/applications/[id]/ApplicationDetailClient.tsx` (split-rail layout, sticky summary rail, three form panels, toggle cells, full-bleed save bar, restyled delete modal)
+  - `app/(protected)/applications/[id]/loading.tsx` (static token-based loading skeleton server component)
 - **Tooling**:
   - `scripts/ui-checks/contrast.mjs` (WCAG contrast checker for all token pairs including heatmap tile ramp Groups A–D)
   - `scripts/ui-checks/dead-class-scan.mjs` (scans TSX class strings against compiled CSS chunks)
@@ -349,3 +384,4 @@ All paths verified via `git ls-files`:
   - `docs/architecture.md` (system architecture and conventions)
   - `docs/manifest.md` (documentation file index and token budgets)
   - `AGENTS.md` (operating constraints and design guidelines for AI agents)
+
