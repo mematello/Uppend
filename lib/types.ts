@@ -11,6 +11,7 @@ export interface Profile {
   reengagement_status?: 'active' | 'paused_found_job' | 'snoozed';
   reengagement_snoozed_until?: string | null;
   reengagement_last_sent_date?: string | null;
+  free_ai_uses_remaining?: number;
 }
 
 export interface Application {
