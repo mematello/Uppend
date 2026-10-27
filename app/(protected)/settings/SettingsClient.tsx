@@ -1067,7 +1067,7 @@ export default function SettingsClient({
       {/* Danger Zone */}
       <SettingsSection id="danger" eyebrow="06 / DANGER ZONE" title="Danger zone" description="Permanent actions. These cannot be undone.">
         {deleteStep === 0 && (
-          <div className={`grid grid-cols-1 gap-3 mt-4 ${hasLocalData ? 'sm:grid-cols-2' : ''}`}>
+          <div className={`grid grid-cols-1 gap-3 mt-4 ${hasLocalData ? 'sm:grid-cols-2' : 'max-w-[480px]'}`}>
             <div className="flex flex-col justify-between gap-3 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
               <div>
                 <h3 className="font-medium text-ink">Delete account</h3>
