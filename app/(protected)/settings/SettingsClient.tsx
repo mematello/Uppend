@@ -875,7 +875,7 @@ export default function SettingsClient({
         <SettingsGroup title="Model">
           {apiKeys.length > 0 && (
             <Alert className="mb-3">
-              BYOK Active — your own quota, not shared limits
+              BYOK Active &mdash; your own quota, not shared limits
             </Alert>
           )}
           <SettingsRow
