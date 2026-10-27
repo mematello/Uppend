@@ -1065,79 +1065,67 @@ export default function SettingsClient({
       </SettingsSection>
 
       {/* Danger Zone */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-red-200 dark:border-red-900/50 shadow-sm">
-        <h2 className="text-xl font-semibold font-display text-red-600 dark:text-red-500 mb-6 border-b border-red-100 dark:border-red-900/30 pb-4">Danger Zone</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-4">
-          Permanently delete your account and all associated applications. This action cannot be undone.
-        </p>
-
+      <SettingsSection id="danger" eyebrow="06 / DANGER ZONE" title="Danger zone" description="Permanent actions. These cannot be undone.">
         {deleteStep === 0 && (
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={() => setDeleteStep(1)}
-              className="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-500 border border-red-200 dark:border-red-900/50 rounded-md font-medium transition-colors"
-            >
-              Delete Account
-            </button>
-            
+          <div className={`grid grid-cols-1 gap-3 mt-4 ${hasLocalData ? 'sm:grid-cols-2' : ''}`}>
+            <div className="flex flex-col justify-between gap-3 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
+              <div>
+                <h3 className="font-medium text-ink">Delete account</h3>
+                <p className="text-sm text-muted-ink mt-0.5">Permanently delete your account and all associated applications. This action cannot be undone.</p>
+              </div>
+              <button type="button" onClick={() => setDeleteStep(1)} className="inline-flex w-full items-center justify-center px-4 min-h-[44px] rounded-ledger border border-red-700 dark:border-red-500 bg-transparent text-sm font-medium text-red-700 dark:text-red-400 hover:bg-row-hover focus-ink">
+                Delete account
+              </button>
+            </div>
             {hasLocalData && (
-              <ClearLocalDataButton />
+              <div className="flex flex-col justify-between gap-3 p-4 border border-hairline rounded-ledger">
+                <div>
+                  <h3 className="font-medium text-ink">Clear local data</h3>
+                  <p className="text-sm text-muted-ink mt-0.5">Removes Local Mode applications stored in this browser. Your account data is not affected.</p>
+                </div>
+                <ClearLocalDataButton />
+              </div>
             )}
           </div>
         )}
-
         {deleteStep === 1 && (
-          <div className="w-full bg-red-50 dark:bg-red-950/20 p-4 rounded-md border border-red-100 dark:border-red-900/50">
-            <p className="font-medium text-red-800 dark:text-red-400 mb-4">
-              Are you sure you want to delete your account? This cannot be undone.
-            </p>
-            <div className="flex gap-4">
-              <button
-                onClick={() => setDeleteStep(0)}
-                className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
-              >
+          <div role="group" aria-label="Confirm account deletion" className="mt-4 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
+            <p className="font-medium text-ink">Are you sure you want to delete your account? This cannot be undone.</p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button variant="secondary" type="button" className="px-4" autoFocus onClick={() => setDeleteStep(0)}>
                 Cancel
-              </button>
-              <button
-                onClick={() => setDeleteStep(2)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-colors"
-              >
+              </Button>
+              <button type="button" onClick={() => setDeleteStep(2)} className="min-h-[44px] px-4 rounded-ledger bg-red-700 dark:bg-red-800 text-white font-medium hover:opacity-90 transition-opacity focus-ink">
                 Continue
               </button>
             </div>
           </div>
         )}
-
         {deleteStep === 2 && (
-          <div className="w-full bg-red-50 dark:bg-red-950/20 p-4 rounded-md border border-red-100 dark:border-red-900/50">
-            <label className="block text-sm font-medium text-red-800 dark:text-red-400 mb-2">
-              Type <span className="font-bold select-all">{userEmail}</span> to confirm
+          <div role="group" aria-label="Confirm account deletion" className="mt-4 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
+            <label htmlFor="delete-confirm-email" className="block text-sm font-medium text-ink mb-2">
+              Type <span className="font-bold select-all break-all">{userEmail}</span> to confirm
             </label>
-            <input
-              type="email"
-              value={deleteEmail}
-              onChange={(e) => setDeleteEmail(e.target.value)}
-              className="rounded border border-red-300 dark:border-red-800/50 bg-white dark:bg-zinc-900 p-2 w-full text-gray-900 dark:text-zinc-100 focus:ring-2 focus:ring-red-500 outline-none mb-4"
-            />
-            <div className="flex gap-4">
-              <button
-                onClick={() => { setDeleteStep(0); setDeleteEmail(""); setDeleteError(""); }}
-                className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
-              >
+            <div className="max-w-[400px]">
+              <Field variant="input" id="delete-confirm-email" type="email" autoFocus value={deleteEmail} onChange={(e) => setDeleteEmail(e.target.value)} />
+            </div>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Button variant="secondary" type="button" className="px-4" onClick={() => { setDeleteStep(0); setDeleteEmail(""); setDeleteError(""); }}>
                 Cancel
-              </button>
+              </Button>
               <button
+                type="button"
                 onClick={handleDeleteAccount}
                 disabled={isDeleting || deleteEmail !== userEmail}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium disabled:opacity-50 disabled:bg-red-400 transition-colors"
+                className="min-h-[44px] px-4 sm:min-w-[176px] rounded-ledger bg-red-700 dark:bg-red-800 text-white font-medium hover:opacity-90 transition-opacity focus-ink disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isDeleting ? "Deleting..." : "Delete Account"}
+                {isDeleting ? "Deleting..." : "Delete account"}
               </button>
             </div>
-            {deleteError && <p className="mt-2 text-sm text-red-600">{deleteError}</p>}
+            {deleteError && <p role="status" className="mt-2 text-sm text-red-700 dark:text-red-400">{deleteError}</p>}
           </div>
         )}
-      </section>
+      </SettingsSection>
       <ResumePreviewModal resumeId={previewResumeId} onClose={() => setPreviewResumeId(null)} />
     </div>
   );
