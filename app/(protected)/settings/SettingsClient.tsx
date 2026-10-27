@@ -10,7 +10,7 @@ import { updatePreferredProvider, saveApiKey, deleteApiKey } from './actions';
 import * as xlsx from 'xlsx';
 import { getApplications } from '../../../lib/local/applications';
 import { ClearLocalDataButton } from '../../../components/ClearLocalDataButton';
-import { ChevronDown } from 'lucide-react';
+import { Alert } from '../../../components/ui/Alert';
 import { messageTone } from '../../../lib/utils/message-tone';
 import { Field } from '../../../components/ui/Field';
 import { Button } from '../../../components/ui/Button';
@@ -704,137 +704,189 @@ export default function SettingsClient({
         </SettingsGroup>
       </SettingsSection>
 
-      {/* AI Provider Settings */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Custom API Keys (BYOK)</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-2 text-sm">
-          Securely provide your own API keys to bypass global usage limits.
-        </p>
-        <p className="text-gray-500 dark:text-zinc-500 mb-6 text-xs">
-          Don&apos;t have an API key? Get one for free at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="link-ink">Google AI Studio</a> or <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="link-ink">Groq Console</a>.
-        </p>
-        
-        {/* Preferred Provider Selection */}
-        {apiKeys.length >= 2 && (
-        <div className="mb-8">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">Active Provider</h3>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <select
-                value={preferredProvider || ''}
-                onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
-                className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus-ink"
+      {/* Panel 3: AI and keys */}
+      <SettingsSection
+        id="ai"
+        eyebrow="03 / AI & KEYS"
+        title="AI and keys"
+        description="Which provider and model run extraction and matching."
+      >
+        {((apiKeys.length === 0 && typeof initialProfile.free_ai_uses_remaining === 'number') ||
+          apiKeys.length >= 2) && (
+          <SettingsGroup title="Provider">
+            {apiKeys.length === 0 && typeof initialProfile.free_ai_uses_remaining === 'number' && (
+              <SettingsRow
+                label="Free AI uses"
+                hint="Shown when no API key is saved."
               >
-                {apiKeys.map(k => (
-                  <option key={k.provider} value={k.provider}>
-                    {PROVIDER_DISPLAY_NAMES[k.provider] || k.provider}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-            </div>
-            <span className="text-xs text-gray-500 dark:text-zinc-400">Default for extraction & matching</span>
-          </div>
-          {providerMessage.text && (
-            <p className={`text-sm mt-2 ${providerMessage.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-              {providerMessage.text}
-            </p>
-          )}
-        </div>
+                <span className="font-medium text-ink tabular-nums">
+                  {initialProfile.free_ai_uses_remaining} of 5 remaining
+                </span>
+              </SettingsRow>
+            )}
+            {apiKeys.length >= 2 && (
+              <SettingsRow
+                htmlFor="active-provider"
+                label="Active provider"
+                hint="Default for extraction and matching."
+              >
+                <div className="max-w-[280px]">
+                  <Field
+                    variant="select"
+                    id="active-provider"
+                    value={preferredProvider || ''}
+                    onChange={(e) => handleUpdatePreferredProvider(e.target.value)}
+                  >
+                    {apiKeys.map((k) => (
+                      <option key={k.provider} value={k.provider}>
+                        {PROVIDER_DISPLAY_NAMES[k.provider] || k.provider}
+                      </option>
+                    ))}
+                  </Field>
+                </div>
+                {providerMessage.text && (
+                  <p
+                    role="status"
+                    className={`mt-2 text-sm ${providerMessage.type === 'error' ? 'text-red-700 dark:text-red-400' : 'text-ink'}`}
+                  >
+                    {providerMessage.text}
+                  </p>
+                )}
+              </SettingsRow>
+            )}
+          </SettingsGroup>
         )}
 
-        {/* Saved Keys */}
-        <div className="mb-8">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-3">Saved API Keys</h3>
-          {apiKeys.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-zinc-400">No custom API keys saved. Using global fallback.</p>
-          ) : (
-            <div className="space-y-3">
-              {apiKeys.map((key) => (
-                <div key={key.provider} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-md">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-zinc-100 capitalize">{PROVIDER_DISPLAY_NAMES[key.provider] || key.provider}</p>
-                    <p className="text-xs text-gray-500 dark:text-zinc-400">Added: {new Date(key.created_at).toLocaleDateString()}</p>
+        <SettingsGroup title="API keys">
+          <SettingsRow
+            label="Saved keys"
+            hint="Securely provide your own API keys to bypass global usage limits."
+          >
+            {apiKeys.length === 0 ? (
+              <p className="text-sm text-muted-ink">
+                No custom API keys saved. Using global fallback.
+              </p>
+            ) : (
+              <div>
+                {apiKeys.map((key) => (
+                  <div
+                    key={key.provider}
+                    className="mt-2 first:mt-0 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-3 border border-hairline rounded-ledger"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium text-ink break-words">
+                        {PROVIDER_DISPLAY_NAMES[key.provider] || key.provider}
+                      </p>
+                      <p className="text-sm text-muted-ink">
+                        Added: {new Date(key.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteApiKey(key.provider)}
+                      className="min-h-[44px] sm:min-h-[36px] px-3 rounded-ledger border border-red-700 dark:border-red-500 bg-transparent text-sm font-medium text-red-700 dark:text-red-400 hover:bg-row-hover focus-ink"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => handleDeleteApiKey(key.provider)}
-                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          {deleteKeyMessage.text && (
-            <p className={`text-sm mt-2 ${deleteKeyMessage.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-              {deleteKeyMessage.text}
-            </p>
-          )}
-        </div>
-
-        {/* Add Key Form */}
-        <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-md border border-gray-200 dark:border-zinc-800">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100 mb-4">Update API Key</h3>
-          <form onSubmit={handleSaveApiKey} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-2">Provider</label>
-              <div className="flex items-center">
-                <div className="relative">
-                  <select
-                    value={newKeyProvider}
-                    onChange={(e) => setNewKeyProvider(e.target.value)}
-                    className="appearance-none py-2 pl-2 pr-8 rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-zinc-100 focus-ink"
-                  >
-                    {BYOK_PROVIDERS.map(p => (
-                      <option key={p} value={p}>{PROVIDER_DISPLAY_NAMES[p] || p}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-zinc-500" />
-                </div>
+                ))}
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-zinc-300 mb-1">API Key</label>
-              <input 
-                type="password"
-                placeholder="Enter your API key..."
-                value={newApiKeyValue}
-                onChange={(e) => setNewApiKeyValue(e.target.value)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-sm text-gray-900 dark:text-zinc-100 focus-ink"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isSavingKey || !newApiKeyValue.trim()}
-              className="btn-primary px-4 py-2 text-sm rounded-md font-medium disabled:opacity-50 transition-colors"
-            >
-              {isSavingKey ? "Verifying & Saving..." : "Save API Key"}
-            </button>
-            {keyMessage.text && (
-              <p className={`text-sm mt-2 ${keyMessage.type === 'error' ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                {keyMessage.text}
+            )}
+            {deleteKeyMessage.text && (
+              <p
+                role="status"
+                className={`mt-2 text-sm ${deleteKeyMessage.type === 'error' ? 'text-red-700 dark:text-red-400' : 'text-ink'}`}
+              >
+                {deleteKeyMessage.text}
               </p>
             )}
-          </form>
-        </div>
-      </section>
+          </SettingsRow>
 
-      {/* AI Model Selection Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">AI Model Selection</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-6 text-sm">Select your preferred model for resume extraction and matching. If your preferred model is exhausted, the system will automatically fall back to the next available one.</p>
-        
-        {isLoadingModels ? (
-           <div className="text-sm text-gray-500">Loading models...</div>
-        ) : (
-          <div className="space-y-4">
-            {apiKeys.length > 0 && (
-              <div className="p-3 text-sm font-medium text-ink bg-card border border-hairline rounded-md">
-                BYOK Active — your own quota, not shared limits
+          <form onSubmit={handleSaveApiKey}>
+            <SettingsRow
+              htmlFor="new-key-value"
+              label="Add or update a key"
+              hint={
+                <>
+                  Don&apos;t have an API key? Get one for free at{' '}
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-ink"
+                  >
+                    Google AI Studio
+                  </a>{' '}
+                  or{' '}
+                  <a
+                    href="https://console.groq.com/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-ink"
+                  >
+                    Groq Console
+                  </a>
+                  .
+                </>
+              }
+            >
+              <div className="flex flex-wrap gap-2 max-w-[560px]">
+                <div className="w-full sm:w-[190px]">
+                  <Field
+                    variant="select"
+                    id="new-key-provider"
+                    aria-label="Provider"
+                    value={newKeyProvider}
+                    onChange={(e) => setNewKeyProvider(e.target.value)}
+                  >
+                    {BYOK_PROVIDERS.map((p) => (
+                      <option key={p} value={p}>
+                        {PROVIDER_DISPLAY_NAMES[p] || p}
+                      </option>
+                    ))}
+                  </Field>
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <Field
+                    variant="input"
+                    id="new-key-value"
+                    type="password"
+                    placeholder="Enter your API key"
+                    value={newApiKeyValue}
+                    onChange={(e) => setNewApiKeyValue(e.target.value)}
+                  />
+                </div>
               </div>
-            )}
-            {aiModels.map(model => {
+            </SettingsRow>
+            <SettingsFooter
+              status={keyMessage.text}
+              isError={keyMessage.type === 'error'}
+            >
+              <SettingsSaveButton
+                type="submit"
+                disabled={isSavingKey || !newApiKeyValue.trim()}
+              >
+                {isSavingKey ? "Saving..." : "Save API key"}
+              </SettingsSaveButton>
+            </SettingsFooter>
+          </form>
+        </SettingsGroup>
+
+        <SettingsGroup title="Model">
+          {apiKeys.length > 0 && (
+            <Alert className="mb-3">
+              BYOK Active — your own quota, not shared limits
+            </Alert>
+          )}
+          <SettingsRow
+            label="Preferred model"
+            hint="Saves as soon as you pick one. If it is exhausted, the next available model is used."
+          >
+            {isLoadingModels ? (
+              <p className="text-sm text-muted-ink">Loading models...</p>
+            ) : (
+              <div role="radiogroup" aria-label="Preferred model">
+                {aiModels.map((model) => {
               const isBlocked = apiKeys.length === 0 && model.blocked_until && new Date(model.blocked_until) > new Date();
               const isExhausted = apiKeys.length === 0 && model.request_count >= model.dailyLimit;
               const unavailable = isBlocked || isExhausted;
@@ -868,55 +920,66 @@ export default function SettingsClient({
               
               const isCurrentlyActiveFallback = unavailable && isPreferred && activeModel;
 
-              return (
-                <div 
-                  key={model.name} 
-                  className={`p-4 rounded-md border ${isPreferred ? 'border-[var(--ink)] bg-[color-mix(in_srgb,var(--accent)_25%,transparent)] text-ink' : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'} ${unavailable ? 'opacity-70' : ''}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input 
-                      type="radio" 
-                      id={`model-${model.name}`}
-                      name="ai_model"
-                      checked={isPreferred}
-                      onChange={() => handleModelChange(model.name)}
-                      className="mt-1 w-4 h-4 text-[var(--ink)] border-gray-300 focus:ring-[var(--ink)]"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor={`model-${model.name}`} className="block font-medium text-gray-900 dark:text-zinc-100 cursor-pointer">
-                        {model.name}
-                        {isPreferred && <span className="ml-2 text-xs bg-card border border-hairline text-ink font-label uppercase tracking-wider px-2 py-0.5 rounded-full">Preferred</span>}
-                        {unavailable && <span className="ml-2 text-xs bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 px-2 py-0.5 rounded-full">Unavailable</span>}
-                      </label>
-                      <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1">{model.description}</p>
-                      
-                      {apiKeys.length === 0 && (
-                        <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                          <div className="flex-1 max-w-xs h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full ${unavailable ? 'bg-red-500' : 'bg-[var(--ink)]'}`} 
-                              style={{ width: `${Math.min(100, (model.request_count / model.dailyLimit) * 100)}%` }}
-                            />
-                          </div>
-                          <span className={`text-xs font-medium ${unavailable ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-zinc-400'}`}>
-                            {statusText}
+                  return (
+                    <label
+                      htmlFor={`model-${model.name}`}
+                      key={model.name}
+                      className={`grid grid-cols-[20px_minmax(0,1fr)] gap-3 p-3 mt-2 first:mt-0 border rounded-ledger cursor-pointer focus-within:ring-2 focus-within:ring-[var(--ink)] ${
+                        isPreferred
+                          ? 'border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]'
+                          : 'border-hairline bg-card hover:bg-row-hover'
+                      } ${unavailable ? 'border-dashed' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        id={`model-${model.name}`}
+                        name="ai_model"
+                        checked={isPreferred}
+                        onChange={() => handleModelChange(model.name)}
+                        className="mt-1 w-5 h-5 accent-ink"
+                      />
+                      <span className="block min-w-0">
+                        <span className="flex items-start justify-between gap-2">
+                          <span className="font-medium text-ink break-words">{model.name}</span>
+                          {isPreferred && (
+                            <span className="inline-flex items-center h-[22px] px-2 rounded-ledger border border-ink bg-[var(--ink)] text-[var(--paper)] font-label text-[11px] uppercase tracking-wider whitespace-nowrap">
+                              Preferred
+                            </span>
+                          )}
+                          {unavailable && (
+                            <span className="inline-flex items-center h-[22px] px-2 rounded-ledger border border-red-700 dark:border-red-500 text-red-700 dark:text-red-400 font-label text-[11px] uppercase tracking-wider whitespace-nowrap">
+                              Unavailable
+                            </span>
+                          )}
+                        </span>
+                        <span className="block text-sm text-muted-ink mt-0.5">{model.description}</span>
+                        {apiKeys.length === 0 && (
+                          <>
+                            <span className="block mt-2 h-1.5 max-w-[280px] bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]">
+                              <span
+                                className={`block h-full ${unavailable ? 'bg-red-700 dark:bg-red-500' : 'bg-[var(--ink)]'}`}
+                                style={{ width: `${Math.min(100, (model.request_count / model.dailyLimit) * 100)}%` }}
+                              />
+                            </span>
+                            <span className={`block mt-1 text-sm ${unavailable ? 'text-red-700 dark:text-red-400' : 'text-muted-ink'}`}>
+                              {statusText}
+                            </span>
+                          </>
+                        )}
+                        {isCurrentlyActiveFallback && (
+                          <span className="block mt-2 text-sm text-ink border border-field-border rounded-ledger px-3 py-2">
+                            Currently unavailable. Falling back to <strong>{activeModel.name}</strong>.
                           </span>
-                        </div>
-                      )}
-                      
-                      {isCurrentlyActiveFallback && (
-                         <div className="mt-3 text-sm text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 p-2 rounded border border-amber-200 dark:border-amber-900/50">
-                           Currently unavailable. Falling back to <strong>{activeModel.name}</strong>.
-                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </SettingsRow>
+        </SettingsGroup>
+      </SettingsSection>
 
 
       {/* Resumes Section */}
