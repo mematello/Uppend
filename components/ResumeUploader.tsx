@@ -7,6 +7,7 @@ import { Upload } from 'lucide-react';
 import { Field } from './ui/Field';
 import { Alert } from './ui/Alert';
 import { SettingsRow, SettingsFooter, SettingsSaveButton } from './settings/SettingsLayout';
+import { getDropzoneState } from '../lib/utils/dropzone-state';
 
 interface ResumeUploaderProps {
   onSuccess: (resume: Resume, wasSetAsCurrent: boolean) => void;
@@ -73,14 +74,28 @@ export default function ResumeUploader({
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+  const zoneState = getDropzoneState(isDragging, !!resumeFile);
+
   const fileControl = (
-    <label className={`relative flex items-center gap-3.5 min-h-[76px] px-4 py-3 rounded-ledger border cursor-pointer focus-within:ring-2 focus-within:ring-[var(--ink)] ${resumeFile ? 'border-solid border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]' : 'border-dashed border-field-border bg-card hover:bg-row-hover'}`}>
-      <Upload className="w-6 h-6 shrink-0 text-ink" strokeWidth={1.5} aria-hidden="true" />
+    <label
+      onDragEnter={() => setIsDragging(true)}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={() => setIsDragging(false)}
+      className={`relative flex items-center gap-3.5 min-h-[76px] px-4 py-3 rounded-ledger border cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-[var(--ink)] ${zoneState === 'drag' ? 'border-solid border-ink bg-accent text-on-accent' : zoneState === 'selected' ? 'border-solid border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]' : 'border-dashed border-field-border bg-card hover:bg-row-hover'}`}
+    >
+      <Upload className={`w-6 h-6 shrink-0 ${zoneState === 'drag' ? 'text-on-accent' : 'text-ink'}`} strokeWidth={1.5} aria-hidden="true" />
       <span className="block flex-1 min-w-0">
-        <span className="block font-medium text-ink break-words">{resumeFile ? resumeFile.name : 'Choose a PDF or DOCX'}</span>
-        <span className="block text-sm text-muted-ink">{resumeFile ? 'Selected. Click to replace.' : 'Drop it here or browse. Max 5 MB.'}</span>
+        <span className={`block font-medium break-words ${zoneState === 'drag' ? 'text-on-accent' : 'text-ink'}`}>
+          {zoneState === 'drag' ? (resumeFile ? 'Drop to replace' : 'Drop to upload') : (resumeFile ? resumeFile.name : 'Choose a PDF or DOCX')}
+        </span>
+        <span className={`block text-sm ${zoneState === 'drag' ? 'text-on-accent' : 'text-muted-ink'}`}>
+          {zoneState === 'drag' ? 'Release to select this file.' : (resumeFile ? 'Selected. Click to replace.' : 'Drop it here or browse. Max 5 MB.')}
+        </span>
       </span>
-      <span className="shrink-0 px-3 py-1.5 rounded-ledger border border-field-border font-label text-xs uppercase tracking-wider text-ink">Browse</span>
+      <span className={`shrink-0 px-3 py-1.5 rounded-ledger border font-label text-xs uppercase tracking-wider ${zoneState === 'drag' ? 'border-on-accent text-on-accent' : 'border-field-border text-ink'}`}>
+        Browse
+      </span>
       <input id="resume-file" type="file" accept=".pdf,.docx" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} required className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
     </label>
   );
