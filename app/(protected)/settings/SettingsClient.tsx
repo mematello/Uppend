@@ -11,6 +11,16 @@ import * as xlsx from 'xlsx';
 import { getApplications } from '../../../lib/local/applications';
 import { ClearLocalDataButton } from '../../../components/ClearLocalDataButton';
 import { ChevronDown } from 'lucide-react';
+import { messageTone } from '../../../lib/utils/message-tone';
+import { Field } from '../../../components/ui/Field';
+import { Button } from '../../../components/ui/Button';
+import {
+  SettingsSection,
+  SettingsGroup,
+  SettingsRow,
+  SettingsFooter,
+  SettingsSaveButton,
+} from '../../../components/settings/SettingsLayout';
 
 import { Application, Resume, Profile, AIModel, ApiKey } from '../../../lib/types';
 import { resolveTryFirst, BYOK_PROVIDERS, PROVIDER_DISPLAY_NAMES, getProviderFromModel } from '../../../lib/ai/providers';
@@ -502,113 +512,197 @@ export default function SettingsClient({
   };
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Profile Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Profile</h2>
-        <form onSubmit={handleSaveProfile} className="w-full">
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Full Name</label>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink mb-4"
-          />
-          <button
-            type="submit"
-            disabled={isSavingProfile || fullName === initialProfile.full_name}
-            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors"
-          >
-            {isSavingProfile ? "Saving..." : "Save Profile"}
-          </button>
-          {profileMessage && <p className="mt-2 text-sm text-green-600 dark:text-green-400">{profileMessage}</p>}
-        </form>
-      </section>
-
-      {/* Reminders Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm mt-6">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Reminders</h2>
-        <form onSubmit={handleSaveReminders} className="w-full space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Timezone</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={reminderTimezone}
-                  onChange={(e) => setReminderTimezone(e.target.value)}
-                  className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
+    <div className="space-y-6">
+      {/* Panel 1: Account */}
+      <SettingsSection
+        id="account"
+        eyebrow="01 / ACCOUNT"
+        title="Account"
+        description="Your name and how the app looks."
+      >
+        <SettingsGroup title="Profile">
+          <form onSubmit={handleSaveProfile}>
+            <SettingsRow
+              htmlFor="account-email"
+              label="Email"
+              hint="Used to sign in."
+            >
+              <div className="max-w-[400px]">
+                <Field
+                  variant="input"
+                  id="account-email"
+                  type="email"
+                  value={userEmail}
+                  readOnly
+                  className="bg-row-hover text-muted-ink"
                 />
-                <button
+              </div>
+            </SettingsRow>
+            <SettingsRow htmlFor="account-name" label="Full name">
+              <div className="max-w-[400px]">
+                <Field
+                  variant="input"
+                  id="account-name"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+            </SettingsRow>
+            <SettingsFooter
+              status={profileMessage}
+              isError={messageTone(profileMessage) === 'error'}
+            >
+              <SettingsSaveButton
+                type="submit"
+                disabled={isSavingProfile || fullName === initialProfile.full_name}
+              >
+                {isSavingProfile ? "Saving..." : "Save profile"}
+              </SettingsSaveButton>
+            </SettingsFooter>
+          </form>
+        </SettingsGroup>
+        <SettingsGroup title="Appearance">
+          <SettingsRow label="Theme" hint="Applies immediately.">
+            <div role="group" aria-label="Theme" className="flex max-w-[400px] min-h-[44px]">
+              {mounted &&
+                ['light', 'dark', 'system'].map((t, idx) => (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={theme === t}
+                    onClick={() => setTheme(t)}
+                    className={`flex-1 min-h-[44px] px-4 border border-field-border font-medium capitalize focus-ink ${
+                      idx === 0 ? 'rounded-l-ledger' : idx === 2 ? 'rounded-r-ledger' : ''
+                    } ${idx > 0 ? '-ml-px' : ''} ${
+                      theme === t
+                        ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
+                        : 'bg-card text-ink hover:bg-row-hover'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+            </div>
+          </SettingsRow>
+        </SettingsGroup>
+      </SettingsSection>
+
+      {/* Panel 2: Reminders and goals */}
+      <SettingsSection
+        id="reminders"
+        eyebrow="02 / REMINDERS"
+        title="Reminders and goals"
+        description="When we email you, and your daily target."
+      >
+        <SettingsGroup title="Reminder time">
+          <form onSubmit={handleSaveReminders}>
+            <SettingsRow
+              htmlFor="reminder-timezone"
+              label="Timezone"
+              hint="Reminders follow your local clock."
+            >
+              <div className="flex flex-wrap gap-2 max-w-[400px]">
+                <div className="flex-1 min-w-[160px]">
+                  <Field
+                    variant="input"
+                    id="reminder-timezone"
+                    type="text"
+                    value={reminderTimezone}
+                    onChange={(e) => setReminderTimezone(e.target.value)}
+                  />
+                </div>
+                <Button
+                  variant="secondary"
                   type="button"
                   onClick={() => setReminderTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)}
-                  className="btn-secondary px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap"
                 >
-                  Auto-Detect
-                </button>
+                  Auto-detect
+                </Button>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Send Time</label>
-              <input
-                type="time"
-                value={reminderSendTime}
-                onChange={(e) => setReminderSendTime(e.target.value)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={isSavingReminders || (reminderTimezone === initialProfile.reminder_timezone && reminderSendTime === (initialProfile.reminder_send_time || "09:00").substring(0, 5))}
-            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
-          >
-            {isSavingReminders ? "Saving..." : "Save Preferences"}
-          </button>
-          {reminderMessage && <p className="mt-2 text-sm text-green-600 dark:text-green-400">{reminderMessage}</p>}
-        </form>
-      </section>
-
-      {/* Goals Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm mt-6">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Goals</h2>
-        <form onSubmit={handleSaveGoal} className="w-full space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Daily Application Goal</label>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={dailyGoal}
-                onChange={(e) => setDailyGoal(parseInt(e.target.value) || 1)}
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
-              />
-            </div>
-            <div className="flex items-center mt-6">
-              <input
-                id="daily-summary-toggle"
-                type="checkbox"
-                checked={dailySummaryEnabled}
-                onChange={(e) => setDailySummaryEnabled(e.target.checked)}
-                className="h-4 w-4 text-[var(--ink)] focus:ring-[var(--ink)] border-gray-300 rounded dark:border-zinc-700 dark:bg-zinc-800"
-              />
-              <label htmlFor="daily-summary-toggle" className="ml-2 block text-sm text-gray-700 dark:text-zinc-300">
-                Receive daily streak & goal summary email (around 8:00 PM)
-              </label>
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={isSavingGoal || (dailyGoal === (initialProfile.daily_goal ?? 5) && dailySummaryEnabled === (initialProfile.daily_summary_enabled ?? false))}
-            className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors mt-2"
-          >
-            {isSavingGoal ? "Saving..." : "Save Goal"}
-          </button>
-          {goalMessage && <p className="mt-2 text-sm text-green-600 dark:text-green-400">{goalMessage}</p>}
-        </form>
-      </section>
+            </SettingsRow>
+            <SettingsRow htmlFor="reminder-send-time" label="Send time">
+              <div className="max-w-[140px]">
+                <Field
+                  variant="input"
+                  id="reminder-send-time"
+                  type="time"
+                  value={reminderSendTime}
+                  onChange={(e) => setReminderSendTime(e.target.value)}
+                />
+              </div>
+            </SettingsRow>
+            <SettingsFooter
+              status={reminderMessage}
+              isError={messageTone(reminderMessage) === 'error'}
+            >
+              <SettingsSaveButton
+                type="submit"
+                disabled={
+                  isSavingReminders ||
+                  (reminderTimezone === initialProfile.reminder_timezone &&
+                    reminderSendTime ===
+                      (initialProfile.reminder_send_time || "09:00").substring(0, 5))
+                }
+              >
+                {isSavingReminders ? "Saving..." : "Save preferences"}
+              </SettingsSaveButton>
+            </SettingsFooter>
+          </form>
+        </SettingsGroup>
+        <SettingsGroup title="Daily goal">
+          <form onSubmit={handleSaveGoal}>
+            <SettingsRow
+              htmlFor="daily-goal"
+              label="Applications per day"
+              hint="Between 1 and 50."
+            >
+              <div className="max-w-[110px]">
+                <Field
+                  variant="input"
+                  id="daily-goal"
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={dailyGoal}
+                  onChange={(e) => setDailyGoal(parseInt(e.target.value) || 1)}
+                />
+              </div>
+            </SettingsRow>
+            <SettingsRow
+              htmlFor="daily-summary-toggle"
+              label="Daily summary"
+              hint="Streak and goal email around 8:00 PM."
+            >
+              <div className="max-w-[400px]">
+                <Field
+                  variant="toggle"
+                  id="daily-summary-toggle"
+                  label="Send daily summary"
+                  checked={dailySummaryEnabled}
+                  onChange={(e) => setDailySummaryEnabled(e.target.checked)}
+                />
+              </div>
+            </SettingsRow>
+            <SettingsFooter
+              status={goalMessage}
+              isError={messageTone(goalMessage) === 'error'}
+            >
+              <SettingsSaveButton
+                type="submit"
+                disabled={
+                  isSavingGoal ||
+                  (dailyGoal === (initialProfile.daily_goal ?? 5) &&
+                    dailySummaryEnabled === (initialProfile.daily_summary_enabled ?? false))
+                }
+              >
+                {isSavingGoal ? "Saving..." : "Save goal"}
+              </SettingsSaveButton>
+            </SettingsFooter>
+          </form>
+        </SettingsGroup>
+      </SettingsSection>
 
       {/* AI Provider Settings */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
@@ -824,25 +918,6 @@ export default function SettingsClient({
         )}
       </section>
 
-      {/* Appearance Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Appearance</h2>
-        <div className="flex gap-4">
-          {mounted && ['light', 'dark', 'system'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`px-4 py-2 rounded-md font-medium capitalize border transition-colors ${
-                theme === t 
-                  ? 'bg-gray-900 text-white dark:bg-zinc-100 dark:text-zinc-900 border-transparent' 
-                  : 'bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border-gray-300 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700'
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </section>
 
       {/* Resumes Section */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
