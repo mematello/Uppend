@@ -188,6 +188,19 @@ for (const [themeName, theme] of [['Light', lightTheme], ['Dark', darkTheme]]) {
     4.5
   );
 
+  checkPair(
+    'Text',
+    'Muted on blend(--ink/10%, --card) (selected model card, selected dropzone)',
+    themeName,
+    '--muted',
+    muted,
+    theme.rawSources.get('--muted'),
+    'blend(--ink/10%, card)',
+    alertSuccessBg,
+    `blended surface over ${theme.rawSources.get('--card')}`,
+    4.5
+  );
+
   const alertRedToken = themeName === 'Light' ? '--color-red-700' : '--color-red-950';
   const alertRedOpacity = themeName === 'Light' ? 0.10 : 0.20;
   const alertRedHex = tailwindColors.get(alertRedToken);

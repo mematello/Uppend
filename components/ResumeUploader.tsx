@@ -3,13 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Resume } from '../lib/types';
+import { Upload } from 'lucide-react';
+import { Field } from './ui/Field';
+import { Alert } from './ui/Alert';
+import { SettingsRow, SettingsFooter, SettingsSaveButton } from './settings/SettingsLayout';
+import { getDropzoneState } from '../lib/utils/dropzone-state';
 
 interface ResumeUploaderProps {
   onSuccess: (resume: Resume, wasSetAsCurrent: boolean) => void;
   forceIsCurrent?: boolean;
+  layout?: 'stacked' | 'rows';
 }
 
-export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: ResumeUploaderProps) {
+export default function ResumeUploader({
+  onSuccess,
+  forceIsCurrent = false,
+  layout = 'stacked',
+}: ResumeUploaderProps) {
   const router = useRouter();
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [versionLabel, setVersionLabel] = useState("");
@@ -64,56 +74,90 @@ export default function ResumeUploader({ onSuccess, forceIsCurrent = false }: Re
     }
   };
 
-  return (
-    <form onSubmit={handleUploadResume} className="w-full bg-gray-50 dark:bg-zinc-950 p-4 rounded-md border border-gray-200 dark:border-zinc-800">
-      <h3 className="text-sm font-medium font-display text-gray-900 dark:text-zinc-100 mb-4">Upload New Resume</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">File (PDF or DOCX, max 5MB)</label>
-          <input 
-            type="file" 
-            accept=".pdf,.docx"
-            onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-            required
-            className="w-full text-sm text-gray-500 dark:text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-hairline file:text-sm file:font-medium file:bg-card file:text-ink hover:file:bg-row-hover file:cursor-pointer"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Version Label</label>
-          <input
-            type="text"
-            placeholder="e.g. Frontend Dev 2026"
-            value={versionLabel}
-            onChange={(e) => setVersionLabel(e.target.value)}
-            required
-            className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
-          />
-        </div>
-      </div>
-      
-      {!forceIsCurrent && (
-        <div className="flex items-center gap-2 mb-4">
-          <input 
-            type="checkbox" 
-            id="is_current_resume"
-            checked={isCurrentResume}
-            onChange={(e) => setIsCurrentResume(e.target.checked)}
-            className="w-4 h-4 rounded bg-white dark:bg-zinc-900 border-gray-300 dark:border-zinc-700 text-[var(--ink)] focus:ring-[var(--ink)]"
-          />
-          <label htmlFor="is_current_resume" className="text-sm text-gray-700 dark:text-zinc-300">Set as current default</label>
-        </div>
-      )}
+  const [isDragging, setIsDragging] = useState(false);
+  const zoneState = getDropzoneState(isDragging, !!resumeFile);
 
-      <button
-        type="submit"
-        disabled={isUploading || !resumeFile || !versionLabel}
-        className="btn-primary px-4 py-2 rounded-md font-medium disabled:opacity-50 transition-colors"
-      >
-        {isUploading ? "Uploading..." : "Upload Resume"}
-      </button>
-      {uploadError && <p className="mt-2 text-sm text-red-600">{uploadError}</p>}
-      {uploadWarning && <p className="mt-3 text-sm text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400 p-3 rounded-md border border-amber-200 dark:border-amber-900/50">{uploadWarning}</p>}
+  const fileControl = (
+    <label
+      onDragEnter={() => setIsDragging(true)}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={() => setIsDragging(false)}
+      className={`relative flex items-center gap-3.5 min-h-[76px] px-4 py-3 rounded-ledger border cursor-pointer transition-colors focus-within:ring-2 focus-within:ring-[var(--ink)] ${zoneState === 'drag' ? 'border-solid border-ink bg-accent text-on-accent' : zoneState === 'selected' ? 'border-solid border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]' : 'border-dashed border-field-border bg-card hover:bg-row-hover'}`}
+    >
+      <Upload className={`w-6 h-6 shrink-0 ${zoneState === 'drag' ? 'text-on-accent' : 'text-ink'}`} strokeWidth={1.5} aria-hidden="true" />
+      <span className="block flex-1 min-w-0">
+        <span className={`block font-medium break-words ${zoneState === 'drag' ? 'text-on-accent' : 'text-ink'}`}>
+          {zoneState === 'drag' ? (resumeFile ? 'Drop to replace' : 'Drop to upload') : (resumeFile ? resumeFile.name : 'Choose a PDF or DOCX')}
+        </span>
+        <span className={`block text-sm ${zoneState === 'drag' ? 'text-on-accent' : 'text-muted-ink'}`}>
+          {zoneState === 'drag' ? 'Release to select this file.' : (resumeFile ? 'Selected. Click to replace.' : 'Drop it here or browse. Max 5 MB.')}
+        </span>
+      </span>
+      <span className={`shrink-0 px-3 py-1.5 rounded-ledger border font-label text-xs uppercase tracking-wider ${zoneState === 'drag' ? 'border-on-accent text-on-accent' : 'border-field-border text-ink'}`}>
+        Browse
+      </span>
+      <input id="resume-file" type="file" accept=".pdf,.docx" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} required className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+    </label>
+  );
+
+  const versionControl = (
+    <Field variant="input" id="resume-version" type="text" placeholder="e.g. Frontend Dev 2026" value={versionLabel} onChange={(e) => setVersionLabel(e.target.value)} required />
+  );
+
+  const defaultControl = !forceIsCurrent && (
+    <Field variant="toggle" id="is_current_resume" label="Set as current default" checked={isCurrentResume} onChange={(e) => setIsCurrentResume(e.target.checked)} />
+  );
+
+  const submitLabel = isUploading ? "Uploading..." : "Upload resume";
+  const submitDisabled = isUploading || !resumeFile || !versionLabel;
+
+  const submitButton = (
+    <SettingsSaveButton type="submit" disabled={submitDisabled}>
+      {submitLabel}
+    </SettingsSaveButton>
+  );
+
+  return (
+    <form onSubmit={handleUploadResume} className={layout === 'stacked' ? "w-full space-y-4" : undefined}>
+      {layout === 'rows' ? (
+        <>
+          <SettingsRow htmlFor="resume-file" label="File" hint="PDF or DOCX, max 5 MB.">
+            <div className="max-w-[520px]">{fileControl}</div>
+          </SettingsRow>
+          <SettingsRow htmlFor="resume-version" label="Version label">
+            <div className="max-w-[400px]">{versionControl}</div>
+          </SettingsRow>
+          {!forceIsCurrent && (
+            <SettingsRow label="Default" hint="Used for AI fit analysis.">
+              <div className="max-w-[400px]">{defaultControl}</div>
+            </SettingsRow>
+          )}
+          {uploadWarning && <Alert className="mt-3">{uploadWarning}</Alert>}
+          <SettingsFooter status={uploadError} isError={!!uploadError}>
+            {submitButton}
+          </SettingsFooter>
+        </>
+      ) : (
+        <>
+          <div>
+            <label htmlFor="resume-file" className="block font-medium text-ink mb-1">
+              File (PDF or DOCX, max 5MB)
+            </label>
+            {fileControl}
+          </div>
+          <div>
+            <label htmlFor="resume-version" className="block font-medium text-ink mb-1">
+              Version label
+            </label>
+            {versionControl}
+          </div>
+          {!forceIsCurrent && defaultControl}
+          {submitButton}
+          {uploadError && <p role="status" className="text-sm text-red-700 dark:text-red-400">{uploadError}</p>}
+          {uploadWarning && <Alert>{uploadWarning}</Alert>}
+        </>
+      )}
     </form>
   );
 }
+
