@@ -983,51 +983,44 @@ export default function SettingsClient({
 
 
       {/* Resumes Section */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Resumes</h2>
-        
-        <div className="mb-8">
-          <ResumeUploader onSuccess={handleUploadSuccess} />
-        </div>
-
-        {/* List of Resumes */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-100">Saved Resumes</h3>
+      <SettingsSection id="resumes" eyebrow="04 / RESUMES" title="Resumes" description="Upload versions and choose the default for fit analysis.">
+        <SettingsGroup title="Upload">
+          <ResumeUploader onSuccess={handleUploadSuccess} layout="rows" />
+        </SettingsGroup>
+        <SettingsGroup title="Saved resumes">
           {resumes.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-zinc-400">No resumes uploaded yet.</p>
+            <p className="text-sm text-muted-ink">No resumes uploaded yet.</p>
           ) : (
             resumes.map(r => (
-              <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-md shadow-sm">
-                <div className="mb-3 sm:mb-0">
-                  <div className="flex items-center gap-2">
-                    <button 
-                      type="button"
-                      onClick={() => setPreviewResumeId(r.id)}
-                      className="font-medium link-ink text-left"
-                    >
-                      {r.version_label}
-                    </button>
-                    {r.is_current && (
-                      <span className="text-xs px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full font-medium">Current</span>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
+              <div key={r.id} className="mt-2 first:mt-0 grid grid-cols-1 gap-3 p-3 border border-hairline rounded-ledger sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div className="min-w-0">
+                  <button type="button" onClick={() => setPreviewResumeId(r.id)} className="font-medium link-ink text-left break-words">
+                    {r.version_label}
+                  </button>
+                  <p className="text-sm text-muted-ink">
                     Uploaded: {new Date(r.created_at).toLocaleDateString()}
-                    {r.extracted_text === null && <span className="text-red-500 ml-2">(Text extraction failed)</span>}
-                  </div>
+                    {r.extracted_text === null && <span className="ml-2 text-red-700 dark:text-red-400">(Text extraction failed)</span>}
+                  </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                  {r.is_current && (
+                    <span className="inline-flex items-center h-[22px] px-2 rounded-ledger border border-ink text-ink font-label text-[11px] uppercase tracking-wider whitespace-nowrap">
+                      Current
+                    </span>
+                  )}
                   {!r.is_current && (
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => handleSetCurrentResume(r.id)}
-                      className="text-sm link-ink font-medium transition-colors"
+                      className="min-h-[44px] sm:min-h-[36px] px-3 rounded-ledger border border-field-border bg-card text-sm font-medium text-ink hover:bg-row-hover focus-ink"
                     >
                       Set as current
                     </button>
                   )}
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => handleDeleteResume(r.id)}
-                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium transition-colors"
+                    className="min-h-[44px] sm:min-h-[36px] px-3 rounded-ledger border border-red-700 dark:border-red-500 bg-transparent text-sm font-medium text-red-700 dark:text-red-400 hover:bg-row-hover focus-ink"
                   >
                     Delete
                   </button>
@@ -1035,34 +1028,41 @@ export default function SettingsClient({
               </div>
             ))
           )}
-        </div>
-      </section>
+        </SettingsGroup>
+      </SettingsSection>
 
       {/* Data Export */}
-      <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-gray-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="text-xl font-semibold font-display mb-6 border-b border-gray-200 dark:border-zinc-800 pb-4">Data Export</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-4">Download a complete copy of all your tracked applications.</p>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => handleExportData('csv')}
-            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            Export as CSV
-          </button>
-          <button
-            onClick={() => handleExportData('json')}
-            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            Export as JSON
-          </button>
-          <button
-            onClick={() => handleExportData('xlsx')}
-            className="btn-secondary px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            Export as XLSX
-          </button>
+      <SettingsSection id="data" eyebrow="05 / DATA" title="Data export" description="Download a complete copy of all your tracked applications.">
+        <div className="grid grid-cols-1 gap-3 mt-4 sm:grid-cols-3">
+          <div className="flex flex-col justify-between gap-3 p-4 border border-hairline rounded-ledger">
+            <div>
+              <h3 className="font-medium text-ink">CSV</h3>
+              <p className="text-sm text-muted-ink mt-0.5">Opens in any spreadsheet. Excludes job descriptions.</p>
+            </div>
+            <Button variant="secondary" type="button" className="w-full px-4" onClick={() => handleExportData('csv')}>
+              Download CSV
+            </Button>
+          </div>
+          <div className="flex flex-col justify-between gap-3 p-4 border border-hairline rounded-ledger">
+            <div>
+              <h3 className="font-medium text-ink">JSON</h3>
+              <p className="text-sm text-muted-ink mt-0.5">Full record, including job descriptions.</p>
+            </div>
+            <Button variant="secondary" type="button" className="w-full px-4" onClick={() => handleExportData('json')}>
+              Download JSON
+            </Button>
+          </div>
+          <div className="flex flex-col justify-between gap-3 p-4 border border-hairline rounded-ledger">
+            <div>
+              <h3 className="font-medium text-ink">XLSX</h3>
+              <p className="text-sm text-muted-ink mt-0.5">Excel workbook. Excludes job descriptions.</p>
+            </div>
+            <Button variant="secondary" type="button" className="w-full px-4" onClick={() => handleExportData('xlsx')}>
+              Download XLSX
+            </Button>
+          </div>
         </div>
-      </section>
+      </SettingsSection>
 
       {/* Danger Zone */}
       <section className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-red-200 dark:border-red-900/50 shadow-sm">
