@@ -1089,7 +1089,7 @@ export default function SettingsClient({
           </div>
         )}
         {deleteStep === 1 && (
-          <div role="group" aria-label="Confirm account deletion" className="mt-4 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
+          <div role="group" aria-label="Confirm account deletion" className="mt-4 max-w-[480px] p-4 border border-red-700 dark:border-red-500 rounded-ledger">
             <p className="font-medium text-ink">Are you sure you want to delete your account? This cannot be undone.</p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
               <Button variant="secondary" type="button" className="px-4" autoFocus onClick={() => setDeleteStep(0)}>
@@ -1102,7 +1102,7 @@ export default function SettingsClient({
           </div>
         )}
         {deleteStep === 2 && (
-          <div role="group" aria-label="Confirm account deletion" className="mt-4 p-4 border border-red-700 dark:border-red-500 rounded-ledger">
+          <div role="group" aria-label="Confirm account deletion" className="mt-4 max-w-[480px] p-4 border border-red-700 dark:border-red-500 rounded-ledger">
             <label htmlFor="delete-confirm-email" className="block text-sm font-medium text-ink mb-2">
               Type <span className="font-bold select-all break-all">{userEmail}</span> to confirm
             </label>
