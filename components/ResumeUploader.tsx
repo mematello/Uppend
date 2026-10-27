@@ -73,79 +73,76 @@ export default function ResumeUploader({
     }
   };
 
+  const fileControl = (
+    <label className={`relative flex items-center gap-3.5 min-h-[76px] px-4 py-3 rounded-ledger border cursor-pointer focus-within:ring-2 focus-within:ring-[var(--ink)] ${resumeFile ? 'border-solid border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]' : 'border-dashed border-field-border bg-card hover:bg-row-hover'}`}>
+      <Upload className="w-6 h-6 shrink-0 text-ink" strokeWidth={1.5} aria-hidden="true" />
+      <span className="block flex-1 min-w-0">
+        <span className="block font-medium text-ink break-words">{resumeFile ? resumeFile.name : 'Choose a PDF or DOCX'}</span>
+        <span className="block text-sm text-muted-ink">{resumeFile ? 'Selected. Click to replace.' : 'Drop it here or browse. Max 5 MB.'}</span>
+      </span>
+      <span className="shrink-0 px-3 py-1.5 rounded-ledger border border-field-border font-label text-xs uppercase tracking-wider text-ink">Browse</span>
+      <input id="resume-file" type="file" accept=".pdf,.docx" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} required className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+    </label>
+  );
+
+  const versionControl = (
+    <Field variant="input" id="resume-version" type="text" placeholder="e.g. Frontend Dev 2026" value={versionLabel} onChange={(e) => setVersionLabel(e.target.value)} required />
+  );
+
+  const defaultControl = !forceIsCurrent && (
+    <Field variant="toggle" id="is_current_resume" label="Set as current default" checked={isCurrentResume} onChange={(e) => setIsCurrentResume(e.target.checked)} />
+  );
+
+  const submitLabel = isUploading ? "Uploading..." : "Upload resume";
+  const submitDisabled = isUploading || !resumeFile || !versionLabel;
+
+  const submitButton = (
+    <SettingsSaveButton type="submit" disabled={submitDisabled}>
+      {submitLabel}
+    </SettingsSaveButton>
+  );
+
   return (
-    (() => {
-    const fileControl = (
-      <label className={`relative flex items-center gap-3.5 min-h-[76px] px-4 py-3 rounded-ledger border cursor-pointer focus-within:ring-2 focus-within:ring-[var(--ink)] ${resumeFile ? 'border-solid border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]' : 'border-dashed border-field-border bg-card hover:bg-row-hover'}`}>
-        <Upload className="w-6 h-6 shrink-0 text-ink" strokeWidth={1.5} aria-hidden="true" />
-        <span className="block flex-1 min-w-0">
-          <span className="block font-medium text-ink break-words">{resumeFile ? resumeFile.name : 'Choose a PDF or DOCX'}</span>
-          <span className="block text-sm text-muted-ink">{resumeFile ? 'Selected. Click to replace.' : 'Drop it here or browse. Max 5 MB.'}</span>
-        </span>
-        <span className="shrink-0 px-3 py-1.5 rounded-ledger border border-field-border font-label text-xs uppercase tracking-wider text-ink">Browse</span>
-        <input id="resume-file" type="file" accept=".pdf,.docx" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} required className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
-      </label>
-    );
-
-    const versionControl = (
-      <Field variant="input" id="resume-version" type="text" placeholder="e.g. Frontend Dev 2026" value={versionLabel} onChange={(e) => setVersionLabel(e.target.value)} required />
-    );
-
-    const defaultControl = !forceIsCurrent && (
-      <Field variant="toggle" id="is_current_resume" label="Set as current default" checked={isCurrentResume} onChange={(e) => setIsCurrentResume(e.target.checked)} />
-    );
-
-    const submitLabel = isUploading ? "Uploading..." : "Upload resume";
-    const submitDisabled = isUploading || !resumeFile || !versionLabel;
-
-    const submitButton = (
-      <SettingsSaveButton type="submit" disabled={submitDisabled}>
-        {submitLabel}
-      </SettingsSaveButton>
-    );
-
-    return (
-      <form onSubmit={handleUploadResume} className={layout === 'stacked' ? "w-full space-y-4" : undefined}>
-        {layout === 'rows' ? (
-          <>
-            <SettingsRow htmlFor="resume-file" label="File" hint="PDF or DOCX, max 5 MB.">
-              <div className="max-w-[520px]">{fileControl}</div>
+    <form onSubmit={handleUploadResume} className={layout === 'stacked' ? "w-full space-y-4" : undefined}>
+      {layout === 'rows' ? (
+        <>
+          <SettingsRow htmlFor="resume-file" label="File" hint="PDF or DOCX, max 5 MB.">
+            <div className="max-w-[520px]">{fileControl}</div>
+          </SettingsRow>
+          <SettingsRow htmlFor="resume-version" label="Version label">
+            <div className="max-w-[400px]">{versionControl}</div>
+          </SettingsRow>
+          {!forceIsCurrent && (
+            <SettingsRow label="Default" hint="Used for AI fit analysis.">
+              <div className="max-w-[400px]">{defaultControl}</div>
             </SettingsRow>
-            <SettingsRow htmlFor="resume-version" label="Version label">
-              <div className="max-w-[400px]">{versionControl}</div>
-            </SettingsRow>
-            {!forceIsCurrent && (
-              <SettingsRow label="Default" hint="Used for AI fit analysis.">
-                <div className="max-w-[400px]">{defaultControl}</div>
-              </SettingsRow>
-            )}
-            {uploadWarning && <Alert className="mt-3">{uploadWarning}</Alert>}
-            <SettingsFooter status={uploadError} isError={!!uploadError}>
-              {submitButton}
-            </SettingsFooter>
-          </>
-        ) : (
-          <>
-            <div>
-              <label htmlFor="resume-file" className="block font-medium text-ink mb-1">
-                File (PDF or DOCX, max 5MB)
-              </label>
-              {fileControl}
-            </div>
-            <div>
-              <label htmlFor="resume-version" className="block font-medium text-ink mb-1">
-                Version label
-              </label>
-              {versionControl}
-            </div>
-            {!forceIsCurrent && defaultControl}
+          )}
+          {uploadWarning && <Alert className="mt-3">{uploadWarning}</Alert>}
+          <SettingsFooter status={uploadError} isError={!!uploadError}>
             {submitButton}
-            {uploadError && <p role="status" className="text-sm text-red-700 dark:text-red-400">{uploadError}</p>}
-            {uploadWarning && <Alert>{uploadWarning}</Alert>}
-          </>
-        )}
-      </form>
-    );
-  })());
+          </SettingsFooter>
+        </>
+      ) : (
+        <>
+          <div>
+            <label htmlFor="resume-file" className="block font-medium text-ink mb-1">
+              File (PDF or DOCX, max 5MB)
+            </label>
+            {fileControl}
+          </div>
+          <div>
+            <label htmlFor="resume-version" className="block font-medium text-ink mb-1">
+              Version label
+            </label>
+            {versionControl}
+          </div>
+          {!forceIsCurrent && defaultControl}
+          {submitButton}
+          {uploadError && <p role="status" className="text-sm text-red-700 dark:text-red-400">{uploadError}</p>}
+          {uploadWarning && <Alert>{uploadWarning}</Alert>}
+        </>
+      )}
+    </form>
+  );
 }
 
