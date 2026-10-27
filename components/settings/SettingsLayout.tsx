@@ -40,7 +40,7 @@ export function SettingsGroup({ title, children }: SettingsGroupProps) {
 export interface SettingsRowProps {
   htmlFor?: string;
   label: string;
-  hint?: string;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -73,7 +73,7 @@ export function SettingsFooter({ status, isError, children }: SettingsFooterProp
     <div className="mt-1 pt-3.5 border-t border-hairline grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
       <p
         role="status"
-        className={`text-sm sm:min-h-5 sm:order-1 ${isError ? 'text-red-700 dark:text-red-400' : 'text-ink'}`}
+        className={`text-sm sm:min-h-5 sm:order-1 empty:hidden sm:empty:block ${isError ? 'text-red-700 dark:text-red-400' : 'text-ink'}`}
       >
         {status}
       </p>
@@ -84,7 +84,7 @@ export function SettingsFooter({ status, isError, children }: SettingsFooterProp
 
 export const SettingsSaveButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function SettingsSaveButton({ className = '', variant = 'primary', ...props }, ref) {
-    const mergedClassName = `w-full sm:w-auto sm:min-w-[176px] disabled:opacity-40 disabled:cursor-not-allowed ${className}`.trim();
+    const mergedClassName = `w-full sm:w-auto sm:min-w-[176px] px-4 disabled:opacity-40 disabled:cursor-not-allowed ${className}`.trim();
     return <Button ref={ref} variant={variant} className={mergedClassName} {...props} />;
   }
 );

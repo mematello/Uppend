@@ -616,6 +616,7 @@ export default function SettingsClient({
                 <Button
                   variant="secondary"
                   type="button"
+                  className="px-4 shrink-0 whitespace-nowrap"
                   onClick={() => setReminderTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)}
                 >
                   Auto-detect
@@ -671,7 +672,6 @@ export default function SettingsClient({
               </div>
             </SettingsRow>
             <SettingsRow
-              htmlFor="daily-summary-toggle"
               label="Daily summary"
               hint="Streak and goal email around 8:00 PM."
             >
