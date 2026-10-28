@@ -125,7 +125,7 @@ Shared presentational building blocks implemented on `redesign/dashboard`:
   - `variant="input"`: Text input with optional leading icon slot (`icon?: React.ReactNode`), styled with `pl-9` (or `px-4`), `w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
   - `variant="select"`: Native select with custom chevron indicator (`ChevronDown`). Supports `tone="default"` (`rounded-ledger border border-field-border bg-card pr-8 pl-3 py-2 text-base sm:text-sm text-ink focus-ink`) and `tone="chip"` (`appearance-none border-none pl-2.5 pr-7 py-1 text-inherit font-label uppercase text-base sm:text-xs tracking-wider`), plus optional `wrapperClassName`.
   - `variant="textarea"`: Multi-line text entry with `px-4 py-3 rounded-ledger border border-field-border bg-card text-base sm:text-sm text-ink placeholder:text-muted-ink focus-ink transition-colors`. Supports `aiSuggested?: boolean` (adds `.ai-suggested`).
-  - `variant="toggle"`: Labeled 44px bordered cell (`min-h-[44px] rounded-ledger border border-field-border bg-card px-3 flex items-center justify-between`) containing a text label and an accent-ink styled checkbox switch (`h-5 w-5 rounded-ledger border-field-border accent-ink cursor-pointer`). Supports `label: string`, `checked`, `onChange`, and standard HTML input checkbox attributes.
+  - `variant="toggle"`: Labeled 44px bordered cell (`min-h-[44px] rounded-ledger border border-field-border bg-card px-3 flex items-center justify-between`) containing a text label and an accent-ink styled checkbox switch (`w-5 h-5 accent-ink shrink-0`). Supports `label: string`, `checked`, `onChange`, and standard HTML input checkbox attributes.
   Does not provide external label, validation message, or hint props (except `variant="toggle"` which renders its inline label); form controls receive standard HTML attributes and styling directly.
 - **Back Button Pattern**: Standalone navigation trigger for secondary flows:
   - Markup: `<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>`.
@@ -137,11 +137,11 @@ Shared presentational building blocks implemented on `redesign/dashboard`:
 ### Settings Layout Primitives (`components/settings/SettingsLayout.tsx`)
 
 Shared presentational layout primitives implemented on `redesign/settings`:
-- **SettingsSection**: Outer section article container with anchor target `id` matching the rail link, mono eyebrow (`font-label text-xs uppercase tracking-widest text-muted-ink`), serif heading (`font-display text-xl text-ink`), optional description, and child wrapper (`space-y-4`).
-- **SettingsGroup**: Grouping container within a section separating logical clusters with subtle hairline borders (`p-4 sm:p-5 rounded-ledger border border-hairline bg-card`).
-- **SettingsRow**: Standard settings row (`sm:flex sm:items-center sm:justify-between py-3 border-b border-hairline last:border-b-0`) aligning title and caption copy left with controls or triggers right.
-- **SettingsFooter**: Panel footer strip (`mt-6 pt-4 border-t border-hairline flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3`) containing an optional `role="status"` toast message line and action controls.
-- **SettingsSaveButton**: Standardized 176px right-aligned save button (`w-full sm:w-44 min-w-[176px] sm:self-end btn-primary`) with integrated loading spinner.
+- **SettingsSection**: Panel with `id`, `role="region"`, `aria-labelledby`, `scroll-mt-6 p-5` and a header with `border-b border-hairline` (eyebrow `font-label text-xs uppercase tracking-widest text-muted-ink`; h2 `font-display text-2xl font-normal text-ink mt-0.5`; description `text-sm text-muted-ink mt-0.5`).
+- **SettingsGroup**: `mt-5` wrapper with an h3 (`font-label text-xs uppercase tracking-wider text-muted-ink`), no card/border, and child wrapper `mt-2`.
+- **SettingsRow**: Ruled grid with `sm:grid-cols-[200px_minmax(0,1fr)]`, `border-t border-hairline first:border-t-0 first:pt-1 py-3.5 sm:gap-x-6 sm:items-start`, label or span (`block font-medium text-ink`), optional hint (`text-sm text-muted-ink mt-0.5`), and child container `min-w-0`.
+- **SettingsFooter**: Border-t grid (`mt-1 pt-3.5 border-t border-hairline grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center`) with a `role="status"` line (`text-sm sm:min-h-5 sm:order-1 empty:hidden sm:empty:block`; red on error `text-red-700 dark:text-red-400`, otherwise `text-ink`) and action slot (`sm:order-2`).
+- **SettingsSaveButton**: forwardRef wrapper around Button (variant primary) with `w-full sm:w-auto sm:min-w-[176px] px-4 disabled:opacity-40 disabled:cursor-not-allowed`. There is NO spinner.
 
 ### Status Chips (`app/globals.css:112-203`, `DashboardClient.tsx:14-21`)
 
@@ -298,7 +298,7 @@ The `/applications/[id]` detail view implements direction B (split rail):
    - Form inputs (`variant="input"` in `Field.tsx`) must declare `w-full min-w-0 max-w-full`. Native date pickers (`<input type="date">`) enforce rigid intrinsic minimum content widths in WebKit/iOS Safari; `min-w-0 max-w-full` enables the input to shrink fluidly and strictly adhere to container bounds without overflowing.
    - Grid cell wrappers containing form controls inside CSS Grid containers must declare `min-w-0` to override the CSS Grid default `min-width: auto`, preventing intrinsic-size track blowout and cross-column overlaps on narrow viewports (`ApplicationDetailClient.tsx:625,646,663,676,689,702,715,731`).
 12. **No Opacity on Text-Bearing Cards**: Never apply container opacity utilities (`opacity-50`, `opacity-60`) to cards, panels, or rows containing text (such as unavailable model cards or disabled options). Reducing container opacity degrades WCAG AA text contrast below acceptable thresholds. Instead, communicate unavailable or disabled states using dashed borders (`border-dashed border-hairline`), subdued status chips, or explicit status labels while maintaining full text opacity.
-13. **Per-Panel Save Footer Pattern (Settings)**: Settings uses per-panel save footers (`SettingsFooter` + `SettingsSaveButton` capped at 176px / `sm:w-44 min-w-[176px]`) rather than a viewport-docked sticky save bar. Global save bars are ill-suited to settings because saves are heterogeneous: profile, reminders, and daily goal write to independent columns on `profiles` via separate forms; BYOK keys, provider selection, preferred model, and theme write immediately on action/change via autosave; resume upload and deletion are discrete mutations; account deletion is an irreversible 3-step sequence. A single global save button would create ambiguous dirty state across unrelated concerns.
+13. **Per-Panel Save Footer Pattern (Settings)**: Settings uses per-panel save footers (`SettingsFooter` + `SettingsSaveButton` with `w-full sm:w-auto sm:min-w-[176px] px-4 disabled:opacity-40 disabled:cursor-not-allowed`; there is NO spinner) rather than a viewport-docked sticky save bar. Global save bars are ill-suited to settings because saves are heterogeneous: profile, reminders, Daily goal, and preferred-model changes write to independent columns on `profiles` via direct client-side supabase updates in `SettingsClient.tsx`; BYOK keys and preferred provider use server actions in `actions.ts`; provider selection, preferred model, and theme write immediately on action/change via autosave; resume upload and deletion are discrete mutations; account deletion is an irreversible 3-step sequence. A single global save button would create ambiguous dirty state across unrelated concerns.
 
 ---
 
@@ -398,7 +398,7 @@ All paths verified via `git ls-files`:
 - **Settings (/settings)**:
   - `app/(protected)/settings/page.tsx` (server component shell; auth/profile fetch, sticky anchor rail `#account` through `#danger`, PageHeader `04 / SETTINGS`, back button)
   - `app/(protected)/settings/SettingsClient.tsx` (client component; six panels: account, reminders/goals, ai/keys, resumes, data export, danger zone; inline 3-step account deletion; bfcache guard)
-  - `app/(protected)/settings/actions.ts` (server actions for profile updates)
+  - `app/(protected)/settings/actions.ts` (server actions: saveApiKey, deleteApiKey, updatePreferredProvider; profile, reminders, daily goal, and preferred model use direct client-side supabase updates in SettingsClient.tsx)
   - `app/(protected)/settings/loading.tsx` (static token-based loading skeleton server component)
   - `components/settings/SettingsLayout.tsx` (`SettingsSection`, `SettingsGroup`, `SettingsRow`, `SettingsFooter`, `SettingsSaveButton`)
   - `components/ResumeUploader.tsx` (shared resume uploader supporting `'stacked'` and `'rows'` layouts)
@@ -421,34 +421,34 @@ All paths verified via `git ls-files`:
 
 The `/settings` view implements a split-rail panel layout:
 
-- **Desktop Split-Rail Layout**: Two-column layout on viewports at `lg` (`max-w-6xl mx-auto px-4 sm:px-8 py-8`, `grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8 items-start`).
-  - **Sticky Anchor Rail (left, 200px)**: Encapsulated in `lg:sticky lg:top-6 space-y-1 text-sm font-label uppercase tracking-wider`. Pure HTML fragment links linking to the six panel sections (`#account`, `#reminders`, `#ai`, `#resumes`, `#data`, `#danger`) with hover highlights (`hover:text-ink text-muted-ink transition-colors`). No scroll tracking.
+- **Desktop Split-Rail Layout**: Two-column layout on viewports at `lg` (`max-w-6xl mx-auto px-4 sm:px-8 py-8`, `grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-6 items-start`).
+  - **Sticky Anchor Rail (left, 200px)**: The rail is `<nav aria-label="Settings sections" className="hidden lg:block lg:sticky lg:top-6">` containing six `<a>` links (`className="font-label text-xs uppercase tracking-wider flex items-center min-h-[40px] px-3 border-l-2 border-hairline text-ink hover:bg-row-hover hover:border-ink focus-ink"`) linking to six panel sections (`#account`, `#reminders`, `#ai`, `#resumes`, `#data`, `#danger`). It is NOT a Panel and has no `space-y-1`; navigation uses standard in-page fragment links without scroll tracking.
   - **Six Content Panels (right, 1fr)**: The right column renders the six `<SettingsSection>` articles with IDs matching the rail anchors:
-    1. *Account (`#account`)*: Profile settings (name input, email display) and theme selector segmented control (`System`, `Light`, `Dark`).
-    2. *Reminders and goals (`#reminders`)*: Email reminder time input, reminder enabled toggle, and daily application goal input with summary.
-    3. *AI and keys (`#ai`)*: Read-only free uses indicator (`{freeUses} of 5 free AI uses remaining`), active provider selector, encrypted BYOK key management (Google, Groq), and preferred model picker with model cards and fallback chip family.
+    1. *Account (`#account`)*: Profile settings (name input, email display) and theme selector segmented control in order `Light`, `Dark`, `System`.
+    2. *Reminders and goals (`#reminders`)*: Timezone (+Auto-detect), Send time, Applications per day, and Daily summary toggle; there is NO "reminder enabled toggle" in Settings.
+    3. *AI and keys (`#ai`)*: Read-only free uses text (`"{n} of 5 remaining"`), active provider selector, encrypted BYOK key management (Google, Groq), and preferred model picker with model cards and chip family.
     4. *Resumes (`#resumes`)*: Resume management with `ResumeUploader` in `'rows'` layout and saved resume list with preview, default toggle, and delete actions.
     5. *Data export (`#data`)*: Three export cards for downloading user data in CSV, JSON, and XLSX formats.
-    6. *Danger zone (`#danger`)*: Account deletion with inline 3-step progressive disclosure (warning $\rightarrow$ password/email confirmation $\rightarrow$ final delete) and optional "Clear Local Data" trigger when IndexedDB data is present.
+    6. *Danger zone (`#danger`)*: Account deletion with inline 3-step progressive disclosure confirming by typing the account email (NO password step) and optional "Clear Local Data" trigger when IndexedDB data is present.
 - **Header & Navigation**:
   - `PageHeader` with mono eyebrow `04 / SETTINGS`, serif heading `Settings`, and standalone `<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>` back button.
-- **SettingsLayout Primitives**: Standardized presentational building blocks (`SettingsSection`, `SettingsGroup`, `SettingsRow`, `SettingsFooter`, `SettingsSaveButton` with fixed 176px width / `sm:w-44 min-w-[176px]`) ensuring consistent spacing, typography, and borders across all panels.
-- **Per-Panel Save Model**: Independent forms and handlers write to `profiles` for Profile, Reminders, and Daily Goal, each equipped with a right-aligned 176px save button (`SettingsSaveButton`) and `role="status"` toast line. Autosave applies to provider selection, preferred model, and theme. Mutations for keys, resumes, and export execute immediately. No global save bar.
+- **SettingsLayout Primitives**: Standardized presentational building blocks (`SettingsSection`, `SettingsGroup`, `SettingsRow`, `SettingsFooter`, `SettingsSaveButton` with `w-full sm:w-auto sm:min-w-[176px] px-4 disabled:opacity-40 disabled:cursor-not-allowed`; NO spinner) ensuring consistent spacing, typography, and borders across all panels.
+- **Per-Panel Save Model**: Profile, Reminders, Daily goal and preferred-model changes use direct client-side supabase `profiles` updates in `SettingsClient.tsx`; API keys and preferred provider use server actions in `actions.ts`. Each form is equipped with a right-aligned save button (`SettingsSaveButton`) and `role="status"` line. Autosave applies to provider selection, preferred model, and theme. Mutations for keys, resumes, and export execute immediately. No global save bar.
 - **ResumeUploader Layout Prop & Dropzone**:
   - `layout?: 'stacked' | 'rows'` prop (`'stacked'` default for onboarding, `'rows'` for Settings).
   - Dropzone states: `idle` (`border-dashed border-field-border bg-card`), `selected` (`border-ink bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]`), and `drag` (`border-ink bg-accent text-on-accent`).
-  - Underlying `<input type="file" className="sr-only">` covers the dropzone via `absolute inset-0 opacity-0 cursor-pointer`, enabling native browser drop handling without `e.preventDefault()`.
+  - Underlying file input has `absolute inset-0 h-full w-full cursor-pointer opacity-0` covering the dropzone, enabling native browser drop handling without `e.preventDefault()`.
 - **Palette and Model Cards**:
   - Selected model card and selected dropzone use a 10% ink tint fill (`bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] border-ink`).
   - Unavailable models use a dashed border (`border-dashed border-hairline`) without opacity to preserve WCAG AA text contrast.
-  - Chip family: Preferred model (`bg-ink text-paper`), Current fallback (`border border-ink text-ink`), Unavailable/blocked model (`border border-dashed border-hairline text-muted-ink` or red outline).
+  - Chip family: Preferred = solid ink chip (`bg-[var(--ink)] text-[var(--paper)]`), Unavailable = red-outline chip (`border border-red-700 dark:border-red-500 text-red-700 dark:text-red-400`), Current (on RESUMES, not "fallback") = ink-outline chip (`border border-ink text-ink`), all as inline classes in `SettingsClient.tsx` — NOT `.chip-interview`/`.chip-draft`.
   - Destructive actions: Red text (`text-red-700 dark:text-red-400`), red outlines (`border-red-700 dark:border-red-500`), confirm buttons (`bg-red-700 dark:bg-red-800 text-white`).
 - **Danger Zone Inline Flow & Width Caps**:
   - Account deletion is handled entirely inline within the danger panel (no portal modal).
   - The initial delete card and both confirmation step blocks (`deleteStep === 1` and `deleteStep === 2`) are capped at `max-w-[480px]`.
   - Native `window.confirm` and `alert()` dialogs are retained for key deletion, resume deletion, and local data clearing pending the dedicated modals redesign pass.
 - **Theme Segmented Control**:
-  - Three-option segmented control (`System`, `Light`, `Dark`) styled with `rounded-ledger border border-field-border bg-card` with active segment highlighted via `bg-ink text-paper`.
+  - Three-option segmented control in order `Light`, `Dark`, `System` styled with `rounded-ledger border border-field-border bg-card` with active segment highlighted via `bg-ink text-paper`.
 - **Loading Skeleton**:
   - Server component `app/(protected)/settings/loading.tsx` providing token-based placeholder blocks (`animate-pulse bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger`).
 
