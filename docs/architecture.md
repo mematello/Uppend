@@ -16,13 +16,14 @@ app/
   migrate/              → Interstitial page for local-to-cloud migration
 components/
   landing/              → Modular marketing landing page sections (LandingHeader, LandingHero, FlowDemo, DemoPanels, HowItWorks, PrivacyNotice, SiteFooter, OriginStory, landing.module.css)
+  settings/             → Shared settings layout primitives (SettingsLayout.tsx: SettingsSection, SettingsGroup, SettingsRow, SettingsFooter, SettingsSaveButton)
   ui/                     Presentational primitives (Button.tsx, Chip.tsx, Panel.tsx, PageHeader.tsx, Field.tsx [variants: input, select, textarea, toggle], Alert.tsx)
   MobileNavMenu.tsx       Disclosure navigation menu on mobile screens
   ThemeToggle.tsx       → Dark/light mode toggle
-  ResumeUploader.tsx    → Shared component for resume uploads (used in Settings and Onboarding)
+  ResumeUploader.tsx    → Shared component for resume uploads with layout prop ('stacked' for Onboarding, 'rows' for Settings) and native dropzone
   ResumePreviewModal.tsx→ Portal-based modal for previewing uploaded resumes
   UnsavedChangesModal.tsx → Portal-based guard modal for preventing loss of unsaved form edits
-  ClearLocalDataButton.tsx → Settings trigger for wiping IndexedDB local storage
+  ClearLocalDataButton.tsx → Settings trigger for wiping IndexedDB local storage (signed-in leftover cleanup)
 lib/
   fonts.ts              → Display (Fraunces) and label (JetBrains Mono) Google Fonts loader with CSS variables
   constants.ts          → Application constants and source resolution (resolveExtractedSource)
@@ -30,6 +31,8 @@ lib/
     email.ts            → Shared Nodemailer transporter (lazy-verified) for all system emails
     ledger-format.ts      Formatting and sorting utilities (averageFit, formatMonthDay, fitValue, compareNullsLast)
     navigation.ts         Navigation helpers (resolveBackNavigation)
+    message-tone.ts     → Message tone helper (messageTone) mapping strings starting with "Error:" to 'error' tone
+    dropzone-state.ts   → Dropzone state calculation (getDropzoneState: 'idle' | 'selected' | 'drag')
   ai/providers.ts       → Source of truth for AI providers, display names, and client-safe helpers
   ai/models.ts          → Model selection, fallback, and error-parsing logic
   ai/guard.ts           → Pre-filter heuristic scanning for AI prompt injection defense
@@ -81,6 +84,7 @@ scripts/
 - **Data Export & Privacy Controls**: Settings exposes a CSV/JSON/XLSX export and a 'Clear Local Data' IndexedDB wipe.
 - **Auth & System Email Delivery**: Authentication emails, scheduled follow-up reminders (`/api/cron/reminders`), and operator alerts are all delivered via Gmail SMTP (`uppend.noreply@gmail.com`). The `/api/cron/reminders` endpoint is triggered every minute by an external scheduler (cron-job.org) using a Bearer token with `CRON_SECRET`.
 - **Application Detail Architecture (`/applications/[id]`)**: Follows a two-column split-rail layout (`lg:grid-cols-[280px_1fr]`): a sticky summary rail (`Panel`) with live status chip, priority, tabular fit numerals (`font-display text-2xl tabular-nums`), next action date, and resume version; three form panels for extracted details, tracking details, and evaluation/interviews; and an external full-bleed sticky save bar (`sticky bottom-0 z-10 bg-card border-t border-hairline`) linked to the form via HTML5 `form="application-detail-form"`.
+- **Settings Architecture (`/settings`)**: Follows a two-column split-rail layout (`lg:grid-cols-[200px_1fr]`): a sticky anchor rail (`page.tsx`) linking to six panel sections (`#account`, `#reminders`, `#ai`, `#resumes`, `#data`, `#danger`) rendered in `SettingsClient.tsx`. Save model is per-panel using `SettingsFooter` and right-aligned 176px `SettingsSaveButton` (Profile, Reminders, and Daily Goal save via server actions in `actions.ts` and direct `profiles` updates); active provider, preferred model, and theme autosave on change; BYOK keys and resumes mutate immediately; data export runs entirely client-side; account deletion is an inline 3-step progressive disclosure flow; pageshow event listener provides bfcache guards.
 - **Analytics & Performance**: Vercel Analytics and Speed Insights are mounted once at the root layout level (`app/layout.tsx`) to track traffic and web vitals across the application.
 
 ## Known constraints
