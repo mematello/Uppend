@@ -1,5 +1,42 @@
 # Uppend — Changelog
 
+## [2026-10-28] (Session 32)
+- Implemented: Settings redesign on branch `redesign/settings` (16 commits on top of `main` at `f0504a3`, merged into `main` via `--no-ff` at `393076b` and pushed `f0504a3..393076b`):
+  - `091e179` feat(types): add optional free_ai_uses_remaining to Profile
+  - `e9964aa` feat(utils): add messageTone helper with unit tests
+  - `59307c6` feat(settings): redesign page shell with rail navigation and token loading skeleton
+  - `60afca3` feat(settings): add shared settings layout primitives
+  - `ebd881b` feat(settings): account and reminders panels
+  - `bf6b372` fix(settings): button padding, footer gap and toggle label
+  - `c7bc300` feat(settings): ai and keys panel
+  - `acd6668` fix(settings): encoding-safe em dash in BYOK notice
+  - `95d3378` feat(resumes): restyle ResumeUploader with dropzone and layout prop
+  - `b322e8d` feat(settings): resumes and data export panels
+  - `af3efda` refactor(resumes): hoist uploader controls out of IIFE
+  - `d16fc9b` feat(resumes): drag-over state for the dropzone
+  - `5296ab9` feat(settings): danger zone panel and clear local data restyle
+  - `ba4eccf` fix(settings): cap width of the lone delete-account card
+  - `60b0085` test(ui): contrast pairs for muted text on ink tint
+  - `020b699` fix(settings): match delete confirmation width to the delete card
+- Fixed:
+  - Encoding-safe em dash in BYOK notice (`acd6668`).
+  - Button padding, footer gap, and toggle label styling in settings primitives (`bf6b372`).
+  - Hoisted resume uploader form controls out of IIFE (`af3efda`).
+  - Capped width of the lone delete-account card (`ba4eccf`) and matched both delete confirmation wrappers to `max-w-[480px]` (`020b699`).
+- Verified:
+  - Pre-merge gate (owner PowerShell, branch tip `020b699`, run twice with identical output): `tsc --noEmit` exit 0; 11 test files / 130 tests passed; build exit 0; dead-class-scan 184 verified classes, 0 unexpected, 1 unresolved dynamic expression (`SettingsLayout.tsx` `mergedClassName`; its classes were proved by compiled-CSS greps in earlier groups); `contrast.mjs` SUCCESS exit 0 (two new muted-on-ink-tint pairs added: 5.98:1 light, 5.77:1 dark); token deltas vs main only `htmlFor`, `id=` and `ResumeUploader` `useState` (7 -> 8).
+  - Post-merge gate on main BEFORE the push: not reviewed before push.
+  - Post-merge gate on main AFTER the push (owner PowerShell, HEAD `393076b` = `origin/main`): `tsc --noEmit` exit 0; 11 test files / 130 tests passed; build exit 0; dead-class-scan 184 verified classes, 0 unexpected, 1 unresolved dynamic expression (`SettingsLayout.tsx` `mergedClassName`); working tree clean.
+  - Production smoke test (Settings, iOS Safari light+dark, onboarding uploader): pending.
+  - Branch `redesign/settings` left intact: yes.
+- Note (process incidents this session): Exactly the following owner-verified items occurred during Session 32:
+  - (a) the agent's Group 5 explanation named element ids that do not exist in the code (profile-name, reminder-days, weekly-goal, byok-google, byok-groq, ai-model, #profile, #keys), although the counts it reported were right;
+  - (b) the Group 6 and Group 7 reports quoted line ranges ("lines 1-486", "lines 444-475") that no command in the block showed (the equal SHA256 hashes were the real proof);
+  - (c) the first pre-merge gate was run in WSL bash using PowerShell commands, so tsc, tests and contrast did not run, the build failed (bash expanded `*>`), dead-class-scan reported 753 false dead classes with 0 CSS classes verified, WSL git listed nearly all tracked files as modified (most likely a file-mode or line-ending difference (cause not investigated)), and two untracked log files with unusual names were created in the repo root; the second paste repeated this; the valid gate was then re-run in Windows PowerShell with identical results twice;
+  - (d) the planning chat issued the gate in PowerShell syntax without confirming the owner's shell;
+  - (e) the stray log file (name ending gate-build.log, with private-use characters) survived one deletion attempt because it was removed by the wrong name; removed before merge: yes;
+  - (f) main was pushed before the planning-chat sign-off on the post-merge gate; no harm found.
+
 ## [2026-10-25] (Session 31)
 - Fixed: iOS Safari layout bug where `Date Applied` and `Next Action Date` input fields overflowed/protruded outside their parent container and overlapped adjacent cells in `md:grid-cols-2`. Added `w-full min-w-0 max-w-full` to `variant="input"` in `components/ui/Field.tsx`, `min-w-0` to Tracking details grid cells in `ApplicationDetailClient.tsx` and `new/page.tsx`, Guardrail 11 to `docs/design.md`, and logged decision in `docs/decisions.md`.
 - Implemented: Application detail redesign on branch `redesign/application-detail` (direction B split rail: sticky summary rail with live status chip, priority, fit, next action, resume; three Panels), Field `variant="toggle"` (labeled 44px bordered cell, used for Reminder and Cover letter; `/new` untouched), label shortening (Company, Salary), full-bleed sticky save bar with single plain-text toast, delete modal restyle (bg-scrim, rounded-ledger, role=dialog; state machine/Esc/stopPropagation unchanged), loading skeleton and early-return states, delete-confirm contrast pairs (11 commits on top of `main` at `37d80da`):

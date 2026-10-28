@@ -1,5 +1,73 @@
 # Uppend — Decisions Log
 
+## [2026-10-28] Settings redesign (Session 32) — split-rail layout, in-page navigation, and per-panel saves
+- Context: Redesigning the Settings view (`app/(protected)/settings/`) to align with the warm paper/ink ledger visual language and improve information architecture across Account, Reminders, AI & Keys, Resumes, Data Export, and Danger Zone.
+- Decision:
+  - **Split-Rail Layout with Server Shell**: Implemented a responsive two-column layout (`lg:grid-cols-[200px_1fr] gap-6`) within a `max-w-6xl` container in `page.tsx`. The left column hosts a sticky anchor rail (`<nav aria-label="Settings sections" className="hidden lg:block lg:sticky lg:top-6">`) containing six `<a>` links with in-page hash links (`#account`, `#reminders`, `#ai`, `#resumes`, `#data`, `#danger`) pointing to the section IDs rendered by `SettingsClient.tsx`.
+  - **No Scroll-Tracking / No Tabs**: Tabs and active scroll tracking were explicitly ruled out. Plain native anchor links provide fast, accessible, predictable navigation without scroll listeners, layout shifts, or state synchronization bugs.
+  - **Per-Panel Save Architecture**: Maintained independent forms and submit handlers for Profile, Reminders, and Daily Goals (submitting directly to client-side supabase `profiles` updates in `SettingsClient.tsx`; API keys and preferred provider use server actions in `actions.ts`). Provider selection, AI model choice, and dark/light theme autosave on change. A single global save bar was rejected because settings actions are heterogeneous and independent; combining them into a global bar would create partial-save ambiguity and complex rollback requirements.
+  - **Plain Link Back**: Back navigation uses a plain `<Link href="/dashboard" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>` to guarantee return to the dashboard without history traps.
+- Schema change: none. Protected API routes untouched.
+
+## [2026-10-28] Settings redesign (Session 32) — shared presentational layout primitives (components/settings/SettingsLayout.tsx)
+- Context: Establishing a reusable ruled layout structure for complex settings panels while keeping presentational markup cleanly separated from client state and logic.
+- Decision: Created `components/settings/SettingsLayout.tsx` exporting five primitives:
+  - `SettingsSection`: Panel with `id`, `role="region"`, `aria-labelledby`, `scroll-mt-6 p-5` and a header with `border-b border-hairline` (eyebrow `font-label text-xs uppercase tracking-widest text-muted-ink`; h2 `font-display text-2xl font-normal text-ink mt-0.5`; description `text-sm text-muted-ink mt-0.5`).
+  - `SettingsGroup`: `mt-5` wrapper with an h3 (`font-label text-xs uppercase tracking-wider text-muted-ink`), no card/border, and `mt-2` child container.
+  - `SettingsRow`: Ruled grid with `sm:grid-cols-[200px_minmax(0,1fr)]`, `py-3.5 border-t border-hairline first:border-t-0 first:pt-1 sm:gap-x-6 sm:items-start` with label slot, optional hint (`text-sm text-muted-ink mt-0.5`), and `min-w-0` child slot.
+  - `SettingsFooter`: `mt-1 pt-3.5 border-t border-hairline grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center` with a `role="status"` line (`text-sm sm:min-h-5 sm:order-1 empty:hidden sm:empty:block`; red on error `text-red-700 dark:text-red-400`, normal `text-ink`) and `sm:order-2` button slot.
+  - `SettingsSaveButton`: forwardRef wrapper around Button (variant primary) with `w-full sm:w-auto sm:min-w-[176px] px-4 disabled:opacity-40 disabled:cursor-not-allowed`. There is NO spinner.
+- Reasoning: Enforces consistent geometry, font styles, and hairline dividers across all settings groups while decoupling form layout from event handlers.
+
+## [2026-10-28] Settings redesign (Session 32) — ResumeUploader layout prop and dropzone picker
+- Context: Re-styling the resume uploader for the settings Resumes panel while preserving identical behavior on `/onboarding`.
+- Decision:
+  - **Layout Prop**: Added optional `layout?: 'stacked' | 'rows'` prop to `ResumeUploader.tsx`. Defaults to `'stacked'` (retaining the onboarding layout 100% backward-compatible). Settings uses `layout="rows"`, integrating file upload, version label, and default toggle into `SettingsRow` primitives.
+  - **Dropzone Picker**: Replaced raw file input styling with a tactile dropzone tile wrapping an opacity-0 native file input. Renders file details, replace hint, and a secondary "Browse" pill.
+  - **Logic Region Preservation**: ResumeUploader prefix = the first 54 lines starting at `const router = useRouter();` (state definitions, form submission, FormData building, error/warning handling) remain byte-identical (SHA256 verified) to `main`.
+- Reasoning: Upgrades the upload experience to match the ledger design system across both settings and onboarding without branching logic or regressions.
+
+## [2026-10-28] Settings redesign (Session 32) — logic exceptions and unit test additions
+- Context: Introducing small utility helpers to handle UI tone mapping and drag-and-drop state, plus typing user credit limits.
+- Decision (Owner-approved logic exceptions):
+  - **`messageTone` helper** (`lib/utils/message-tone.ts`): Pure utility function `messageTone(message: string): 'success' | 'error'`; regex `/^\s*Error:/` (case-sensitive) returning 'error'; returns 'success' otherwise. Accompanied by 9 unit tests in `tests/message-tone.test.ts`.
+  - **`getDropzoneState` helper** (`lib/utils/dropzone-state.ts`): Pure utility function `getDropzoneState(isDragging: boolean, hasFile: boolean): 'drag' | 'selected' | 'idle'`. Accompanied by 4 unit tests in `tests/dropzone-state.test.ts`.
+  - **`isDragging` state**: Added `isDragging` boolean state with `onDragEnter`, `onDragLeave`, `onDrop` in `ResumeUploader.tsx` without calling `preventDefault` or `stopPropagation` (the native covering file input continues to handle file drops directly).
+  - **`free_ai_uses_remaining` type**: Added optional `free_ai_uses_remaining?: number` property to `Profile` in `lib/types.ts`. Displayed read-only in the AI panel (`{initialProfile.free_ai_uses_remaining} of 5 remaining`) when the user has no custom API keys configured.
+- Reasoning: Pure, thoroughly tested helpers prevent complex inline ternary expressions and keep component state machines clean and deterministic.
+
+## [2026-10-28] Settings redesign (Session 32) — palette, contrast, and chip decisions
+- Context: Establishing visual consistency and accessible color combinations across settings sections.
+- Decision:
+  - **Strict Palette (No Green/Amber)**: Avoided green and amber on settings surfaces. Status and destructive states use `text-red-700 / dark:text-red-400`, `border-red-700 / dark:border-red-500`, and `bg-red-700 / dark:bg-red-800` buttons.
+  - **10% Ink Tint on Card**: Selected model card and selected dropzone tile use `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]` with a solid ink border. Added gated contrast checks in `scripts/ui-checks/contrast.mjs` verifying muted text on this surface meets WCAG AA (5.98:1 light, 5.77:1 dark).
+  - **Drag-Over Accent Fill**: Active dropzone drag state switches to solid chartreuse accent (`bg-accent text-on-accent border-on-accent`).
+  - **Chip Family**: Preferred = solid ink chip (`bg-[var(--ink)] text-[var(--paper)]`), Current (on RESUMES, not "fallback") = ink-outline chip (`border border-ink text-ink`), and Unavailable = red-outline chip (`border-red-700 text-red-700 dark:border-red-500 dark:text-red-400 font-label text-[11px]`), all as inline classes in `SettingsClient.tsx` — NOT `.chip-interview`/`.chip-draft`.
+  - **No Opacity on Cards**: Prohibited opacity utilities on cards containing text to preserve contrast. Unavailable models indicate disabled state via dashed hairline borders instead of container opacity.
+
+## [2026-10-28] Settings redesign (Session 32) — native window.confirm, alert(), and delete flow geometry
+- Context: Managing user confirmation dialogues and account deletion layout.
+- Decision:
+  - **Native Alerts Retained**: Retained native `window.confirm()` and `alert()` calls for key deletion, resume deletion, clearing local data, and mutation errors. Full migration to custom portal modals is deferred to the modals/shared states redesign pass.
+  - **Inline Delete Flow with Width Caps**: Account deletion remains an inline 3-step state machine (`deleteStep` 0, 1, 2) rather than a modal. The lone delete card (when `hasLocalData` is false) and both confirmation wrappers (`deleteStep === 1` and `deleteStep === 2`) are capped at `max-w-[480px]`.
+  - **Accessible Autofocus**: `autoFocus` is retained on the step-1 Cancel button and step-2 confirmation input field; passes ESLint with 0 accessibility warnings.
+
+## [2026-10-28] Settings redesign (Session 32) — logic-preservation hash verification method
+- Context: Verifying that presentational redesign passes do not alter business logic, handlers, state, or model fallbacks.
+- Decision: Formalized SHA-256 hash comparison of logic-critical code blocks between `main` and feature branch:
+  - SettingsClient prelude = from `export default function SettingsClient` up to the first `return (` (486 lines) must match byte-for-byte (`be599c916defe9472b4d069a44939c806c737ed754bc9dc3c52a40c482f38c29`).
+  - Model block = from `const isBlocked` through `const isCurrentlyActiveFallback` (32 lines) must match byte-for-byte (`e8a6779e3cc2452051db576a895f373dad81e5245e745f10f19b1e24b25946bd`).
+  - Supplemented with `tokens.ps1` regex occurrence counts (tokens.ps1) (`useState`, `useEffect`, `fetch`, `router`, `confirm`, `alert`).
+- Reasoning: Cryptographic hash comparison eliminates ambiguity and guarantees zero logic regressions during large JSX restyling tasks.
+
+## [2026-10-28] Documentation correction (Session 32) — Field toggle checkbox uses accent-ink
+- Context: Documentation audit of `components/ui/Field.tsx` and design guidelines.
+- Decision: Corrected `docs/design.md` section 5 to state that `variant="toggle"` in `components/ui/Field.tsx` uses the standard Tailwind utility `accent-ink` (`className="w-5 h-5 accent-ink shrink-0"`), rather than the arbitrary property `accent-[var(--ink)]` previously described in the 2026-10-25 decision entry and design doc. Per standing documentation rules, historical entries in `docs/decisions.md` are append-only and remain untouched; this entry records the correction.
+
+## [2026-10-28] Verification tooling decision (Session 32) — Windows PowerShell execution environment
+- Context: Pre-merge gate failure caused by running PowerShell commands inside WSL bash during Session 32.
+- Decision: All verification gates, test suites, builds, and git checks must be executed directly within Windows PowerShell. The project's dependencies (`node_modules`) and git configuration are installed in the Windows environment; executing commands in WSL bash results in most likely a file-mode or line-ending difference (cause not investigated), false positives, and failed builds.
+
 ## [2026-10-25] iOS Safari date input layout containment (Session 31)
 - Context: On iOS Safari, `<input type="date">` elements on the detail page (`Date Applied` and `Next Action Date`) overflowed and protruded outside their parent container and overlapped adjacent grid cells in `md:grid-cols-2`.
 - Decision:
