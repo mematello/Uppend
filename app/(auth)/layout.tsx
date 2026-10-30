@@ -3,15 +3,15 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-8 md:p-24 bg-gray-50 dark:bg-zinc-950 relative">
-      <Link 
-        href="/" 
-        className="absolute top-4 left-4 md:top-8 md:left-8 p-2 min-h-[44px] flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 md:p-16 bg-paper relative">
+      <Link
+        href="/"
+        className="absolute top-4 left-4 md:top-6 md:left-6 btn-secondary rounded-ledger min-h-[44px] inline-flex items-center gap-2 px-3 text-sm"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft className="w-4 h-4" aria-hidden="true" />
         Back to home
       </Link>
-      <div className="w-full max-w-sm rounded-xl border p-6 shadow-md bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 mt-12 md:mt-0">
+      <div className="w-full max-w-[480px] bg-card border border-hairline rounded-ledger p-6 mt-14 md:mt-0">
         {children}
       </div>
     </div>
