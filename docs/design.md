@@ -336,13 +336,80 @@ Every UI task must execute and report the following verification gates:
 
 ---
 
+## 15. Auth / Onboarding / Migrate Pages (IMPLEMENTED on redesign/auth-onboarding-migrate)
+
+### Auth Layout (`app/(auth)/layout.tsx`)
+
+- **Shell**: `flex min-h-screen flex-col items-center justify-center p-6 md:p-16 bg-paper`. No legacy `bg-gray-50 dark:bg-zinc-950`.
+- **Back control**: `btn-secondary rounded-ledger min-h-[44px]` — `<ArrowLeft w-4 h-4>` + "Back to home" text, absolutely positioned top-left. Icon + text, not icon-only.
+- **Card**: `max-w-[480px] w-full bg-card border border-hairline rounded-ledger p-6`. No `rounded-xl shadow-md bg-white`.
+- **Migrate card**: `max-w-[600px]` (wider to accommodate three action buttons).
+
+### Login / Signup Pages
+
+- **Eyebrow**: `font-label text-xs uppercase tracking-widest text-muted-ink` — reads "LOG IN" / "SIGN UP".
+- **h1**: `font-display text-2xl font-normal text-ink`. No `font-bold text-gray-900`.
+- **Subtitle**: `text-sm text-muted-ink` below h1.
+- **Email input**: `<label htmlFor>` + `<input>` with `w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base text-ink placeholder:text-muted-ink focus-ink px-3 py-2`.
+- **Status slot**: `<p role="status" className="text-sm min-h-5">` — `text-red-700 dark:text-red-400` for errors, `text-ink` for success, always rendered to prevent layout shift.
+- **Footer**: `border-t border-hairline pt-3.5`, button right-aligned `sm:min-w-[176px]`, `flex-col-reverse` below sm.
+- **Submit button**: `btn-primary rounded-ledger min-h-[44px] sm:min-w-[176px] px-4`.
+- **Cross-tab view**: Ink-outline box `w-12 h-12 border border-ink rounded-ledger` + `<Check strokeWidth={1.5}>`. No green circle, no `animate-in fade-in zoom-in`. CTA `btn-primary rounded-ledger min-h-[44px]`. `href="/migrate?intent=login"` and `href="/migrate?intent=signup"` preserved exactly.
+- **Signup T&C**: verbatim copy preserved.
+
+### Migrate Page (`app/(protected)/migrate/page.tsx`)
+
+- **Card**: `max-w-[600px] w-full bg-card border border-hairline rounded-ledger p-6`, centered in `min-h-screen bg-paper`.
+- **Eyebrow**: "MIGRATE" in `font-label`.
+- **h1**: "Setting up your account" in `font-display text-2xl font-normal`.
+- **Sparkles/animate-pulse icon**: removed.
+- **Prompt div**: `animate-in fade-in zoom-in duration-300` removed; no replacement animation.
+- **Action buttons**: All `rounded-ledger min-h-[44px] px-4`.
+  - "Not mine – delete it": `btn-secondary border-red-700 dark:border-red-500 text-red-700 dark:text-red-400`. Red-outline, not amber.
+  - "Skip for now": `btn-secondary`.
+  - "Yes, add them": `btn-primary` when `intent === 'signup'`; `btn-secondary` when `intent === 'login'` or null. **Logic preserved exactly.**
+- **Error box**: plain `<p role="status" className="text-sm text-red-700 dark:text-red-400">`. No amber background, no amber border.
+
+### Onboarding Page (`app/(protected)/onboarding/page.tsx`)
+
+- **Outer**: `relative min-h-dvh flex items-center justify-center p-4 sm:p-6 bg-paper`.
+- **Backdrop**: `<OnboardingBackdrop />` — `absolute inset-0`, `aria-hidden="true"`, decorative scrim + dashboard skeleton.
+- **Card**: `relative z-10 w-full max-w-[760px] bg-card border border-hairline rounded-ledger overflow-hidden`.
+- **Grid**: `md:grid-cols-[220px_1fr]`.
+- **Rail (desktop ≥md)**: Numbered list of steps. Active step: `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] border-ink text-ink`. Inactive: `border-transparent text-muted-ink`.
+- **Mobile**: `font-label` "Step N of 3" + 3 progress bars (`bg-ink` for done/active, `bg-hairline` for future). `aria-hidden` on bars.
+- **Eyebrow**: "ONBOARDING" `font-label text-xs uppercase tracking-widest text-muted-ink` inside rail.
+- **Main column**: `flex flex-col min-h-[380px] md:min-h-[420px] p-5`. Step body `flex-1`, footer `mt-auto`.
+- **h1**: `font-display text-2xl font-normal text-ink`, `aria-labelledby="onboarding-heading"` on `<main>`.
+- **Subtitle**: step-conditional `text-sm text-muted-ink`.
+- **Inputs**: `<label htmlFor>` + `w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base focus-ink`.
+- **Status slots**: `<p role="status" className="text-sm min-h-5 mb-2">` — `text-red-700 dark:text-red-400` on error, empty otherwise.
+- **Footer**: `border-t border-hairline pt-3.5 mt-auto`, buttons `rounded-ledger min-h-[44px] px-4`.
+- **Skip buttons**: `btn-secondary` (not raw gray text links). Equal width with primary at `sm:min-w-[176px]`.
+- **Step 3**: `<ResumeUploader forceIsCurrent={true} onSuccess={() => router.push('/dashboard')} />` — unchanged props, no layout prop.
+- **Logic preserved**: all handlers (`handleNameSubmit`, `handleTimeSubmit`), `isSavingRef`, `step` state, `detectedTz` effect, `router.push` targets — zero changes.
+
+### OnboardingBackdrop (`components/onboarding/OnboardingBackdrop.tsx`)
+
+New component. Purely decorative. `aria-hidden="true"`, `absolute inset-0 overflow-hidden pointer-events-none select-none`. Renders:
+1. Scrim: `absolute inset-0 bg-paper opacity-80`.
+2. Dashboard skeleton: nav bar, stats strip (4 cells), toolbar, ledger rows (6) — all `rounded-ledger bg-[color-mix(in_srgb,var(--ink)_N%,transparent)]` placeholder blocks.
+No state, no data fetching, no focusable children. Does not import `dashboard/loading.tsx` (accepted duplication — see `docs/decisions.md`).
+
+### Eyebrow Numbering Rule
+
+- **Pre-auth pages** (login, signup, onboarding, migrate): eyebrows read LOG IN, SIGN UP, ONBOARDING, MIGRATE — **no numbers**.
+- **Authenticated app pages**: `01 / DASHBOARD`, `02 / NEW`, `03 / APPLICATION`, `04 / SETTINGS` — numbers stay.
+
+---
+
 ## 15. Known Gaps (IMPLEMENTED list)
 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
 - **Cookie Banner Mobile Clearance**: Fixed CookieConsentBanner mobile clearance above footer is estimated and unmeasured on small viewports.
-- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, and Settings on `redesign/settings` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages (auth, onboarding, terms/privacy) pending.
-- **Dead Plugin Classes**: References to `animate-in`, `fade-in`, and `prose` exist in code while `tailwindcss-animate` and `@tailwindcss/typography` are not in `package.json`.
+- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, Settings on `redesign/settings`, and auth/onboarding/migrate on `redesign/auth-onboarding-migrate` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages (terms/privacy, modals, cookie banner) pending.
+- **Dead Plugin Classes**: References to `animate-in`, `fade-in` removed from auth, migrate, and onboarding pages. Remaining references in `UnsavedChangesModal`, `ResumePreviewModal` (scheduled for modals redesign pass). `prose` class remains while `@tailwindcss/typography` is not in `package.json`.
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
 - **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.

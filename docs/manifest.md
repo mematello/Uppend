@@ -7,13 +7,19 @@ This manifest tracks the repository's documentation files (the memory layer), th
 | :--- | :--- | :--- | :--- |
 | `README.md` | Main project entry point and setup instructions. | ~2,959 | 2026-10-04 (Session 24) |
 | `AGENTS.md` | System prompt rules and constraints for AI agents. | ~946 | 2026-10-23 (Session 29 close) |
-| `docs/current_state.md` | Single source of truth for current project status and active tasks. | ~4,505 | 2026-10-28 (Session 32 close) |
-| `docs/manifest.md` | This file; index and token budget of all documentation. | ~440 | 2026-10-28 (Session 32 close) |
+| `docs/current_state.md` | Single source of truth for current project status and active tasks. | ~4,700 | 2026-10-31 (Session 33 close) |
+| `docs/manifest.md` | This file; index and token budget of all documentation. | ~460 | 2026-10-31 (Session 33 close) |
 | `docs/project_overview.md` | High-level summary of the product and its goals. | ~354 | 2026-08-25 |
 | `docs/architecture.md` | System architecture, tech stack, and core patterns. | ~3,244 | 2026-10-28 (Session 32 close) |
-| `docs/design.md` | Single source of truth for Uppend's visual language and tokens. | ~12,828 | 2026-10-28 (Session 32 close) |
+| `docs/design.md` | Single source of truth for Uppend's visual language and tokens. | ~14,200 | 2026-10-31 (Session 33 close) |
 | `docs/schema.md` | Database schemas, RLS policies, and Postgres functions. | ~2,439 | 2026-10-09 (Session 26 close) |
-| `docs/changelog.md` | Append-only log of shipped work and resolved issues. | ~13,776 | 2026-10-28 (Session 32 close) |
-| `docs/decisions.md` | Append-only log of architectural and technical trade-offs. | ~24,853 | 2026-10-28 (Session 32 close) |
+| `docs/changelog.md` | Append-only log of shipped work and resolved issues. | ~14,200 | 2026-10-31 (Session 33 close) |
+| `docs/decisions.md` | Append-only log of architectural and technical trade-offs. | ~25,500 | 2026-10-31 (Session 33 close) |
 | `docs/prompts.md` | AI extraction and matching prompt templates. | ~981 | 2026-08-19 |
 | `docs/archive/sessions/2026-08-19-context_handoff.md` | Archived context from previous sessions. | ~270 | 2026-08-19 |
+
+## New files added in Session 33
+
+| File Path | Purpose |
+| :--- | :--- |
+| `components/onboarding/OnboardingBackdrop.tsx` | Decorative dashboard skeleton rendered behind the onboarding card. `aria-hidden`, no state, no data fetching, no focusable children. `absolute inset-0 overflow-hidden pointer-events-none`. |

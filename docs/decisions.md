@@ -766,3 +766,33 @@
 ## [2026-10-04] maxDuration fix as its own cycle
 - Context: A two-key BYOK chain can make up to 5 sequential calls, risking Vercel function timeout errors.
 - Decision: neither /api/extract nor /api/match sets maxDuration; the fix touches protected routes, so it gets its own branch, plan and explicit approval after Stage 2.
+
+## [2026-10-31] Auth + onboarding + migrate redesign decisions
+
+### Backdrop duplication (new component vs importing dashboard/loading.tsx)
+- Decision: Create `components/onboarding/OnboardingBackdrop.tsx` rather than importing `app/(protected)/dashboard/loading.tsx`.
+- Rationale: Importing `loading.tsx` would add a dependency between onboarding and the dashboard, risk layout shift if loading.tsx structure evolves, and violate the constraint to not touch finished pages as side-effects. The duplication is intentional and documented.
+
+### No `position: fixed` for card or backdrop
+- Decision: Use `relative` outer container + `absolute inset-0` backdrop + `items-center justify-center` flex centering. No `position: fixed` on card or backdrop.
+- Rationale: `app/(protected)/template.tsx` applies `animate-page-fade-in` which uses `transform: scale(1)` in its keyframe end state. A non-none `transform` creates a CSS containing block, forcing `position: fixed` children to be positioned relative to the wrapper element rather than the viewport. `position: sticky` / `absolute` within a non-fixed ancestor is unaffected by the containing block.
+
+### Fixed height floor: measured min-h, not hard h-[...]
+- Decision: `min-h-[380px] md:min-h-[420px]` on the main content column (step body `flex-1`, footer `mt-auto`).
+- Rationale: `h-[...]` would clip content on zoom or at large font sizes. `min-h` with `flex-1` body and `mt-auto` footer ensures the action row sits at a consistent vertical position across all three steps while allowing growth if content overflows.
+
+### Red-not-amber for migrate error state
+- Decision: Migrate error message uses `text-red-700 dark:text-red-400` plain text. Amber (`bg-amber-50 text-amber-800`) removed.
+- Rationale: `docs/design.md §3` — amber is prohibited across authenticated surfaces. Errors are strictly red.
+
+### Eyebrow numbering: no numbers on pre-auth pages
+- Decision: login, signup, onboarding, migrate eyebrows read LOG IN, SIGN UP, ONBOARDING, MIGRATE with no numeric prefix.
+- Rationale: The numbered eyebrow convention (`01 / DASHBOARD`) denotes position in the authenticated application workflow. Pre-auth pages are outside that workflow and do not have a fixed ordinal position.
+
+### Cross-tab detection icon: Check (not CheckCircle2)
+- Decision: Cross-tab success view uses `<Check strokeWidth={1.5}>` inside an ink-outline box, replacing `<CheckCircle2>` inside a green-filled circle.
+- Rationale: `CheckCircle2` with green fill violates the "green strictly reserved for Offer chip" rule in `docs/design.md §3`. The ink-outline box is consistent with the ledger identity.
+
+### migrate "Not mine" button ordering on mobile
+- Decision: On mobile (flex-col), "Not mine – delete it" renders first (top) followed by "Skip for now" and "Yes, add them". On desktop (sm:flex-row), it is leftmost.
+- Rationale: Preserves the original destructive-action button being visually separated from the two safe actions. On mobile, top = first tap; that is the destructive button — acceptable risk since the button label is explicit. The order matches the design preview exactly.
