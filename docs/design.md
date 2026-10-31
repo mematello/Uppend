@@ -341,7 +341,7 @@ Every UI task must execute and report the following verification gates:
 ### Auth Layout (`app/(auth)/layout.tsx`)
 
 - **Shell**: `flex min-h-screen flex-col items-center justify-center p-6 md:p-16 bg-paper`. No legacy `bg-gray-50 dark:bg-zinc-950`.
-- **Back control**: `btn-secondary rounded-ledger min-h-[44px]` — `<ArrowLeft w-4 h-4>` + "Back to home" text, absolutely positioned top-left. Icon + text, not icon-only.
+- **Back control**: Icon-only `<Link href="/" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back to home"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>`. No visible text, no title attribute. Left-aligned with the card edge inside the `max-w-[480px]` container.
 - **Card**: `max-w-[480px] w-full bg-card border border-hairline rounded-ledger p-6`. No `rounded-xl shadow-md bg-white`.
 - **Migrate card**: `max-w-[600px]` (wider to accommodate three action buttons).
 
@@ -373,13 +373,13 @@ Every UI task must execute and report the following verification gates:
 ### Onboarding Page (`app/(protected)/onboarding/page.tsx`)
 
 - **Outer**: `relative min-h-dvh flex items-center justify-center p-4 sm:p-6 bg-paper`.
-- **Backdrop**: `<OnboardingBackdrop />` — `absolute inset-0`, `aria-hidden="true"`, decorative scrim + dashboard skeleton.
+- **Backdrop**: `<OnboardingBackdrop />` — `absolute inset-0`, `aria-hidden="true"`, decorative faint 32px ruled grid on `--paper` using global `--hairline-subtle`. No DashboardClient, no scrim.
 - **Card**: `relative z-10 w-full max-w-[760px] bg-card border border-hairline rounded-ledger overflow-hidden`.
 - **Grid**: `md:grid-cols-[220px_1fr]`.
 - **Rail (desktop ≥md)**: Numbered list of steps. Active step: `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] border-ink text-ink`. Inactive: `border-transparent text-muted-ink`.
 - **Mobile**: `font-label` "Step N of 3" + 3 progress bars (`bg-ink` for done/active, `bg-hairline` for future). `aria-hidden` on bars.
 - **Eyebrow**: "ONBOARDING" `font-label text-xs uppercase tracking-widest text-muted-ink` inside rail.
-- **Main column**: `flex flex-col min-h-[380px] md:min-h-[420px] p-5`. Step body `flex-1`, footer `mt-auto`.
+- **Main column**: `flex flex-col min-h-[29rem] md:min-h-[27.5rem] p-5` (measured equal-size floor matching Step 3 tallest state: 464px mobile / 440px desktop). Step body `flex-1`, footer `mt-auto`, guaranteeing steps 1, 2, and 3 render at an identical card size without height jumping.
 - **h1**: `font-display text-2xl font-normal text-ink`, `aria-labelledby="onboarding-heading"` on `<main>`.
 - **Subtitle**: step-conditional `text-sm text-muted-ink`.
 - **Inputs**: `<label htmlFor>` + `w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base focus-ink`.
@@ -391,10 +391,9 @@ Every UI task must execute and report the following verification gates:
 
 ### OnboardingBackdrop (`components/onboarding/OnboardingBackdrop.tsx`)
 
-New component. Purely decorative. `aria-hidden="true"`, `absolute inset-0 overflow-hidden pointer-events-none select-none`. Renders:
-1. Scrim: `absolute inset-0 bg-paper opacity-80`.
-2. Dashboard skeleton: nav bar, stats strip (4 cells), toolbar, ledger rows (6) — all `rounded-ledger bg-[color-mix(in_srgb,var(--ink)_N%,transparent)]` placeholder blocks.
-No state, no data fetching, no focusable children. Does not import `dashboard/loading.tsx` (accepted duplication — see `docs/decisions.md`).
+Purely decorative ruled-paper backdrop. `aria-hidden="true"`, `absolute inset-0 overflow-hidden pointer-events-none select-none`. Renders:
+- Background image: 32px × 32px ruled grid using `linear-gradient` with global `var(--hairline-subtle)`.
+- No `DashboardClient`, no state, no data fetching, no focusable children, no scrim overlay. Fallback chosen after runtime gate and source audit found live DashboardClient carried fixed-position overlay backdrops and portal leak risks.
 
 ### Eyebrow Numbering Rule
 
@@ -518,4 +517,3 @@ The `/settings` view implements a split-rail panel layout:
   - Three-option segmented control in order `Light`, `Dark`, `System` styled with `rounded-ledger border border-field-border bg-card` with active segment highlighted via `bg-ink text-paper`.
 - **Loading Skeleton**:
   - Server component `app/(protected)/settings/loading.tsx` providing token-based placeholder blocks (`animate-pulse bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger`).
-

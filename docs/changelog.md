@@ -1,6 +1,12 @@
 # Uppend — Changelog
 
 ## [2026-10-31] (Session 33)
+- Implemented: Auth + onboarding + migrate presentational redesign follow-up on branch `redesign/auth-onboarding-migrate`:
+  - `app/(auth)/layout.tsx`: converted back control to icon-only `<Link>` (`btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4`, `<ArrowLeft className="w-4 h-4" aria-hidden="true" />`, `aria-label="Back to home"`, no visible text, no title attribute), left-aligned with card edge.
+  - `app/(protected)/onboarding/page.tsx`: removed `const STEPS` from logic prelude (inlined in JSX `.map()`) to restore byte-identical logic hash with `main`; updated main-column height floor to measured `min-h-[29rem] md:min-h-[27.5rem]` (464px mobile / 440px desktop), proving equal card sizing across steps 1, 2, 3-bare, and 3-tallest.
+  - `app/(protected)/migrate/page.tsx`: restored literal UTF-8 characters (`'` apostrophes, `—` em dash) in error string to restore byte-identical logic hash with `main`.
+  - `components/onboarding/OnboardingBackdrop.tsx`: replaced dashboard skeleton with faint 32px ruled grid on `--paper` using global `--hairline-subtle` (`aria-hidden="true"`, zero state, no focusable children, no data fetching, no scrim).
+  - Documentation: corrected `architecture.md` migrate path to `app/(protected)/migrate/`, updated `design.md`, `decisions.md`, `current_state.md`, and `manifest.md`.
 - Implemented: Auth + onboarding + migrate presentational redesign on branch `redesign/auth-onboarding-migrate` (off `main` at `f9b2709`, commit `6582516`):
   - `app/(auth)/layout.tsx`: token-based shell (`bg-paper`, `bg-card`, `border-hairline`, `rounded-ledger`), `btn-secondary` back control with "Back to home" text, `max-w-[480px]` card.
   - `app/(auth)/login/page.tsx`: eyebrow (LOG IN), `font-display` h1, `<label htmlFor>` email input, `role="status"` status slot, footer with `border-t border-hairline`, `btn-primary min-h-[44px] sm:min-w-[176px]`. Cross-tab: ink-outline box + `<Check>` icon, removed `animate-in fade-in zoom-in` and green circle. `CheckCircle2` → `Check` import swap.

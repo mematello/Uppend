@@ -796,3 +796,22 @@
 ### migrate "Not mine" button ordering on mobile
 - Decision: On mobile (flex-col), "Not mine – delete it" renders first (top) followed by "Skip for now" and "Yes, add them". On desktop (sm:flex-row), it is leftmost.
 - Rationale: Preserves the original destructive-action button being visually separated from the two safe actions. On mobile, top = first tap; that is the destructive button — acceptable risk since the button label is explicit. The order matches the design preview exactly.
+
+### Auth back control: Icon-only and card-aligned
+- Context: Pre-auth back button was previously positioned absolutely in the viewport corner (`absolute top-4 left-4 md:top-6 md:left-6`) with visible text "Back to home".
+- Decision: Replace with icon-only `<Link href="/" className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4" aria-label="Back to home"><ArrowLeft className="w-4 h-4" aria-hidden="true" /></Link>`.
+- Rationale: Aligns with the card's left edge within the `w-full max-w-[480px]` container instead of floating in the viewport margin. Icon-only design eliminates text wrapping issues on small viewports while maintaining WCAG 44px touch targets.
+
+### Onboarding card height floor: Measured 29rem / 27.5rem
+- Context: Initial guessed values `min-h-[380px] md:min-h-[420px]` did not account for the tallest realistic state of Step 3 (`ResumeUploader` with extractionFailed warning and error status visible, which measures 457px at 390px and 437px at 1280px).
+- Decision: Set main column floor to `min-h-[29rem] md:min-h-[27.5rem]` (464px mobile / 440px desktop), measured in rem rounded up to the nearest 0.5rem.
+- Rationale: Guarantees that steps 1, 2, 3-bare, and 3-tallest render at an identical card size across 1280px and 390px viewports, eliminating layout jumps during step transitions while allowing natural expansion if content ever exceeds the floor.
+
+### Onboarding backdrop: Ruled-paper grid fallback over live DashboardClient
+- Context: Investigated rendering a live `DashboardClient` in genuine empty state under a scrim as the onboarding backdrop vs. falling back to a ruled-paper grid.
+- Decision: Ruled-paper grid fallback selected (`absolute inset-0 pointer-events-none select-none overflow-hidden`, faint 32px ruled grid on `--paper` using global `--hairline-subtle`, `aria-hidden="true"`).
+- Rationale: The runtime gate and source audit confirmed that live `DashboardClient` is not viable as a backdrop:
+  1. D6 structural check: `DashboardClient` contains two `fixed inset-0 z-10` backdrop overlay elements (heatmap and status dropdown) and `LogoutButton` portals to `document.body`, escaping non-transformed container boundaries.
+  2. Runtime check 1 & 5: Unauthenticated access to `/onboarding` redirects via middleware, and attempting to mount dashboard components without full user context emits hydration and auth errors.
+  3. Bundle weight: Avoids pulling ~17 kB of dashboard client chunk into the onboarding bundle.
+  4. The ruled grid matches Uppend's marketing visual language (`landing.module.css` `.ruledGrid`), providing a disciplined, quiet ledger background without overhead or collision risks.
