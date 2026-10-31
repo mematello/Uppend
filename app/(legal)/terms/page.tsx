@@ -11,7 +11,7 @@ export default function TermsPage() {
       <p className="font-label text-xs uppercase tracking-widest text-muted-ink">LEGAL</p>
 
       <h1 className="font-display text-4xl sm:text-5xl font-normal leading-[1.1] mt-2 mb-3">Terms of Service</h1>
-      <p className="font-label text-xs tracking-wider text-muted-ink mb-6">Last Updated: {new Date().toLocaleDateString()}</p>
+      <p className="font-label text-xs tracking-wider text-muted-ink mb-6">Last Updated: September 10, 2026</p>
 
       <div className="border border-field-border bg-card rounded-ledger p-4 mb-6">
         <p className="text-sm leading-normal text-ink">
