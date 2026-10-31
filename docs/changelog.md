@@ -1,22 +1,35 @@
 # Uppend — Changelog
 
 ## [2026-10-31] (Session 33)
-- Implemented: Auth + onboarding + migrate presentational redesign follow-up on branch `redesign/auth-onboarding-migrate`:
-  - `app/(auth)/layout.tsx`: converted back control to icon-only `<Link>` (`btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4`, `<ArrowLeft className="w-4 h-4" aria-hidden="true" />`, `aria-label="Back to home"`, no visible text, no title attribute), left-aligned with card edge.
-  - `app/(protected)/onboarding/page.tsx`: removed `const STEPS` from logic prelude (inlined in JSX `.map()`) to restore byte-identical logic hash with `main`; updated main-column height floor to measured `min-h-[29rem] md:min-h-[27.5rem]` (464px mobile / 440px desktop), proving equal card sizing across steps 1, 2, 3-bare, and 3-tallest.
-  - `app/(protected)/migrate/page.tsx`: restored literal UTF-8 characters (`'` apostrophes, `—` em dash) in error string to restore byte-identical logic hash with `main`.
-  - `components/onboarding/OnboardingBackdrop.tsx`: replaced dashboard skeleton with faint 32px ruled grid on `--paper` using global `--hairline-subtle` (`aria-hidden="true"`, zero state, no focusable children, no data fetching, no scrim).
-  - Documentation: corrected `architecture.md` migrate path to `app/(protected)/migrate/`, updated `design.md`, `decisions.md`, `current_state.md`, and `manifest.md`.
-- Implemented: Auth + onboarding + migrate presentational redesign on branch `redesign/auth-onboarding-migrate` (off `main` at `f9b2709`, commit `6582516`):
-  - `app/(auth)/layout.tsx`: token-based shell (`bg-paper`, `bg-card`, `border-hairline`, `rounded-ledger`), `btn-secondary` back control with "Back to home" text, `max-w-[480px]` card.
-  - `app/(auth)/login/page.tsx`: eyebrow (LOG IN), `font-display` h1, `<label htmlFor>` email input, `role="status"` status slot, footer with `border-t border-hairline`, `btn-primary min-h-[44px] sm:min-w-[176px]`. Cross-tab: ink-outline box + `<Check>` icon, removed `animate-in fade-in zoom-in` and green circle. `CheckCircle2` → `Check` import swap.
+- Implemented: Auth + onboarding + migrate presentational redesign (merge `ff262e1` into `main` via `--no-ff`, branch `redesign/auth-onboarding-migrate` pushed to `origin/main`):
+  - `app/(auth)/layout.tsx`: token-based shell (`bg-paper`, `bg-card`, `border-hairline`, `rounded-ledger`), icon-only back control (`btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4`, `<ArrowLeft className="w-4 h-4" aria-hidden="true" />`, `aria-label="Back to home"`, no visible text, no title attribute) left-aligned with card edge (`85608b2`).
+  - `app/(auth)/login/page.tsx`: eyebrow (LOG IN), `font-display` h1, `<label htmlFor>` email input, `role="status"` status slot, footer with `border-t border-hairline`, `btn-primary min-h-[44px] sm:min-w-[176px]`. Cross-tab: ink-outline box + `<Check strokeWidth={1.5}>` icon, removed `animate-in fade-in zoom-in` and green circle.
   - `app/(auth)/signup/page.tsx`: same pattern; eyebrow (SIGN UP); T&C verbatim; cross-tab ink-outline; `href="/migrate?intent=signup"` preserved.
-  - `app/(protected)/migrate/page.tsx`: `max-w-[600px]` card, eyebrow (MIGRATE), `font-display` h1, red-outline destructive button (`border-red-700 dark:border-red-500 text-red-700 dark:text-red-400`), error as inline `text-red-700 dark:text-red-400` text. Removed `animate-in fade-in zoom-in`, `amber-*`, `Sparkles`, `animate-pulse`. Intent weighting logic preserved exactly.
-  - `app/(protected)/onboarding/page.tsx`: split-rail layout (`md:grid-cols-[220px_1fr]`), `<OnboardingBackdrop />`, `min-h-[380px] md:min-h-[420px]` floor, mobile 3-bar progress, `<label htmlFor>` on all inputs, `role="status"` error slots, `btn-primary`/`btn-secondary` `min-h-[44px]`, skip buttons as `btn-secondary`. Zero logic changes.
-  - `components/onboarding/OnboardingBackdrop.tsx`: new decorative dashboard skeleton (`aria-hidden`, `absolute inset-0`, no state, no focusable children).
-  - `docs/design.md`: added §15 Auth/Onboarding/Migrate; updated Known Gaps.
-  - `docs/decisions.md`: added 7 new decisions for this session.
-- Gates (all passed): `tsc --noEmit` exit 0, ESLint 1 pre-existing warning (net-zero), 130/130 tests, contrast exit 0, class hygiene 0 banned classes in scope files.
+  - `app/(protected)/migrate/page.tsx`: `max-w-[600px]` card, eyebrow (MIGRATE), `font-display` h1, red-outline destructive button (`border-red-700 dark:border-red-500 text-red-700 dark:text-red-400`), error as inline `text-red-700 dark:text-red-400` text. Removed `animate-in fade-in zoom-in`, `amber-*`, `Sparkles`, `animate-pulse`. Intent weighting logic preserved exactly; literal UTF-8 characters restored (`57cf241`).
+  - `app/(protected)/onboarding/page.tsx`: split-rail layout (`md:grid-cols-[220px_1fr]`), mobile 3-bar progress strip, `<label htmlFor>` on all inputs, `role="status"` error slots, `btn-primary`/`btn-secondary` `min-h-[44px]`, skip buttons as `btn-secondary`. Logic prelude byte-identical with `main` via marker-based SHA-256 (`57cf241`). Main content column floor set to measured `min-h-[29rem] md:min-h-[27.5rem]` (`463cd0c`).
+  - `components/onboarding/OnboardingBackdrop.tsx`: faint 32px ruled grid on `--paper` using global `--hairline-subtle` (`aria-hidden="true"`, zero state, no focusable children, no data fetching, no scrim) (`c70ef9d`).
+  - `docs/architecture.md`: corrected migrate path to `app/(protected)/migrate/` (`4634a44`).
+- Fixed:
+  - Line-ending LF normalization on `docs/changelog.md` (`5a3a633`).
+  - Logic prelude hash parity restored for onboarding and migrate (`57cf241`).
+  - Auth layout back control converted to icon-only per owner instruction (`85608b2`).
+  - Onboarding card height floor updated to measured tallest state `29rem / 27.5rem` (`463cd0c`).
+  - Onboarding backdrop replaced from rejected decorative skeleton to ruled-paper grid (`c70ef9d`).
+- Verified:
+  - Pre-merge gate on branch tip `4634a44` (agent report): `tsc --noEmit` exit 0; ESLint net-zero (1 pre-existing warning: `'e' is defined but never used` in `onboarding/page.tsx:22:14`); 130/130 tests; build exit 0 (/onboarding 5.78 kB, First Load 194 kB); dead-class-scan 122 verified, 0 unexpected, 6 files; contrast.mjs exit 0; class-hygiene grep 0 banned classes; logic-prelude SHA-256 identical main vs branch for login, signup, onboarding, migrate (marker-based); scope guard empty for dashboard, api, middleware, lib.
+  - Post-merge gate on main (owner PowerShell, HEAD `ff262e1`): `tsc --noEmit` exit 0; 11 test files / 130 tests passed; build exit 0 (/onboarding 5.78 kB, First Load 194 kB); dead-class-scan on post-merge tree: pending (the first attempt used a literal placeholder and did not run).
+  - Owner real-device pass (iOS Safari): owner reports all pages work completely; itemised checklist not recorded (label UNVERIFIED).
+  - Production smoke test for login, signup, cross-tab, onboarding 1-3, migrate: pending.
+  - Post-change onboarding size measurements: UNVERIFIED; owner device-verified.
+- Note (process incidents this session):
+  (a) The first gate report called logic hashes "confirmed by reading lines" for onboarding and migrate instead of matching hashes; cause was an added const STEPS in the prelude and an unrequested \u2019/\u2013 escape change, fixed in 57cf241;
+  (b) The original min-h floor (380px / 420px) was guessed, not measured, and the first report omitted the equal-size proof; measured in Phase 1;
+  (c) The first backdrop was a decorative skeleton, rejected by the owner as obviously fake; replaced by ruled paper;
+  (d) The Phase 2 runtime gate for the real-dashboard backdrop was not run as specified (see decisions);
+  (e) docs/changelog.md showed +832 lines in the first docs commit from a line-ending rewrite; fixed in 5a3a633;
+  (f) The back control first shipped with visible text; changed to icon-only per owner;
+  (g) A planning-chat verification command contained a literal placeholder (<modified TSX files>) and did not run;
+  (h) The post-merge gate was run on main before push, as intended.
 
 ## [2026-10-28] (Session 32)
 - Implemented: Settings redesign on branch `redesign/settings` (16 commits on top of `main` at `f0504a3`, merged into `main` via `--no-ff` at `393076b` and pushed `f0504a3..393076b`):

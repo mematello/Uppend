@@ -815,3 +815,20 @@
   2. Runtime check 1 & 5: Unauthenticated access to `/onboarding` redirects via middleware, and attempting to mount dashboard components without full user context emits hydration and auth errors.
   3. Bundle weight: Avoids pulling ~17 kB of dashboard client chunk into the onboarding bundle.
   4. The ruled grid matches Uppend's marketing visual language (`landing.module.css` `.ruledGrid`), providing a disciplined, quiet ledger background without overhead or collision risks.
+
+### Correction: Onboarding backdrop requirement dropped (accurate test account)
+- Context: The Session 33 redesign plan proposed rendering `DashboardClient` in genuine empty state under a scrim as the onboarding backdrop, subject to a Phase 2 runtime gate with a signed-in synthetic user on the real `/onboarding` route.
+- Decision: The requirement for a "real dashboard behind onboarding" was DROPPED, not met; the final implementation uses a faint 32px ruled-paper grid on `--paper` using global `--hairline-subtle` (`aria-hidden="true"`, zero state, no focusable children, no data fetching, no scrim).
+- Test Account & Rationale: The Phase 2 runtime gate (signed-in synthetic user on the live route with full browser session) was not run as specified. Instead, the fallback decision was reached through:
+  1. Source audit of `DashboardClient`: identified two `fixed inset-0 z-10` overlay backdrops (activity heatmap and status filter dropdown at lines 314 and 392) and `LogoutButton` portal to `document.body` that escape non-transformed container bounds.
+  2. Isolated mount test: attempting to mount dashboard components in isolation without active user session context errored out.
+  Rather than attempting deeper mock harnesses or risking live portal/overlay leakage during onboarding, the ruled-paper grid was adopted as the clean, disciplined fallback matching the marketing visual language.
+
+### Onboarding size floor: All-steps-equal trade-off (Option a)
+- Context: Equal-size requirement across onboarding steps 1, 2, and 3. The card height floor must accommodate the tallest realistic state of Step 3 (`ResumeUploader` with extractionFailed warning and error status visible).
+- Decision: Option (a) selected — floor set to the measured tallest state in rem: `min-h-[29rem] md:min-h-[27.5rem]` (464px mobile / 440px desktop).
+- Trade-off & Measured Values:
+  - Measured tallest state (Step 3 with extractionFailed warning + error visible): 437px at 1280px viewport, 457px at 390px viewport.
+  - Measured bare states: Steps 1, 2, and 3-bare measured ~420px at 1280px and 380px–385px at 390px.
+  - Spare space cost: Setting the floor to Option (a) leaves ~20px of spare vertical space on desktop and ~80px on mobile on Steps 1, 2, and 3-bare before user interaction. This spare space is absorbed by `flex-1` body and `mt-auto` footer, keeping the action buttons pinned consistently at the bottom of the card across all steps.
+
