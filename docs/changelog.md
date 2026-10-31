@@ -1,5 +1,23 @@
 # Uppend — Changelog
 
+## [2026-10-31] (Session 33)
+- Implemented: Auth + onboarding + migrate presentational redesign follow-up on branch `redesign/auth-onboarding-migrate`:
+  - `app/(auth)/layout.tsx`: converted back control to icon-only `<Link>` (`btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4`, `<ArrowLeft className="w-4 h-4" aria-hidden="true" />`, `aria-label="Back to home"`, no visible text, no title attribute), left-aligned with card edge.
+  - `app/(protected)/onboarding/page.tsx`: removed `const STEPS` from logic prelude (inlined in JSX `.map()`) to restore byte-identical logic hash with `main`; updated main-column height floor to measured `min-h-[29rem] md:min-h-[27.5rem]` (464px mobile / 440px desktop), proving equal card sizing across steps 1, 2, 3-bare, and 3-tallest.
+  - `app/(protected)/migrate/page.tsx`: restored literal UTF-8 characters (`'` apostrophes, `—` em dash) in error string to restore byte-identical logic hash with `main`.
+  - `components/onboarding/OnboardingBackdrop.tsx`: replaced dashboard skeleton with faint 32px ruled grid on `--paper` using global `--hairline-subtle` (`aria-hidden="true"`, zero state, no focusable children, no data fetching, no scrim).
+  - Documentation: corrected `architecture.md` migrate path to `app/(protected)/migrate/`, updated `design.md`, `decisions.md`, `current_state.md`, and `manifest.md`.
+- Implemented: Auth + onboarding + migrate presentational redesign on branch `redesign/auth-onboarding-migrate` (off `main` at `f9b2709`, commit `6582516`):
+  - `app/(auth)/layout.tsx`: token-based shell (`bg-paper`, `bg-card`, `border-hairline`, `rounded-ledger`), `btn-secondary` back control with "Back to home" text, `max-w-[480px]` card.
+  - `app/(auth)/login/page.tsx`: eyebrow (LOG IN), `font-display` h1, `<label htmlFor>` email input, `role="status"` status slot, footer with `border-t border-hairline`, `btn-primary min-h-[44px] sm:min-w-[176px]`. Cross-tab: ink-outline box + `<Check>` icon, removed `animate-in fade-in zoom-in` and green circle. `CheckCircle2` → `Check` import swap.
+  - `app/(auth)/signup/page.tsx`: same pattern; eyebrow (SIGN UP); T&C verbatim; cross-tab ink-outline; `href="/migrate?intent=signup"` preserved.
+  - `app/(protected)/migrate/page.tsx`: `max-w-[600px]` card, eyebrow (MIGRATE), `font-display` h1, red-outline destructive button (`border-red-700 dark:border-red-500 text-red-700 dark:text-red-400`), error as inline `text-red-700 dark:text-red-400` text. Removed `animate-in fade-in zoom-in`, `amber-*`, `Sparkles`, `animate-pulse`. Intent weighting logic preserved exactly.
+  - `app/(protected)/onboarding/page.tsx`: split-rail layout (`md:grid-cols-[220px_1fr]`), `<OnboardingBackdrop />`, `min-h-[380px] md:min-h-[420px]` floor, mobile 3-bar progress, `<label htmlFor>` on all inputs, `role="status"` error slots, `btn-primary`/`btn-secondary` `min-h-[44px]`, skip buttons as `btn-secondary`. Zero logic changes.
+  - `components/onboarding/OnboardingBackdrop.tsx`: new decorative dashboard skeleton (`aria-hidden`, `absolute inset-0`, no state, no focusable children).
+  - `docs/design.md`: added §15 Auth/Onboarding/Migrate; updated Known Gaps.
+  - `docs/decisions.md`: added 7 new decisions for this session.
+- Gates (all passed): `tsc --noEmit` exit 0, ESLint 1 pre-existing warning (net-zero), 130/130 tests, contrast exit 0, class hygiene 0 banned classes in scope files.
+
 ## [2026-10-28] (Session 32)
 - Implemented: Settings redesign on branch `redesign/settings` (16 commits on top of `main` at `f0504a3`, merged into `main` via `--no-ff` at `393076b` and pushed `f0504a3..393076b`):
   - `091e179` feat(types): add optional free_ai_uses_remaining to Profile

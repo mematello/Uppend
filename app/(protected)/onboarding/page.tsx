@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createClient } from '../../../lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import ResumeUploader from '../../../components/ResumeUploader';
+import OnboardingBackdrop from '../../../components/onboarding/OnboardingBackdrop';
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1);
@@ -92,89 +93,186 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 md:p-24 bg-gray-50 dark:bg-zinc-950">
-      <div className="w-full max-w-lg rounded-lg border p-6 shadow-md bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800">
-        <h1 className="mb-2 text-2xl font-bold font-display text-center text-gray-900 dark:text-zinc-100">Welcome to Uppend!</h1>
-        <p className="mb-6 text-sm text-center text-gray-500 dark:text-zinc-400">
-          {step === 1 && "Let's get your profile set up."}
-          {step === 2 && "When would you like to receive follow-up reminders?"}
-          {step === 3 && "Upload an initial resume for AI matching (Optional)"}
-        </p>
+    <div className="relative min-h-dvh flex items-center justify-center p-4 sm:p-6 bg-paper">
+      <OnboardingBackdrop />
 
-        {step === 1 && (
-          <form onSubmit={handleNameSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">What&apos;s your name?</label>
-              <input
-                type="text"
-                placeholder="e.g. Jane Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-ink"
-              />
-            </div>
-            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded btn-primary p-2 font-medium shadow-sm"
-            >
-              {loading ? "Saving..." : "Continue"}
-            </button>
-          </form>
-        )}
+      {/* Card */}
+      <main
+        aria-labelledby="onboarding-heading"
+        className="relative z-10 w-full max-w-[760px] bg-card border border-hairline rounded-ledger overflow-hidden"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr]">
 
-        {step === 2 && (
-          <form onSubmit={(e) => handleTimeSubmit(e, false)} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-1">Reminder Time</label>
-              <input
-                type="time"
-                value={reminderTime}
-                onChange={(e) => setReminderTime(e.target.value)}
-                required
-                className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 focus-ink"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                We&apos;ve detected your timezone as <strong>{detectedTz}</strong>.
-              </p>
-            </div>
-            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded btn-primary p-2 font-medium shadow-sm"
-            >
-              {loading ? "Saving..." : "Continue"}
-            </button>
-            <button
-              type="button"
-              onClick={(e) => handleTimeSubmit(e, true)}
-              disabled={loading}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors py-2 text-center"
-            >
-              Skip for now
-            </button>
-          </form>
-        )}
-
-        {step === 3 && (
-          <div className="flex flex-col gap-4">
-            <ResumeUploader 
-              forceIsCurrent={true} 
-              onSuccess={() => router.push('/dashboard')} 
-            />
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors py-2 text-center"
-            >
-              Skip for now
-            </button>
+          {/* Rail — desktop */}
+          <div className="hidden md:flex flex-col border-r border-hairline p-5">
+            <p className="font-label text-xs uppercase tracking-widest text-muted-ink mb-4">Onboarding</p>
+            <ul className="space-y-0">
+              {['Name', 'Reminder time', 'Resume'].map((label, i) => {
+                const stepNum = i + 1;
+                const isActive = step === stepNum;
+                const isDone = step > stepNum;
+                return (
+                  <li
+                    key={label}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-ledger border text-xs font-label uppercase tracking-wider ${
+                      isActive
+                        ? 'bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] border-ink text-ink'
+                        : isDone
+                        ? 'border-transparent text-muted-ink'
+                        : 'border-transparent text-muted-ink'
+                    }`}
+                  >
+                    <span
+                      className={`min-w-[22px] text-center border rounded-ledger text-xs leading-5 ${
+                        isActive ? 'border-ink' : 'border-hairline'
+                      }`}
+                    >
+                      {stepNum}
+                    </span>
+                    {label}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        )}
-      </div>
+
+          {/* Mobile progress bar */}
+          <div className="md:hidden flex items-center gap-3 px-5 pt-5 pb-3 border-b border-hairline">
+            <p className="font-label text-xs uppercase tracking-widest text-muted-ink shrink-0">
+              Step {step} of 3
+            </p>
+            <div className="flex gap-1.5 flex-1" aria-hidden="true">
+              {[1, 2, 3].map((s) => (
+                <div
+                  key={s}
+                  className={`h-1 flex-1 rounded-full ${s <= step ? 'bg-ink' : 'bg-hairline'}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Main content column */}
+          <div className="flex flex-col min-h-[29rem] md:min-h-[27.5rem] p-5">
+            <h1
+              id="onboarding-heading"
+              className="font-display text-2xl font-normal text-ink mb-1"
+            >
+              Welcome to Uppend!
+            </h1>
+            <p className="text-sm text-muted-ink mb-5">
+              {step === 1 && "Let\u2019s get your profile set up."}
+              {step === 2 && "When would you like to receive follow-up reminders?"}
+              {step === 3 && "Upload an initial resume for AI matching (Optional)"}
+            </p>
+
+            {/* Step 1 — Name */}
+            {step === 1 && (
+              <form onSubmit={handleNameSubmit} className="flex flex-col flex-1">
+                <div className="flex-1">
+                  <div className="mb-4 max-w-[420px]">
+                    <label htmlFor="ob-name" className="block text-sm font-medium text-ink mb-1">
+                      What&apos;s your name?
+                    </label>
+                    <input
+                      id="ob-name"
+                      type="text"
+                      placeholder="e.g. Jane Doe"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base text-ink placeholder:text-muted-ink focus-ink px-3 py-2"
+                    />
+                  </div>
+                </div>
+                <p
+                  role="status"
+                  className={`text-sm min-h-5 mb-2 ${error ? 'text-red-700 dark:text-red-400' : ''}`}
+                >
+                  {error}
+                </p>
+                <div className="flex justify-end gap-3 border-t border-hairline pt-3.5 mt-auto">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary rounded-ledger min-h-[44px] sm:min-w-[176px] px-4 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Saving..." : "Continue"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 2 — Reminder time */}
+            {step === 2 && (
+              <form onSubmit={(e) => handleTimeSubmit(e, false)} className="flex flex-col flex-1">
+                <div className="flex-1">
+                  <div className="mb-4 max-w-[420px]">
+                    <label htmlFor="ob-time" className="block text-sm font-medium text-ink mb-1">
+                      Reminder Time
+                    </label>
+                    <input
+                      id="ob-time"
+                      type="time"
+                      value={reminderTime}
+                      onChange={(e) => setReminderTime(e.target.value)}
+                      required
+                      className="w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base text-ink focus-ink px-3 py-2"
+                    />
+                    {detectedTz && (
+                      <p className="text-xs text-muted-ink mt-2">
+                        We&apos;ve detected your timezone as <strong className="text-ink">{detectedTz}</strong>.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <p
+                  role="status"
+                  className={`text-sm min-h-5 mb-2 ${error ? 'text-red-700 dark:text-red-400' : ''}`}
+                >
+                  {error}
+                </p>
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-hairline pt-3.5 mt-auto">
+                  <button
+                    type="button"
+                    onClick={(e) => handleTimeSubmit(e as unknown as React.FormEvent, true)}
+                    disabled={loading}
+                    className="btn-secondary rounded-ledger min-h-[44px] px-4 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Skip for now
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary rounded-ledger min-h-[44px] sm:min-w-[176px] px-4 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Saving..." : "Continue"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Step 3 — Resume */}
+            {step === 3 && (
+              <div className="flex flex-col flex-1">
+                <div className="flex-1">
+                  <ResumeUploader
+                    forceIsCurrent={true}
+                    onSuccess={() => router.push('/dashboard')}
+                  />
+                </div>
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-hairline pt-3.5 mt-auto">
+                  <button
+                    onClick={() => router.push('/dashboard')}
+                    className="btn-secondary rounded-ledger min-h-[44px] sm:min-w-[176px] px-4 text-sm font-medium"
+                  >
+                    Skip for now
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
-

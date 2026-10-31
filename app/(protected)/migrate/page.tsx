@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getApplications } from "../../../lib/local/applications";
 import { clearDb } from "../../../lib/local/db";
-import { Sparkles } from "lucide-react";
 import { Application } from "../../../lib/types";
 
 export default function MigratePage() {
@@ -91,49 +90,53 @@ export default function MigratePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-      <div className="mb-8">
-        <Sparkles className="w-12 h-12 text-[var(--muted)] animate-pulse mx-auto" />
-      </div>
-      <h1 className="text-2xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-4">
-        Setting up your account
-      </h1>
-      
-      {status && <p className="text-gray-600 dark:text-zinc-400 mb-4">{status}</p>}
-      
-      {appsToMerge && !isMerging && !errorMsg && (
-        <div className="mt-4 flex flex-col gap-4 items-center animate-in fade-in zoom-in duration-300">
-          <p className="text-gray-900 dark:text-zinc-100 font-medium text-lg mb-4">
-            We found {appsToMerge.length} saved application(s) on this browser — add them to your account?
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl justify-center">
-            <button 
-              onClick={handleMerge}
-              className={`px-4 py-2 rounded-md ${intent === 'signup' ? 'btn-primary font-semibold shadow-sm' : 'btn-secondary font-medium'}`}
-            >
-              Yes, add them
-            </button>
-            <button 
-              onClick={handleSkip}
-              className="px-4 py-2 btn-secondary rounded-md font-medium"
-            >
-              Skip for now
-            </button>
-            <button 
-              onClick={handleDelete}
-              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-red-600 dark:text-red-400 border border-gray-200 dark:border-zinc-700 rounded-md font-medium transition-colors"
-            >
-              Not mine — delete it
-            </button>
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-paper">
+      <div className="w-full max-w-[600px] bg-card border border-hairline rounded-ledger p-6">
+        <p className="font-label text-xs uppercase tracking-widest text-muted-ink mb-1">Migrate</p>
+        <h1 className="font-display text-2xl font-normal text-ink mb-4">
+          Setting up your account
+        </h1>
+
+        {status && (
+          <p role="status" className="text-sm text-muted-ink mb-4">{status}</p>
+        )}
+
+        {appsToMerge && !isMerging && !errorMsg && (
+          <div className="mt-2">
+            <p className="text-ink font-medium mb-5">
+              We found {appsToMerge.length} saved application(s) on this browser &ndash; add them to your account?
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 border-t border-hairline pt-3.5">
+              <button
+                onClick={handleDelete}
+                className="btn-secondary rounded-ledger min-h-[44px] px-4 text-sm font-medium border-red-700 dark:border-red-500 text-red-700 dark:text-red-400 sm:order-first"
+              >
+                Not mine &ndash; delete it
+              </button>
+              <div className="flex flex-col sm:flex-row gap-3 sm:ml-auto">
+                <button
+                  onClick={handleSkip}
+                  className="btn-secondary rounded-ledger min-h-[44px] px-4 text-sm font-medium"
+                >
+                  Skip for now
+                </button>
+                <button
+                  onClick={handleMerge}
+                  className={`rounded-ledger min-h-[44px] px-4 text-sm font-medium ${intent === 'signup' ? 'btn-primary' : 'btn-secondary'}`}
+                >
+                  Yes, add them
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-      
-      {errorMsg && (
-        <div className="mt-4 p-4 bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 rounded-lg max-w-md text-sm mx-auto">
-          {errorMsg}
-        </div>
-      )}
+        )}
+
+        {errorMsg && (
+          <p role="status" className="mt-4 text-sm text-red-700 dark:text-red-400">
+            {errorMsg}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

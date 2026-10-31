@@ -4,7 +4,7 @@
 ```text
 app/
   (auth)/               → Login, signup, and shared auth layout
-  (protected)/          → Authenticated dashboard, new application flow, application detail (/applications/[id]), and settings
+  (protected)/          → Authenticated dashboard, new application flow, application detail (/applications/[id]), settings, onboarding, and migrate
   (legal)/              → Static legal pages (Terms & Conditions, Privacy Policy)
   api/
     extract/            → AI job-description extraction endpoint
@@ -13,10 +13,10 @@ app/
     cron/reminders/     → Scheduled follow-up email job (triggered via external cron-job.org)
     account/delete/     → Account deletion and storage cleanup
     applications/migrate/ → Endpoint for migrating local applications to Supabase
-  migrate/              → Interstitial page for local-to-cloud migration
 components/
   landing/              → Modular marketing landing page sections (LandingHeader, LandingHero, FlowDemo, DemoPanels, HowItWorks, PrivacyNotice, SiteFooter, OriginStory, landing.module.css)
   settings/             → Shared settings layout primitives (SettingsLayout.tsx: SettingsSection, SettingsGroup, SettingsRow, SettingsFooter, SettingsSaveButton)
+  onboarding/           → OnboardingBackdrop.tsx (faint 32px ruled grid decorative backdrop on --paper for onboarding flow)
   ui/                     Presentational primitives (Button.tsx, Chip.tsx, Panel.tsx, PageHeader.tsx, Field.tsx [variants: input, select, textarea, toggle], Alert.tsx)
   MobileNavMenu.tsx       Disclosure navigation menu on mobile screens
   ThemeToggle.tsx       → Dark/light mode toggle

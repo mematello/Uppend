@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -73,17 +73,17 @@ export default function LoginPage() {
 
   if (crossTabAuth) {
     return (
-      <div className="flex flex-col items-center text-center animate-in fade-in zoom-in duration-300">
-        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-6">
-          <CheckCircle2 className="w-8 h-8" />
+      <div className="flex flex-col items-center text-center">
+        <div className="w-12 h-12 border border-ink rounded-ledger flex items-center justify-center mb-5">
+          <Check className="w-5 h-5" strokeWidth={1.5} aria-hidden="true" />
         </div>
-        <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-zinc-100 mb-3">You&apos;re logged in!</h2>
-        <p className="text-gray-600 dark:text-zinc-400 mb-8">
+        <h2 className="text-2xl font-normal font-display text-ink mb-3">You&apos;re logged in!</h2>
+        <p className="text-muted-ink mb-8 text-sm">
           You successfully authenticated in another tab. You can safely close this tab or continue to your account.
         </p>
-        <Link 
-          href="/migrate?intent=login" 
-          className="w-full rounded btn-primary p-3 font-medium shadow-sm block text-center"
+        <Link
+          href="/migrate?intent=login"
+          className="btn-primary rounded-ledger min-h-[44px] w-full inline-flex items-center justify-center px-4 text-sm font-medium"
         >
           Continue to Dashboard
         </Link>
@@ -93,32 +93,43 @@ export default function LoginPage() {
 
   return (
     <>
-      <h1 className="mb-6 text-2xl font-bold font-display text-center text-gray-900 dark:text-zinc-100">Welcome Back</h1>
+      <p className="font-label text-xs uppercase tracking-widest text-muted-ink mb-1">Log In</p>
+      <h1 className="font-display text-2xl font-normal text-ink mb-1">Welcome Back</h1>
+      <p className="text-sm text-muted-ink mb-5">Enter your email to receive a magic link.</p>
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="rounded border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-2 w-full text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 focus-ink"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded btn-primary p-2 font-medium"
+        <div>
+          <label htmlFor="login-email" className="block text-sm font-medium text-ink mb-1">
+            Email
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full min-w-0 max-w-full rounded-ledger border border-field-border bg-card text-base text-ink placeholder:text-muted-ink focus-ink px-3 py-2"
+          />
+        </div>
+        <p
+          role="status"
+          className={`text-sm min-h-5 ${message ? (isError ? 'text-red-700 dark:text-red-400' : 'text-ink') : ''}`}
         >
-          {loading ? "Sending..." : "Send Magic Link"}
-        </button>
-      </form>
-      {message && (
-        <p className={`mt-4 text-center text-sm ${isError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
           {message}
         </p>
-      )}
-      <div className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-400">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 border-t border-hairline pt-3.5">
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary rounded-ledger min-h-[44px] sm:min-w-[176px] px-4 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {loading ? "Sending..." : "Send Magic Link"}
+          </button>
+        </div>
+      </form>
+      <div className="mt-5 text-sm text-muted-ink text-center">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium link-ink">
+        <Link href="/signup" className="link-ink font-medium">
           Sign up
         </Link>
       </div>
