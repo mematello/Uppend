@@ -2,7 +2,7 @@
 
 *This file is the single source of truth for "what's true right now." It is rewritten in place at the close of every session — not appended to. Resolved items are removed here and folded into changelog.md / decisions.md instead. See architecture.md / decisions.md / schema.md / changelog.md for anything not called out below as recently changed.*
 
-*Last updated: 2026-10-31 (Session 33 close)*
+*Last updated: 2026-10-31 (Session 34, redesign/terms-privacy merge pending)*
 
 ## 1. Confirmed working / shipped (Main branch)
 - **Auth + Onboarding + Migrate Redesign (merge `ff262e1`, pushed to `origin/main`)**: 8 branch commits on `redesign/auth-onboarding-migrate` (`6582516`..`4634a44`) merged into `main` via `--no-ff` at `ff262e1`. Presentational redesign of `app/(auth)/layout.tsx`, `app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`, `app/(protected)/onboarding/page.tsx`, `app/(protected)/migrate/page.tsx`, and `components/onboarding/OnboardingBackdrop.tsx`. Token-based layout, `rounded-ledger`, `btn-primary`/`btn-secondary` `min-h-[44px]`, eyebrows (LOG IN, SIGN UP, ONBOARDING, MIGRATE — no numbers), cross-tab ink-outline box replacing green circle with `<Check strokeWidth={1.5}>`, error states red not amber, split-rail onboarding with faint 32px ruled grid decorative backdrop on `--paper` using global `--hairline-subtle`, 3-bar mobile progress, and measured `min-h-[29rem] md:min-h-[27.5rem]` equal-height floor. Auth layout back control converted to icon-only `<Link>` (`aria-label="Back to home"`) left-aligned with card edge. Byte-identical logic hashes verified across all 4 pages against `main` (marker-based SHA-256). Pre-merge gate on branch tip `4634a44`: `tsc --noEmit` exit 0, ESLint net-zero (1 pre-existing warning: `'e' is defined but never used` in `onboarding/page.tsx:22:14`), 130/130 tests, build exit 0 (/onboarding 5.78 kB, First Load 194 kB), dead-class-scan 122 verified, 0 unexpected, contrast.mjs exit 0, class hygiene 0 banned classes, scope guard empty for dashboard, api, middleware, lib. Post-merge gate on main (owner PowerShell, HEAD `ff262e1`): `tsc --noEmit` exit 0, 11 test files / 130 tests passed, build exit 0 (/onboarding 5.78 kB, First Load 194 kB); dead-class-scan on post-merge tree: pending (the first attempt used a literal placeholder and did not run). Owner real-device pass (iOS Safari): owner reports all pages work completely; itemised checklist not recorded (UNVERIFIED). Production smoke test for login, signup, cross-tab, onboarding 1-3, migrate: pending. Equal onboarding card size: floor set to `min-h-[29rem] md:min-h-[27.5rem]` from measured tallest state (437px @1280, 457px @390, step 3 with extractionFailed + error visible); pre-change measurements exist (steps 1/2/3-bare 420px @1280; 380/385/380px @390); post-change Playwright measurements: UNVERIFIED; owner device-verified. Backdrop: the requirement "real dashboard behind onboarding" was DROPPED, not met; final = ruled-paper grid (`var(--hairline-subtle)`, 32px, `aria-hidden`, no DashboardClient); Phase 2 runtime gate (signed-in synthetic user on the real route) was not run as specified; fallback was chosen from source audit (two `fixed inset-0 z-10` layers in `DashboardClient` L314/L392, `LogoutButton` portal) plus an isolated-mount test that errored.
@@ -20,7 +20,12 @@
 - **Email & Streak Architecture**: Automated streak tracking, at-risk/loss notifications, 14-day inactivity re-engagement flow via action tokens, and Gmail SMTP delivery.
 
 ## 2. Open / blocking
-- **Remaining page redesigns, in order: terms+privacy, modals+cookie banner+empty/loading/error states**
+- **Terms + Privacy redesign on branch `redesign/terms-privacy` (tip `255771b` before this docs commit), NOT merged**: owner-terminal pre-merge gate (tsc, npm test, npm run build, dead-class-scan, clean tree) then `--no-ff` merge and push are pending; owner real-device pass (iOS Safari, both themes, /terms and /privacy, header, footer, cookie banner clearance) and production smoke test pending. After the merge, record the merge hash and move this item to section 1.
+- **Privacy section 5 gives no contact method**: the copy says to contact us without an address or link; needs owner/legal approval, not part of the redesign branch.
+- **Privacy section 1 renders backticks around `raw_jd` literally**: copy issue, left unchanged; needs approval to fix.
+- **`has_accepted_terms` appears only in test mocks**: tests/byok-routing.test.ts and tests/provider-timeout.test.ts mock `users` rows with it; no migration (Select-String over supabase/migrations returned no match) and schema.md does not list it. Decide whether to drop it from the mocks.
+- **Legal header adds the ThemeToggle client component**: /terms and /privacy First Load JS 128 kB to 129 kB.
+- **Remaining page redesigns, in order: modals+cookie banner+empty/loading/error states (terms+privacy is on branch redesign/terms-privacy, merge pending)**
 - **Production smoke test for auth, onboarding, and migrate**: Status: pending. Owner to test login, signup, cross-tab magic link detection, onboarding steps 1-3, and local-to-cloud migration in production.
 - **Production smoke test for Settings, iOS Safari light+dark, and onboarding uploader**: Status: pending.
 - **Production smoke test for application detail**: Status: pending. Owner real-device pass: owner reports the page works completely, itemised checklist not recorded (UNVERIFIED).
@@ -29,7 +34,7 @@
 - **Post-change onboarding card size measurements not captured**: While measured in Phase 1 before the floor change, post-change Playwright getBoundingClientRect measurements were not formally recorded in a report: UNVERIFIED; owner device-verified.
 - **Onboarding backdrop is ruled-paper by decision**: Requirement for "real dashboard behind onboarding" was dropped; final implementation uses a faint 32px ruled grid on `--paper` (`var(--hairline-subtle)`).
 - **Onboarding `catch (e)` unused variable warning**: In `app/(protected)/onboarding/page.tsx:22:14`, pre-existing warning `'e' is defined but never used` in `setDetectedTz` try/catch block remains (net-zero vs main).
-- **Dead-class-scan on post-merge tree pending**: Owner to run dead-class-scan on the post-merge tree on main (first attempt used a literal placeholder `<modified TSX files>` and did not run).
+- **Dead-class-scan on the Session 33 post-merge tree**: resolved by an agent-run scan in Session 34 (122 verified, 0 unexpected, 6 files, exit 0); owner-terminal re-run not recorded.
 - **Owner terminal for gates is Windows PowerShell**: Node_modules and verification scripts are Windows-installed; running from WSL bash causes false positive dead-class errors and most likely a file-mode or line-ending difference (cause not investigated).
 - **`handleModelChange` ignores Supabase error**: In `SettingsClient.tsx`, `handleModelChange` catches Supabase profile update errors silently without notifying the user or rolling back state (pre-existing behavior).
 - **Daily goal `onChange` snap to 1**: In `SettingsClient.tsx`, daily goal input uses `parseInt(e.target.value) || 1` so clearing the field snaps immediately to 1 (pre-existing behavior).
@@ -47,7 +52,7 @@
 - **Old modals pending redesign**: `UnsavedChangesModal` and `ResumePreviewModal` retain legacy styling with dead `animate-in` classes; scheduled for the modals/shared states group.
 - **Alert success tone currently unused**: Neutral ink tint implemented in `Alert.tsx` is currently unreferenced in application markup across `/new`, `/applications/[id]`, and `/settings` (save bar and panel toasts use plain text or status lines).
 - **History-aware back navigation `history.length` caveat**: `resolveBackNavigation` navigates back when clean and `window.history.length > 1`, which may navigate externally if `/new` was opened directly in an existing browser tab.
-- **Pre-existing dead plugin classes outside the dashboard/detail/settings (login/signup/migrate/UnsavedChangesModal animate-in/fade-in/zoom-in; privacy/terms prose) are deleted per page branch, not installed**
+- **Pre-existing dead plugin classes outside the dashboard/detail/settings (login/signup/migrate/UnsavedChangesModal animate-in/fade-in/zoom-in) are deleted per page branch, not installed (terms/privacy prose removed on redesign/terms-privacy, merge pending)**
 - **Heatmap month nav buttons show faded (not hidden) at the first/last month**
 - **Dashboard is no longer purely presentational: sortable Fit is an owner-approved logic exception, see decisions.md**
 - **AGENTS.md output-discipline rule added**
@@ -74,7 +79,7 @@
 ## 3. Next steps, priority order
 
 1. **Owner smoke checklist (/new, application detail, Settings, onboarding uploader, Session 28-33 items)**: Owner to run the checklist (both themes, mobile, footer links, sign-up/log-in, Local Mode, account mode, `/new` create/extract flows, application detail edit/save/delete flows, Settings forms/exports/danger zone, onboarding uploader, migrate) and record the result.
-2. **Next redesign: terms + privacy**: Legal static pages redesign (`app/(legal)/terms/page.tsx`, `app/(legal)/privacy/page.tsx`, `app/(legal)/layout.tsx`). Step 0 inventory first; legal copy must not change; "draft pending legal review" banner retained.
+2. **Finish terms + privacy**: owner-terminal merge gate, `--no-ff` merge, push, real-device pass, then a small docs commit recording the merge hash.
 3. **Then modals + cookie banner + empty/loading/error states**: Restyle `UnsavedChangesModal`, `ResumePreviewModal`, CookieConsentBanner, and global state boundaries.
 4. **Maintenance list unchanged**:
    - Remove `seed_and_test.js` on its own branch.

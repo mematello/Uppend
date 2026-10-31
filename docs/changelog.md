@@ -1,5 +1,22 @@
 # Uppend — Changelog
 
+## [2026-10-31] (Session 34)
+- Implemented: Terms + Privacy redesign on branch `redesign/terms-privacy` (5 code commits on top of `main` at `483e979`; NOT merged at the time of writing, the merge is owner-gated):
+  - `d036c70` feat(legal): ledger shell, icon-only back and legal footer
+  - `ea096e3` fix(legal): align header with landing and dashboard pattern
+  - `747b4f7` feat(legal): redesign terms page
+  - `ccada39` feat(legal): hard-code terms last-updated date
+  - `255771b` feat(legal): redesign privacy page
+  - Only app/(legal)/layout.tsx, terms/page.tsx and privacy/page.tsx changed; scope guard empty for api, middleware, lib, protected, auth, components. Direction A, LEGAL eyebrow, hairline draft notice replacing the yellow box, prose removed, notice moved after the date, Terms date hard-coded, ThemeToggle added to the legal header.
+- Fixed/Resolved: Session 33 post-merge dead-class-scan (agent-run in Windows PowerShell, Session 34 Group 0 step 7 on the build of main 483e979, files from ff262e1): 122 verified classes, 6 files, 0 unexpected, exit 0. Owner-terminal re-run not recorded. `git rev-parse HEAD` and `git rev-parse origin/main` both returned 483e979570084c3439e2f52cde6c69c31bd1af0b (local remote-tracking ref; no fetch recorded).
+- Verified (agent reports, Windows PowerShell, branch tip `255771b`): tsc --noEmit exit 0; 11 test files / 130 tests passed; build exit 0 with /terms and /privacy static (0 B route, 129 kB First Load, previously 128 kB); ESLint exit 0 on the three legal files (baseline on main also 0); dead-class-scan on the three files 81 verified, 0 unexpected; contrast.mjs exit 0 with unchanged report SHA256 24AB98EC...B8BA; copy gate: Terms TAIL, Privacy TAIL/FULL (pre-change) hashes matched, head literals matched, tags 24 (terms) and 40 (privacy) matched expected sequences. Owner-terminal pre-merge gate: pending. Owner reports the legal pages look good on the local render; real-device pass and itemised checklist not recorded (UNVERIFIED). Production smoke test: pending.
+- Note (process incidents this session):
+  (a) the planning chat specified the first legal header (d036c70) without reading LandingHeader.tsx and dashboard/page.tsx; found by the owner, fixed in ea096e3;
+  (b) the Group 3 head-literal comparison used an ASCII hyphen where the source has an em-dash (console encoding); the page was correct, the planning-chat literal was wrong;
+  (c) the Step 0 report counted lines with Measure-Object -Line (excludes blank lines) and cited a heading at a line number beyond that count, and its hydration-mismatch claim for the Terms date was unverified (the pages are server components; the date was baked at build time);
+  (d) the Group 4 and Group 5 reports contained hand-written "=== N ===" headers, "# Output:" lines and "(empty)" / "(git status clean)" placeholders inside verification blocks, against the output-discipline rule;
+  (e) the planning-chat banned-class pattern included font-semibold, which matches the intended wordmark in layout.tsx.
+
 ## [2026-10-31] (Session 33)
 - Implemented: Auth + onboarding + migrate presentational redesign (merge `ff262e1` into `main` via `--no-ff`, branch `redesign/auth-onboarding-migrate` pushed to `origin/main`):
   - `app/(auth)/layout.tsx`: token-based shell (`bg-paper`, `bg-card`, `border-hairline`, `rounded-ledger`), icon-only back control (`btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2 mb-4`, `<ArrowLeft className="w-4 h-4" aria-hidden="true" />`, `aria-label="Back to home"`, no visible text, no title attribute) left-aligned with card edge (`85608b2`).

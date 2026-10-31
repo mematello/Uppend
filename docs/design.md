@@ -1,6 +1,6 @@
 # Uppend — Design Language & Visual System
 
-*Single source of truth for Uppend's visual language established in Session 28, extended in Session 29, and updated in Session 32 (Settings redesign). Future UI development—including the full redesign of application pages—must follow these tokens, components, and rules.*
+*Single source of truth for Uppend's visual language established in Session 28, extended in Session 29, updated in Session 32 (Settings redesign), and extended in Session 33 (auth/onboarding/migrate) and Session 34 (terms/privacy). Future UI development—including the full redesign of application pages—must follow these tokens, components, and rules.*
 
 ---
 
@@ -62,7 +62,7 @@ Values extracted from `app/globals.css:6-33` and `components/landing/landing.mod
   - `muted` on `card`: **7.36:1** (light) / **7.36:1** (dark)
   - `on-accent` on `accent`: **14.57:1**
 - **Buttons**: Ink-filled (`bg-[var(--ink)] text-[var(--paper)]`) with chartreuse hover (`hover:bg-[var(--accent)] hover:text-[#121212]`).
-- **Functional Colors**: Red is strictly reserved for errors, validation, destructive actions, Rejected chip (`.chip-rejected`), error alerts, and error toasts (`text-red-700 dark:text-red-400`); green is strictly reserved for the positive Offer chip (`.chip-offer`) and nowhere else in the application; chartreuse accent (`#D4F03C`) is reserved for primary interactive hover/focus, active Applied status (`.chip-applied`), and AI suggestions (`.ai-suggested`); amber is prohibited across authenticated surfaces.
+- **Functional Colors**: Red is strictly reserved for errors, validation, destructive actions, Rejected chip (`.chip-rejected`), error alerts, and error toasts (`text-red-700 dark:text-red-400`); green is strictly reserved for the positive Offer chip (`.chip-offer`) and nowhere else in the application; chartreuse accent (`#D4F03C`) is reserved for primary interactive hover/focus, active Applied status (`.chip-applied`), and AI suggestions (`.ai-suggested`); amber and yellow are prohibited on authenticated and legal surfaces.
 - **Success Notifications**: Success alerts use a neutral ink tint (`border-ink` with `bg-[color-mix(in_srgb,var(--ink)_10%,transparent)]` and `text-ink`) or plain ink text rather than green, aligning positive confirmation with the editorial ledger identity.
 - **Partial Fills Behind Text**: Use an ink tint (`color-mix(in srgb, var(--ink) 10%, transparent)`), never chartreuse, except `.ai-suggested` (~25% accent tint with dark ink border and text).
 
@@ -402,13 +402,13 @@ Purely decorative ruled-paper backdrop. `aria-hidden="true"`, `absolute inset-0 
 
 ---
 
-## 15. Known Gaps (IMPLEMENTED list)
+## 16. Known Gaps (IMPLEMENTED list)
 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
 - **Cookie Banner Mobile Clearance**: Fixed CookieConsentBanner mobile clearance above footer is estimated and unmeasured on small viewports.
-- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, Settings on `redesign/settings`, and auth/onboarding/migrate on `redesign/auth-onboarding-migrate` have been migrated to `rounded-ledger` / `rounded-sm`; remaining pages (terms/privacy, modals, cookie banner) pending.
-- **Dead Plugin Classes**: References to `animate-in`, `fade-in` removed from auth, migrate, and onboarding pages. Remaining references in `UnsavedChangesModal`, `ResumePreviewModal` (scheduled for modals redesign pass). `prose` class remains while `@tailwindcss/typography` is not in `package.json`.
+- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, Settings on `redesign/settings`, and auth/onboarding/migrate on `redesign/auth-onboarding-migrate` have been migrated to `rounded-ledger` / `rounded-sm`; terms/privacy on redesign/terms-privacy (merge pending); remaining pages (modals, cookie banner) pending.
+- **Dead Plugin Classes**: References to `animate-in`, `fade-in` removed from auth, migrate, and onboarding pages. Remaining references in `UnsavedChangesModal`, `ResumePreviewModal` (scheduled for modals redesign pass). `prose` and `prose-invert` are removed from the legal pages on redesign/terms-privacy (merge pending).
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
 - **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.
@@ -427,7 +427,7 @@ Purely decorative ruled-paper backdrop. `aria-hidden="true"`, `absolute inset-0 
 
 ---
 
-## 16. File Map (IMPLEMENTED)
+## 17. File Map (IMPLEMENTED)
 
 All paths verified via `git ls-files`:
 
@@ -471,6 +471,11 @@ All paths verified via `git ls-files`:
   - `components/ClearLocalDataButton.tsx` (IndexedDB local wipe trigger)
   - `lib/utils/message-tone.ts` (`messageTone` helper for toast tone resolution)
   - `lib/utils/dropzone-state.ts` (`getDropzoneState` helper for resume uploader dropzone styling)
+- **Legal (/terms, /privacy)**:
+  - `app/(legal)/layout.tsx`
+  - `app/(legal)/terms/page.tsx`
+  - `app/(legal)/privacy/page.tsx`
+  - `components/ThemeToggle.tsx` (used by the legal header)
 - **Tooling**:
   - `scripts/ui-checks/contrast.mjs` (WCAG contrast checker for all token pairs including heatmap tile ramp Groups A–D)
   - `scripts/ui-checks/dead-class-scan.mjs` (scans TSX class strings against compiled CSS chunks)
@@ -483,7 +488,7 @@ All paths verified via `git ls-files`:
 
 ---
 
-## 17. Settings (/settings): Split-Rail Panels (IMPLEMENTED on redesign/settings)
+## 18. Settings (/settings): Split-Rail Panels (IMPLEMENTED on redesign/settings)
 
 The `/settings` view implements a split-rail panel layout:
 
@@ -517,3 +522,20 @@ The `/settings` view implements a split-rail panel layout:
   - Three-option segmented control in order `Light`, `Dark`, `System` styled with `rounded-ledger border border-field-border bg-card` with active segment highlighted via `bg-ink text-paper`.
 - **Loading Skeleton**:
   - Server component `app/(protected)/settings/loading.tsx` providing token-based placeholder blocks (`animate-pulse bg-[color-mix(in_srgb,var(--ink)_10%,transparent)] rounded-ledger`).
+
+---
+
+## 19. Legal Pages (/terms, /privacy) (IMPLEMENTED on redesign/terms-privacy, merge pending)
+
+- **Direction A (Document)**: Single editorial column; eyebrow LEGAL has no number (pre-auth/legal rule).
+- **Shell (`app/(legal)/layout.tsx`)**: Root `"min-h-screen flex flex-col bg-paper text-ink font-sans"`.
+- **Header = landing/dashboard pattern**: `"w-full border-b border-hairline px-4 sm:px-8 py-3.5"` > `"max-w-7xl mx-auto flex flex-row items-center justify-between gap-2"`; brand on the left (`"flex items-center gap-2.5 min-h-[44px] shrink-0 focus-ink"`, aria-label `"Uppend Home"`, 28px logo `"rounded-sm object-contain"` with priority, wordmark `"text-lg font-semibold tracking-tight text-ink font-label"`); right nav aria-label `"Site"` holds `ThemeToggle` in a 44px wrapper; no Log in / Sign up links.
+- **Back control**: Icon-only `btn-secondary` pattern (aria-label `"Back to home"`, href `"/"`, plain `Link`, not history-aware) in a `"w-full max-w-[680px] mx-auto px-5 sm:px-16 pt-6"` row between header and main.
+- **Main**: `"flex-1 w-full max-w-[680px] mx-auto px-5 sm:px-16 pt-6 sm:pt-8 pb-12"` (about 67 characters per line at 16px).
+- **Footer**: `"border-t border-hairline"` with nav aria-label `"Legal"` (`"max-w-[680px] mx-auto px-5 sm:px-16 pt-4 pb-24 flex flex-wrap items-center gap-x-6"`) holding three links (Terms of Service, Privacy Policy, Home) styled `"link-ink font-label text-xs uppercase tracking-wider inline-flex items-center min-h-[44px]"`. Static links, no current-page marking, no `usePathname`. pb-24 (96px) is clearance for the fixed `CookieConsentBanner`. The full `SiteFooter` is intentionally NOT used on legal pages.
+- **Document elements**: Eyebrow `"font-label text-xs uppercase tracking-widest text-muted-ink"`; h1 `"font-display text-4xl sm:text-5xl font-normal leading-[1.1] mt-2 mb-3"`; last-updated `"font-label text-xs tracking-wider text-muted-ink mb-6"`; draft notice wrapper `"border border-field-border bg-card rounded-ledger p-4 mb-6"` with inner p `"text-sm leading-normal text-ink"` (hairline card, NOT yellow); section `"border-t border-hairline py-7"`; h2 `"font-display text-xl sm:text-2xl font-normal mb-2.5"`; body p `"text-base leading-relaxed"`; ul `"list-disc pl-5 space-y-2 marker:text-muted-ink text-base leading-relaxed"` (the ul that follows an introductory paragraph adds `"mt-3"`); li and strong carry no classes; inline external links keep `"link-ink"`.
+- **Order**: Eyebrow, h1, last-updated, notice, sections (the notice moved below the date; its text is unchanged).
+- **Dates are hard-coded strings**: Terms `"September 10, 2026"` (basis: commit ce9b8c8, the rebrand that changed the body text; the later theme commit 88be739 was class-only), Privacy `"October 3, 2026"`. Update a date only when the legal text changes.
+- **Legal copy is frozen**: Any wording change needs explicit owner approval and a date update. Presentational changes are gated by a text-extraction hash of the prerendered `<main>` (tail hash from the first `<section>`, head literals, tag sequence).
+- **Not used on legal pages**: prose, yellow, shadow, gray/zinc utilities, uppercase wordmark.
+- **Mobile and dark frames were not previewed in the Design canvas**: Verify both themes in the device pass.

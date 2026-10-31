@@ -5,7 +5,7 @@
 app/
   (auth)/               → Login, signup, and shared auth layout
   (protected)/          → Authenticated dashboard, new application flow, application detail (/applications/[id]), settings, onboarding, and migrate
-  (legal)/              → Static legal pages (Terms & Conditions, Privacy Policy)
+  (legal)/              → Static legal pages (Terms & Conditions, Privacy Policy) under a shared ledger shell layout (landing-pattern header with ThemeToggle, icon-only back control, minimal legal footer)
   api/
     extract/            → AI job-description extraction endpoint
     match/              → AI resume-fit analysis endpoint (Billing rides on extract)
