@@ -152,7 +152,7 @@ export default function OnboardingPage() {
           </div>
 
           {/* Main content column */}
-          <div className="flex flex-col min-h-[380px] md:min-h-[420px] p-5">
+          <div className="flex flex-col min-h-[29rem] md:min-h-[27.5rem] p-5">
             <h1
               id="onboarding-heading"
               className="font-display text-2xl font-normal text-ink mb-1"
