@@ -92,8 +92,6 @@ export default function OnboardingPage() {
     }
   };
 
-  const STEPS = ['Name', 'Reminder time', 'Resume'];
-
   return (
     <div className="relative min-h-dvh flex items-center justify-center p-4 sm:p-6 bg-paper">
       <OnboardingBackdrop />
@@ -109,7 +107,7 @@ export default function OnboardingPage() {
           <div className="hidden md:flex flex-col border-r border-hairline p-5">
             <p className="font-label text-xs uppercase tracking-widest text-muted-ink mb-4">Onboarding</p>
             <ul className="space-y-0">
-              {STEPS.map((label, i) => {
+              {['Name', 'Reminder time', 'Resume'].map((label, i) => {
                 const stepNum = i + 1;
                 const isActive = step === stepNum;
                 const isDone = step > stepNum;
