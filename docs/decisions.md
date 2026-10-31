@@ -832,3 +832,22 @@
   - Measured bare states: Steps 1, 2, and 3-bare measured ~420px at 1280px and 380px–385px at 390px.
   - Spare space cost: Setting the floor to Option (a) leaves ~20px of spare vertical space on desktop and ~80px on mobile on Steps 1, 2, and 3-bare before user interaction. This spare space is absorbed by `flex-1` body and `mt-auto` footer, keeping the action buttons pinned consistently at the bottom of the card across all steps.
 
+
+## [2026-10-31] Terms + privacy redesign (Session 34) - Document layout, legal shell and footer
+- Context: Redesigning app/(legal) (layout, terms, privacy) with the per-page loop (Step 0 and 0b inventories, two Design previews A and B, owner picked A).
+- Decision: Direction A (single editorial column, about 67 characters per line, hairline between sections). A minimal static legal footer (Terms of Service, Privacy Policy, Home) was added in the layout instead of the full SiteFooter, because Terms section 3 refers to the Privacy Policy but neither page linked to the other, and the full SiteFooter carries creator and feedback content that is noise on a document page. The footer holds the 96px cookie-banner clearance. Back destination stays "/" with a plain Link (a history-aware back would be a logic exception and history.length can leave the site). ThemeToggle was added to the legal header so a visitor can switch theme on these pages.
+- Schema change: none. Protected routes untouched.
+
+## [2026-10-31] Terms + privacy redesign (Session 34) - header correction
+- Context: The first shell commit (d036c70) put the back button left and the brand right, used a uppercase tracking-widest wordmark and a full-width container. That layout was invented by the planning chat from a one-line grep without reading LandingHeader.tsx or dashboard/page.tsx, and no gate checks visual consistency.
+- Decision: Follow-up commit ea096e3 copies the landing/dashboard header pattern (brand left, max-w-7xl container, text-lg font-semibold tracking-tight font-label wordmark, ThemeToggle right) and moves the icon-only back control into its own row above the content column. The earlier commit was not amended (no history rewrites).
+- Cost: First Load JS for /terms and /privacy went from 128 kB (Group 2) to 129 kB (Group 2b), which coincided with adding the ThemeToggle client component.
+
+## [2026-10-31] Terms + privacy redesign (Session 34) - Terms "Last Updated" hard-coded (owner-approved logic exception)
+- Context: terms/page.tsx rendered {new Date().toLocaleDateString()} on a statically prerendered page, so the displayed date was the build date and changed on every deploy without any change to the terms. Privacy already used a hard-coded date.
+- Decision: Replaced with the literal "September 10, 2026" in its own commit (ccada39). Basis: git log for the file shows ce9b8c8 (rebrand, 2026-09-10) changed body text, and the diff ce9b8c8 to 88be739 (theme, 2026-10-22) changed only the h1 className. Dates change only when legal text changes.
+
+## [2026-10-31] Terms + privacy redesign (Session 34) - copy-parity gate and content order
+- Decision: Legal copy must not change. Gate = text extraction of the prerendered <main> from .next/server/app/{terms,privacy}.html (strip comments and tags, HtmlDecode, collapse whitespace): tail hash from the first <section> must equal the pre-change baseline (terms 1A9DB50D...B4BF, privacy 750DFA1F...768E); head literals compared as strings; ordered tag sequence compared (terms 23 to 24 tags, privacy 39 to 40, the only addition being the LEGAL eyebrow). The draft notice moved from before the h1 to after the Last Updated line (text unchanged), and a LEGAL eyebrow was added as the only new text node; a DRAFT tag shown in the Design preview was dropped because it would add text.
+- Note: the planning chat typed an ASCII hyphen where the source has an em-dash in the notice; the console renders it as "-". Gates build the dash as [char]0x2014 and never type it.
+- Known copy issues left unchanged (need owner or legal approval, not this branch): privacy section 1 renders backticks around raw_jd literally; privacy section 5 says to contact us but gives no contact method.
