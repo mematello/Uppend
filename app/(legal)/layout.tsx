@@ -8,23 +8,58 @@ export default function LegalLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-100 font-sans">
-      <header className="px-4 py-6 border-b border-gray-200 dark:border-zinc-800">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-start">
-            <Image src="/images/uppend-logo.jpg" alt="Uppend Logo" width={32} height={32} className="rounded-md object-contain shadow-sm" />
-            <span className="text-xl font-bold text-black dark:text-white">
+    <div className="min-h-screen flex flex-col bg-paper text-ink font-sans">
+      <header className="border-b border-hairline">
+        <div className="flex items-center justify-between gap-4 px-5 sm:px-16 py-4">
+          <Link
+            href="/"
+            className="btn-secondary rounded-ledger min-h-[44px] min-w-[44px] inline-flex items-center justify-center p-2"
+            aria-label="Back to home"
+          >
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+          </Link>
+          <Link href="/" className="inline-flex items-center gap-2.5 min-h-[44px] focus-ink">
+            <Image
+              src="/images/uppend-logo.jpg"
+              alt="Uppend Logo"
+              width={28}
+              height={28}
+              className="rounded-sm object-contain"
+            />
+            <span className="font-label text-sm uppercase tracking-widest text-ink">
               Uppend
             </span>
           </Link>
-          <Link href="/" className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back to Home
-          </Link>
         </div>
       </header>
-      <main className="max-w-3xl mx-auto px-4 py-12 pb-24">
+      <main className="flex-1 w-full max-w-[680px] mx-auto px-5 sm:px-16 pt-10 sm:pt-14 pb-12">
         {children}
       </main>
+      <footer className="border-t border-hairline">
+        <nav
+          aria-label="Legal"
+          className="max-w-[680px] mx-auto px-5 sm:px-16 pt-4 pb-24 flex flex-wrap items-center gap-x-6"
+        >
+          <Link
+            href="/terms"
+            className="link-ink font-label text-xs uppercase tracking-wider inline-flex items-center min-h-[44px]"
+          >
+            Terms of Service
+          </Link>
+          <Link
+            href="/privacy"
+            className="link-ink font-label text-xs uppercase tracking-wider inline-flex items-center min-h-[44px]"
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/"
+            className="link-ink font-label text-xs uppercase tracking-wider inline-flex items-center min-h-[44px]"
+          >
+            Home
+          </Link>
+        </nav>
+      </footer>
     </div>
   );
 }
