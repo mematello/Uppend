@@ -7,7 +7,7 @@ This manifest tracks the repository's documentation files (the memory layer), th
 | :--- | :--- | :--- | :--- |
 | `README.md` | Main project entry point and setup instructions. | ~2,959 | 2026-10-04 (Session 24) |
 | `AGENTS.md` | System prompt rules and constraints for AI agents. | ~946 | 2026-10-23 (Session 29 close) |
-| `docs/current_state.md` | Single source of truth for current project status and active tasks. | ~6,100 | 2026-10-31 (Session 34 close) |
+| `docs/current_state.md` | Single source of truth for current project status and active tasks. | ~6,205 | 2026-10-31 (Session 34 close) |
 | `docs/manifest.md` | This file; index and token budget of all documentation. | ~522 | 2026-10-31 (Session 34 close) |
 | `docs/project_overview.md` | High-level summary of the product and its goals. | ~355 | 2026-08-25 |
 | `docs/architecture.md` | System architecture, tech stack, and core patterns. | ~3,305 | 2026-10-31 (Session 34) |
