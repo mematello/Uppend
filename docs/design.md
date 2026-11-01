@@ -407,8 +407,8 @@ Purely decorative ruled-paper backdrop. `aria-hidden="true"`, `absolute inset-0 
 - **Token Duplication**: Color tokens are declared in both `components/landing/landing.module.css` (`--landing-*`) and `app/globals.css` (`--*`). Unify into `globals.css` as single source.
 - **Landing Hardcoded Literals**: In `components/landing/DemoPanels.tsx` and `landing.module.css`, `#121212` is hardcoded for text on `--landing-accent` buttons instead of referencing `var(--on-accent)`.
 - **Cookie Banner Mobile Clearance**: Fixed CookieConsentBanner mobile clearance above footer is estimated and unmeasured on small viewports.
-- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, Settings on `redesign/settings`, and auth/onboarding/migrate on `redesign/auth-onboarding-migrate` have been migrated to `rounded-ledger` / `rounded-sm`; terms/privacy on redesign/terms-privacy (merge pending); remaining pages (modals, cookie banner) pending.
-- **Dead Plugin Classes**: References to `animate-in`, `fade-in` removed from auth, migrate, and onboarding pages. Remaining references in `UnsavedChangesModal`, `ResumePreviewModal` (scheduled for modals redesign pass). `prose` and `prose-invert` are removed from the legal pages on redesign/terms-privacy (merge pending).
+- **App Radii Inconsistency**: Most authenticated pages still use legacy `rounded-lg`, `rounded-xl`, `rounded-2xl`. Dashboard components on `redesign/dashboard`, application detail on `redesign/application-detail`, Settings on `redesign/settings`, and auth/onboarding/migrate on `redesign/auth-onboarding-migrate` have been migrated to `rounded-ledger` / `rounded-sm`; terms/privacy on redesign/terms-privacy; remaining pages (modals, cookie banner) pending.
+- **Dead Plugin Classes**: References to `animate-in`, `fade-in` removed from auth, migrate, and onboarding pages. Remaining references in `UnsavedChangesModal`, `ResumePreviewModal` (scheduled for modals redesign pass). `prose` and `prose-invert` are removed from the legal pages on redesign/terms-privacy.
 - **Unused Hero Video Asset**: `public/videos/uppend-vid-demo.mp4` (~4.65 MB) remains in the repository after landing redesign.
 - **Missing `metadataBase` & OG Image**: Next.js logs build warnings regarding unconfigured `metadataBase`, and OG images are pending creation.
 - **Heatmap tile contrast (Group D)**: `scripts/ui-checks/contrast.mjs` evaluates all five tile levels (0–4) and the today-ring against `--card`; results are informational — no failing pair found at the chosen opacity ladder, but values should be re-verified if the tile ramp changes.
@@ -525,7 +525,7 @@ The `/settings` view implements a split-rail panel layout:
 
 ---
 
-## 19. Legal Pages (/terms, /privacy) (IMPLEMENTED on redesign/terms-privacy, merge pending)
+## 19. Legal Pages (/terms, /privacy) (IMPLEMENTED on redesign/terms-privacy)
 
 - **Direction A (Document)**: Single editorial column; eyebrow LEGAL has no number (pre-auth/legal rule).
 - **Shell (`app/(legal)/layout.tsx`)**: Root `"min-h-screen flex flex-col bg-paper text-ink font-sans"`.
